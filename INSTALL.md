@@ -56,9 +56,17 @@ npm install
 
 ### 3. Run it
 
+- **Bootstrap local web+api dev prerequisites (deps + db):**
+  ```bash
+  npm run bootstrap
+  ```
 - **Try it live (dev window with hot reload):**
   ```bash
   npm run app:dev
+  ```
+- **Start web + Rails API together (non-Tauri flow):**
+  ```bash
+  npm run start
   ```
 - **Build the installable app:**
   ```bash
