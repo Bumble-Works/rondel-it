@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react'
+import type { ReactNode, SVGProps } from 'react'
 
 export type IconName =
   | 'note'
@@ -24,7 +24,7 @@ export type IconName =
   | 'repeat'
   | 'filter'
 
-const PATHS: Record<IconName, React.ReactNode> = {
+const PATHS: Record<IconName, ReactNode> = {
   note: <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v6.7a1.5 1.5 0 0 1-.44 1.06l-3.3 3.3a1.5 1.5 0 0 1-1.06.44H5.5A1.5 1.5 0 0 1 4 15.5v-10Zm7.5 10.9V13a1 1 0 0 1 1-1h3.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
   'note-filled': (
     <>

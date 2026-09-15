@@ -7,6 +7,7 @@ import {
   formatDayLabel,
   formatMonthLabel,
   formatShort,
+  fromIso,
   isToday,
   nowInZone,
   relativeDayLabel,
@@ -61,6 +62,7 @@ const STATUS_COLOR: Record<TaskStatus, string> = {
   done: 'var(--status-done)',
   canceled: 'var(--faint)',
 }
+const FILTERABLE_STATUSES: TaskStatus[] = ['todo', 'doing', 'done']
 
 const BUCKET_DEFS: Array<[keyof Buckets, string, string]> = [['bucket-list', 'Bucket List', 'Someday']]
 
@@ -273,7 +275,7 @@ function App() {
     setActiveStatuses((prev) => {
       const next = prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
       // Selecting every status is the same as "All statuses".
-      return next.length === Object.keys(STATUS_LABEL).length ? [] : next
+      return next.length === FILTERABLE_STATUSES.length ? [] : next
     })
   const resetStatuses = () => setActiveStatuses([])
   const toggleTagFilter = (id: string) =>
@@ -375,7 +377,7 @@ function App() {
     return {
       key: iso,
       kind: 'day',
-      title: relativeDayLabel(iso) ?? weekdayName(new Date(iso).getDay()),
+      title: relativeDayLabel(iso) ?? weekdayName(fromIso(iso).getDay()),
       eyebrow: formatShort(iso),
       highlight: isToday(iso),
       defaultCollapsed: view !== 'day' && todayInRange && iso > today,
@@ -448,7 +450,7 @@ function App() {
           : true
 
   const title =
-    view === 'day' ? (relativeDayLabel(anchorDate) ?? weekdayName(new Date(anchorDate).getDay())) : VIEW_TITLE[view]
+    view === 'day' ? (relativeDayLabel(anchorDate) ?? weekdayName(fromIso(anchorDate).getDay())) : VIEW_TITLE[view]
   const subtitle =
     view === 'day'
       ? formatDayLabel(anchorDate)

@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import './Menu.css'
 
 interface MenuProps {
   /** Render the trigger. Receives props to spread onto a button. */
-  trigger: (props: { onClick: (e: React.MouseEvent) => void; 'aria-expanded': boolean }) => ReactNode
+  trigger: (props: { onClick: (e: ReactMouseEvent) => void; 'aria-expanded': boolean }) => ReactNode
   children: (close: () => void) => ReactNode
   align?: 'left' | 'right'
 }

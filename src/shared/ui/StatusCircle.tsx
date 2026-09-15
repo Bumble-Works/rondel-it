@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { TaskStatus } from '../../domain/types'
 import './StatusCircle.css'
 
@@ -33,8 +34,8 @@ export function StatusCircle({
   const style = {
     width: size,
     height: size,
-    ...(accent ? ({ '--circle-accent': accent } as React.CSSProperties) : {}),
-  } as React.CSSProperties
+    ...(accent ? ({ '--circle-accent': accent } as CSSProperties) : {}),
+  } as CSSProperties
 
   if (presentational) {
     return (

@@ -1,3 +1,4 @@
+import type { CSSProperties, KeyboardEvent } from 'react'
 import './TagChip.css'
 
 interface TagChipProps {
@@ -12,7 +13,7 @@ interface TagChipProps {
 export function TagChip({ name, color, size = 'md', onRemove, onClick, active }: TagChipProps) {
   const style = {
     '--chip-color': color,
-  } as React.CSSProperties
+  } as CSSProperties
 
   const interactive = Boolean(onClick)
 
@@ -21,6 +22,13 @@ export function TagChip({ name, color, size = 'md', onRemove, onClick, active }:
       className={`chip chip--${size} ${interactive ? 'chip--interactive' : ''} ${active ? 'chip--active' : ''}`.trim()}
       style={style}
       onClick={onClick}
+      onKeyDown={(e: KeyboardEvent<HTMLSpanElement>) => {
+        if (!interactive) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onClick?.()
+        }
+      }}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}
     >

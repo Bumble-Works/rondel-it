@@ -8,6 +8,16 @@ function bad(payload: unknown): Response {
   return { ok: false, json: async () => payload } as Response
 }
 
+function noContent(): Response {
+  return {
+    ok: true,
+    status: 204,
+    json: async () => {
+      throw new Error('no body')
+    },
+  } as unknown as Response
+}
+
 function taskPayload(id: string, tagIds: string[] = []): Record<string, unknown> {
   return {
     id,
@@ -51,7 +61,7 @@ describe('railsDataSource', () => {
       .mockResolvedValueOnce(ok({ task: taskPayload('1') })) // advance
       .mockResolvedValueOnce(ok({ task: taskPayload('1') })) // set status
       .mockResolvedValueOnce(ok({ task: taskPayload('1') })) // move
-      .mockResolvedValueOnce(ok({ ok: true })) // delete
+      .mockResolvedValueOnce(noContent()) // delete
     vi.stubGlobal('fetch', fetchMock)
 
     await railsDataSource.createTask({
