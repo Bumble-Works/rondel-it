@@ -1,0 +1,47 @@
+.inline-add {
+  display: flex;
+  align-items: center;
+  gap: 0.62rem;
+  padding: 0.36rem 0.56rem;
+  border-radius: var(--r-md);
+  transition: background var(--dur) var(--ease);
+}
+
+.inline-add:hover,
+.inline-add.is-active {
+  background: var(--surface-2);
+}
+
+.inline-add-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--faint);
+  transition: color var(--dur) var(--ease);
+}
+
+.inline-add:hover .inline-add-icon,
+.inline-add.is-active .inline-add-icon {
+  color: var(--brand);
+}
+
+.inline-add-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0;
+}
+
+.inline-add-input::placeholder {
+  color: var(--faint);
+  font-weight: 500;
+}
+
+.inline-add-input:focus {
+  outline: none;
+}

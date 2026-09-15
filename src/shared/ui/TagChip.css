@@ -1,0 +1,63 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--chip-color) 12%, var(--surface));
+  color: color-mix(in srgb, var(--chip-color) 62%, var(--ink));
+  border: 1px solid color-mix(in srgb, var(--chip-color) 22%, transparent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.chip--sm {
+  padding: 0.12rem 0.45rem;
+  font-size: 0.7rem;
+}
+
+.chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  flex: none;
+}
+
+.chip--interactive {
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+
+.chip--interactive:hover {
+  background: color-mix(in srgb, var(--chip-color) 20%, var(--surface));
+}
+
+.chip--active {
+  background: color-mix(in srgb, var(--chip-color) 26%, var(--surface));
+  border-color: color-mix(in srgb, var(--chip-color) 45%, transparent);
+}
+
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-right: -0.2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.chip-remove:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--chip-color) 25%, transparent);
+}

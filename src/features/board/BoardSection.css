@@ -1,0 +1,120 @@
+.board-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.board-section--bucket {
+  background: var(--surface-2);
+  border-style: dashed;
+  border-color: var(--border-strong);
+  box-shadow: none;
+}
+
+.board-section.is-highlight {
+  border-color: color-mix(in srgb, var(--brand) 40%, transparent);
+  box-shadow: 0 0 0 3px var(--brand-tint), var(--shadow-sm);
+}
+
+.board-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem 0.4rem 0.45rem;
+}
+
+.board-section-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.2rem 0.28rem;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  text-align: left;
+}
+
+.board-section-toggle:hover {
+  background: var(--surface-2);
+}
+
+.board-section-toggle--static {
+  cursor: default;
+  padding-left: calc(0.35rem + 16px + 0.55rem);
+}
+
+.board-section-toggle--static:hover {
+  background: transparent;
+}
+
+.board-section--bucket .board-section-toggle:hover {
+  background: var(--surface-3);
+}
+
+.board-section-caret {
+  display: inline-flex;
+  color: var(--muted);
+  transition: transform var(--dur) var(--ease);
+}
+
+.board-section-caret.is-collapsed {
+  transform: rotate(-90deg);
+}
+
+.board-section-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.board-section-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.board-section.is-highlight .board-section-eyebrow {
+  color: var(--brand);
+}
+
+.board-section-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.board-section-count {
+  min-width: 22px;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--r-pill);
+  background: var(--surface-3);
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.board-section-right {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.board-section-body {
+  padding: 0.05rem 0.45rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.04rem;
+}
+
+.board-section-empty {
+  padding: 0.42rem 0.62rem 0.58rem;
+  color: var(--faint);
+  font-size: 0.8rem;
+  font-style: italic;
+}

@@ -1,0 +1,98 @@
+.status-circle {
+  --circle-accent: var(--brand);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  color: #fff;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.status-circle:hover {
+  border-color: var(--circle-accent);
+  transform: scale(1.06);
+}
+
+.status-circle:active {
+  transform: scale(0.94);
+}
+
+.status-circle--static {
+  cursor: default;
+}
+
+.status-circle--static:hover {
+  transform: none;
+  border-color: var(--border-strong);
+}
+
+.status-circle--static.status-circle--doing:hover {
+  border-color: var(--circle-accent);
+}
+
+.status-circle--static.status-circle--done:hover {
+  border-color: var(--status-done);
+  filter: none;
+}
+
+/* doing: filled dot inside */
+.status-circle-dot {
+  width: 46%;
+  height: 46%;
+  border-radius: 50%;
+  background: var(--circle-accent);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.status-circle--doing {
+  border-color: var(--circle-accent);
+}
+
+.status-circle--doing .status-circle-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* done: filled circle + check */
+.status-circle-check {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.status-circle--done {
+  border-color: var(--status-done);
+  background: var(--status-done);
+}
+
+.status-circle--done:hover {
+  border-color: var(--status-done);
+  filter: brightness(0.96);
+}
+
+.status-circle--done .status-circle-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.status-circle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.status-circle:disabled:hover {
+  transform: none;
+  border-color: var(--border-strong);
+}
