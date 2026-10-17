@@ -122,10 +122,27 @@ Frontend:
 - [x] `#tag` autocomplete in "Add a task" (strip from title; create only on explicit pick)
 - [ ] `#tag` autocomplete when editing a title in the side panel
 - [x] Works in a narrow window (360px; sidebar drawer below 760px)
-- [ ] Drag and drop issues (details needed)
+- [x] Drag and drop: works now in the browser (fixed in PR #2)
 - [ ] Bold / flag items
 
 ## Next PRs
+
+### Package the Mac app (Tauri)
+- There's no `src-tauri` in this repo yet. An older build is installed on
+  another Mac (built from somewhere else).
+- **Keep that build's app identifier**, or the new version starts empty (its
+  saved data is tied to the identifier). On that Mac, run
+  `defaults read "/Applications/Rondel It.app/Contents/Info" CFBundleIdentifier`,
+  and look for the `src-tauri` folder it was built from.
+- Back up that Mac's data before upgrading (Export/Import backup, see Storage).
+- Test drag and drop in the app (WebKit; Tauri file-drop can interfere).
+
+### Storage: local file + optional sync folder
+- Export/Import backup (JSON) first, as a stopgap.
+- Then: SQLite in the app's data folder; optional sync folder (Drive, OneDrive,
+  Box, Dropbox) with a per-device change log, never the database file itself.
+- Rails on hold (PR #3 is to be closed and rebuilt later against
+  `docs/FUNCTIONALITY.md` if a server is ever needed).
 
 ### End-of-day rondel flow
 - At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).
