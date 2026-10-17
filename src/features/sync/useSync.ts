@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isDesktopApp, tauriFolder } from '../../services/sync/folder'
+import { startVisibleInterval } from '../../shared/visibleInterval'
 import { getLastSyncedAt, getSyncFolder, startSyncingTo, syncNow, turnOffSync } from '../../services/sync/syncService'
 
 const AFTER_CHANGE_MS = 2000
@@ -61,12 +62,13 @@ export function useSync({ onRemoteChange, reportError }: Options) {
   useEffect(() => {
     if (!available) return
     const first = window.setTimeout(() => void sync(), 0)
-    const interval = window.setInterval(() => void sync(), WHILE_OPEN_MS)
+    // Also syncs right away when the window is shown again.
+    const stopInterval = startVisibleInterval(() => void sync(), WHILE_OPEN_MS)
     const onFocus = () => void sync()
     window.addEventListener('focus', onFocus)
     return () => {
       window.clearTimeout(first)
-      window.clearInterval(interval)
+      stopInterval()
       window.removeEventListener('focus', onFocus)
     }
   }, [available, sync])

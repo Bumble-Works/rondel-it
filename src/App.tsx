@@ -36,6 +36,7 @@ import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 import { useSync } from './features/sync/useSync'
+import { startVisibleInterval } from './shared/visibleInterval'
 
 const dataSource = createDataSource()
 
@@ -120,6 +121,9 @@ function App() {
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const naggedRef = useRef<Set<string>>(new Set())
   const lastSeenDateRef = useRef<string | null>(null)
+  // The day recurring tasks were last created for. Creating them once a day (or
+  // when rules change) is enough; doing it on every click wastes work.
+  const recurringSyncedFor = useRef<string | null>(null)
 
   const reportError = useCallback((context: string, e: unknown) => {
     console.error(`[rondel] ${context}`, e)
@@ -130,7 +134,11 @@ function App() {
     try {
       // Recurring tasks appear on their own day, never ahead of time — browsing
       // forward must not pre-create them.
-      await dataSource.syncRecurring(nowInZone(timezone).date)
+      const recurringDay = nowInZone(timezone).date
+      if (recurringSyncedFor.current !== recurringDay) {
+        await dataSource.syncRecurring(recurringDay)
+        recurringSyncedFor.current = recurringDay
+      }
       const [range, bl, rondelItems] = await Promise.all([
         dataSource.listTasksInRange(rangeStart, rangeEnd),
         dataSource.listBucketTasks('bucket-list'),
@@ -186,6 +194,7 @@ function App() {
 
   const sync = useSync({
     onRemoteChange: useCallback(() => {
+      recurringSyncedFor.current = null // another device may have changed rules
       void loadAppData().then(() => loadBoard())
     }, [loadAppData, loadBoard]),
     reportError,
@@ -244,8 +253,7 @@ function App() {
         }
       }
     }
-    const iv = window.setInterval(check, 30000)
-    return () => window.clearInterval(iv)
+    return startVisibleInterval(check, 30000)
   }, [settings, loadBoard])
 
   const allTasks = useMemo(
@@ -422,6 +430,7 @@ function App() {
     void attempt('Unable to create recurring task', async () => {
       await dataSource.createRecurringRule(input)
       await refreshRules()
+      recurringSyncedFor.current = null
       await loadBoard()
     })
   const updateRuleTitle = (id: string, title: string) =>

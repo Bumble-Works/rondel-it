@@ -1,4 +1,4 @@
-import { exportSnapshot, importSnapshot, readMeta, writeCollection } from './localStore'
+import { exportSnapshot, importSnapshot, readMeta, readRaw, writeCollection } from './localStore'
 
 describe('localStore change tracking', () => {
   it('stamps only records that changed and marks removed ones as deleted', () => {
@@ -32,5 +32,23 @@ describe('localStore change tracking', () => {
   it('surfaces unreadable saved data instead of treating it as empty', () => {
     localStorage.setItem('rondel.v6.tags', '{not json')
     expect(() => exportSnapshot()).toThrow('unreadable')
+  })
+
+  it('reuses parsed data until it changes, and hands out frozen records', () => {
+    writeCollection('tags', [{ id: 'a', name: 'A' }])
+    readRaw('tags') // first read after the save parses once
+    const parse = vi.spyOn(JSON, 'parse')
+    readRaw('tags')
+    readRaw('tags')
+    expect(parse).not.toHaveBeenCalled()
+    parse.mockRestore()
+
+    const [tag] = readRaw<{ id: string; name: string }>('tags')
+    expect(() => {
+      tag.name = 'edited in place'
+    }).toThrow(TypeError)
+
+    writeCollection('tags', [{ id: 'a', name: 'B' }])
+    expect(readRaw<{ name: string }>('tags')[0].name).toBe('B')
   })
 })

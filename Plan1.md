@@ -161,6 +161,16 @@ Frontend:
 - Rails on hold (PR #3 is to be closed and rebuilt later against
   `docs/FUNCTIONALITY.md` if a server is ever needed).
 
+### Keep the Mac app lean (branch `feat/lean`)
+- [x] Recurring sync runs once a day / on rule changes, not on every action
+- [x] Parsed data cached in memory (frozen, so in-place edits fail loudly)
+- [x] Timers (review-time check, sync) pause while the window is hidden
+- [x] Smaller release binary (Rust size settings)
+- [ ] Measure real memory after a week of use; set a budget (~100 MB)
+- [ ] Optimistic updates instead of reloading the board after each action
+  (with the App.tsx split)
+- [ ] Only render visible days in Month view, if it gets heavy
+
 ### End-of-day rondel flow
 - At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).
   Right now the nag only covers rondeled items waiting in a container.

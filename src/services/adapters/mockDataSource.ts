@@ -436,7 +436,7 @@ export const mockDataSource: DataSource = {
       }
     }
 
-    for (const rule of rules) {
+    for (const [index, rule] of rules.entries()) {
       const start = rule.lastRunDate ? addDays(rule.lastRunDate, 1) : rule.createdAt.slice(0, 10)
       const occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
       if (occurrences.length === 0) continue
@@ -453,7 +453,7 @@ export const mockDataSource: DataSource = {
         tasks.push(taskFromRule(rule, occ, tasks.length))
         changedTasks = true
         if (!rule.lastRunDate || occ.date > rule.lastRunDate) {
-          rule.lastRunDate = occ.date
+          rules[index] = { ...rule, lastRunDate: occ.date }
           changedRules = true
         }
         continue
@@ -467,7 +467,7 @@ export const mockDataSource: DataSource = {
       }
 
       if (last !== rule.lastRunDate) {
-        rule.lastRunDate = last
+        rules[index] = { ...rule, lastRunDate: last }
         changedRules = true
       }
     }
