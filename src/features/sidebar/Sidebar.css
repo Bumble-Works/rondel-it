@@ -249,12 +249,16 @@
     width: min(var(--sidebar-w), 86vw);
     overflow-y: auto;
     transform: translateX(-100%);
-    transition: transform var(--dur) var(--ease);
+    /* Hidden (and out of the tab order) once it has slid away. */
+    visibility: hidden;
+    transition: transform var(--dur) var(--ease), visibility 0s linear var(--dur);
   }
 
   /* Shadow only when open, so the hidden drawer doesn't leave a strip. */
   .app.is-sidebar-open .sidebar {
     transform: none;
+    visibility: visible;
     box-shadow: var(--shadow-lg);
+    transition: transform var(--dur) var(--ease);
   }
 }
