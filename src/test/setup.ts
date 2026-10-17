@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
 const store = new Map<string, string>()
 const storage: Storage = {
@@ -30,6 +30,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   cleanup()
   localStorage.clear()
 })

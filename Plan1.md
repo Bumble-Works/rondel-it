@@ -5,6 +5,18 @@
 Stage 1 is a single-user MVP: no auth UI, no billing, no sync — just the core
 daily loop with a real Rails backend and a local-first-friendly React client.
 
+## Decisions (2026-10-17)
+- **Tags, not categories.** We call them tags because they're used with `#`.
+  "Category" below means tag. The Rails API (PR #3) still needs renaming.
+- **Rondel keeps history.** A task left in todo/doing across several days
+  appears on each of those days. Rondel never moves the original task in place.
+- **In Stage 1 scope** (already in the frontend): Bucket List, recurring tasks,
+  the parked "Unassigned" container per week/month, the `canceled` status, and
+  the overdue nag.
+- **Still needed:** the end-of-day rondel flow (today's unfinished tasks) and
+  keyboard shortcuts for create / advance / rondel / navigation.
+- Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
+
 ## Architecture at a glance
 - Backend: Rails 7+ API-only app (`api/` folder), PostgreSQL, JSON endpoints.
 - Frontend: React + TypeScript + Vite (repo root), talks to Rails via a typed adapter.

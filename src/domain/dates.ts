@@ -100,7 +100,8 @@ export function firstDayOfNextWeek(iso: string, weekStartDay: number): string {
 
 /** First day of the month AFTER the month containing `iso`. */
 export function firstDayOfNextMonth(iso: string): string {
-  return startOfMonth(addMonths(iso, 1))
+  // Step from the 1st: addMonths from the 31st overflows (Jan 31 → Mar 3).
+  return addMonths(startOfMonth(iso), 1)
 }
 
 /** Current date + time in a given IANA timezone. Falls back to local on error. */

@@ -135,4 +135,16 @@ describe('railsDataSource', () => {
     await expect(railsDataSource.listRondelItems()).rejects.toThrow('Nope')
     await expect(railsDataSource.listRondelItems()).rejects.toThrow('Request failed')
   })
+
+  it('throws a clear error when a successful response is not JSON', async () => {
+    const notJson = {
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected token <')
+      },
+    } as unknown as Response
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(notJson))
+    await expect(railsDataSource.listTags()).rejects.toThrow('Invalid JSON response from /tags')
+  })
 })

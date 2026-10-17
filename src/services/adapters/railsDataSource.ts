@@ -14,7 +14,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   let body: unknown = undefined
   if (response.status !== 204) {
-    body = await response.json().catch(() => ({}))
+    try {
+      body = await response.json()
+    } catch (e) {
+      // A failed request may return a non-JSON error page; statusText below
+      // still explains it. A successful one must be JSON.
+      if (response.ok) throw new Error(`Invalid JSON response from ${path}`, { cause: e })
+    }
   }
   if (!response.ok) {
     const message =

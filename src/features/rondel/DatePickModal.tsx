@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { addDays, todayIso } from '../../domain/dates'
 import { Button } from '../../shared/ui/Button'
 import { Modal } from '../../shared/ui/Modal'
@@ -11,11 +11,9 @@ interface DatePickModalProps {
 }
 
 export function DatePickModal({ open, onClose, onConfirm }: DatePickModalProps) {
-  const [date, setDate] = useState(addDays(todayIso(), 1))
-
-  useEffect(() => {
-    if (open) setDate(addDays(todayIso(), 1))
-  }, [open])
+  // The parent remounts this modal (via `key`) each time it opens, so the
+  // date always starts fresh at tomorrow.
+  const [date, setDate] = useState(() => addDays(todayIso(), 1))
 
   return (
     <Modal

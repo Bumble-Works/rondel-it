@@ -66,6 +66,10 @@ const FILTERABLE_STATUSES: TaskStatus[] = ['todo', 'doing', 'done']
 
 const BUCKET_DEFS: Array<[keyof Buckets, string, string]> = [['bucket-list', 'Bucket List', 'Someday']]
 
+function errorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : String(e)
+}
+
 function sameWeek(a: string, b: string, weekStartDay: number): boolean {
   return startOfWeek(a, weekStartDay) === startOfWeek(b, weekStartDay)
 }
@@ -108,6 +112,12 @@ function App() {
   const todayInRange = today >= rangeStart && today <= rangeEnd
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
+  const naggedRef = useRef<Set<string>>(new Set())
+
+  const reportError = useCallback((context: string, e: unknown) => {
+    console.error(`[rondel] ${context}`, e)
+    setError(`${context}: ${errorMessage(e)}`)
+  }, [])
 
   const loadBoard = useCallback(async () => {
     try {
@@ -138,30 +148,46 @@ function App() {
       )
 
       // Overdue = parked (rondeled) items whose day is before this week.
-      setOverdue(
-        rondelItems.filter((t) => isActive(t) && t.dayDate !== null && t.dayDate < weekStart),
+      const overdueItems = rondelItems.filter(
+        (t) => isActive(t) && t.dayDate !== null && t.dayDate < weekStart,
       )
+      setOverdue(overdueItems)
+
+      // Nag once per app open if anything is overdue; auto-close when nothing is.
+      if (overdueItems.length === 0) {
+        setNagOpen(false)
+      } else if (!naggedRef.current.has('open')) {
+        naggedRef.current.add('open')
+        setNagOpen(true)
+      }
 
       setError(null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to load tasks')
+      reportError('Unable to load tasks', e)
     }
-  }, [rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today, weekStartDay])
+  }, [reportError, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today, weekStartDay])
 
   useEffect(() => {
     void (async () => {
-      const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
-        dataSource.listTags(),
-        dataSource.getSettings(),
-        dataSource.listRecurringRules(),
-      ])
-      setTags(loadedTags)
-      setSettings(loadedSettings)
-      setRules(loadedRules)
+      try {
+        const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
+          dataSource.listTags(),
+          dataSource.getSettings(),
+          dataSource.listRecurringRules(),
+        ])
+        setTags(loadedTags)
+        setSettings(loadedSettings)
+        setRules(loadedRules)
+      } catch (e) {
+        reportError('Unable to load app data', e)
+      }
     })()
-  }, [])
+  }, [reportError])
 
   useEffect(() => {
+    // loadBoard only sets state after awaiting the data source; the rule can't
+    // see through the async call.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
@@ -171,17 +197,6 @@ function App() {
   useEffect(() => {
     overdueRef.current = overdue
   }, [overdue])
-  const naggedRef = useRef<Set<string>>(new Set())
-
-  // Nag once per app open if anything is overdue; auto-close when nothing is.
-  useEffect(() => {
-    if (!settings) return
-    if (overdue.length > 0 && !naggedRef.current.has('open')) {
-      naggedRef.current.add('open')
-      setNagOpen(true)
-    }
-    if (overdue.length === 0) setNagOpen(false)
-  }, [settings, overdue])
 
   // Nag at begin-review and end-review times, in the user's timezone.
   // Never tied to navigation — only the clock triggers this.
@@ -215,16 +230,24 @@ function App() {
 
   /* ---- actions ---- */
 
-  const run = useCallback(
-    async (fn: () => Promise<unknown>) => {
+  const attempt = useCallback(
+    async (context: string, fn: () => Promise<unknown>) => {
       try {
         await fn()
-        await loadBoard()
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Something went wrong')
+        reportError(context, e)
       }
     },
-    [loadBoard],
+    [reportError],
+  )
+
+  const run = useCallback(
+    (fn: () => Promise<unknown>) =>
+      attempt('Something went wrong', async () => {
+        await fn()
+        await loadBoard()
+      }),
+    [attempt, loadBoard],
   )
 
   const quickAdd = (target: BoardGroupAddTarget, title: string) =>
@@ -303,16 +326,12 @@ function App() {
   }
 
   const createTagForTask = (task: Task, name: string) =>
-    void (async () => {
-      try {
-        const tag = await dataSource.createTag({ name })
-        await dataSource.updateTask(task.id, { tagIds: [...task.tagIds, tag.id] })
-        await refreshTags()
-        await loadBoard()
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Unable to create tag')
-      }
-    })()
+    void attempt('Unable to create tag', async () => {
+      const tag = await dataSource.createTag({ name })
+      await dataSource.updateTask(task.id, { tagIds: [...task.tagIds, tag.id] })
+      await refreshTags()
+      await loadBoard()
+    })
 
   const confirmDate = (dateIso: string) => {
     if (!dateTaskId) return
@@ -324,51 +343,50 @@ function App() {
   /* ---- settings actions ---- */
 
   const updateSettings = (patch: Partial<UserSetting>) =>
-    void (async () => {
-      const next = await dataSource.updateSettings(patch)
-      setSettings(next)
-    })()
+    void attempt('Unable to save settings', async () => {
+      setSettings(await dataSource.updateSettings(patch))
+    })
 
   const refreshTags = async () => setTags(await dataSource.listTags())
   const createTag = (name: string, color: string) =>
-    void (async () => {
+    void attempt('Unable to create tag', async () => {
       await dataSource.createTag({ name, color })
       await refreshTags()
       await loadBoard()
-    })()
+    })
   const updateTag = (id: string, patch: { name?: string; color?: string }) =>
-    void (async () => {
+    void attempt('Unable to update tag', async () => {
       await dataSource.updateTag(id, patch)
       await refreshTags()
       await loadBoard()
-    })()
+    })
   const deleteTag = (id: string) =>
-    void (async () => {
+    void attempt('Unable to delete tag', async () => {
       await dataSource.deleteTag(id)
       setActiveTagIds((prev) => prev.filter((x) => x !== id))
       await refreshTags()
       await loadBoard()
-    })()
+    })
 
   /* ---- recurring actions ---- */
 
   const refreshRules = async () => setRules(await dataSource.listRecurringRules())
   const createRule = (input: RecurringRuleInput) =>
-    void (async () => {
+    void attempt('Unable to create recurring task', async () => {
       await dataSource.createRecurringRule(input)
       await refreshRules()
       await loadBoard()
-    })()
+    })
   const updateRuleTitle = (id: string, title: string) =>
-    void (async () => {
+    void attempt('Unable to update recurring task', async () => {
       await dataSource.updateRecurringRule(id, { title })
       await refreshRules()
-    })()
+    })
   const deleteRule = (id: string) =>
-    void (async () => {
+    void attempt('Unable to delete recurring task', async () => {
       await dataSource.deleteRecurringRule(id)
       await refreshRules()
-    })()
+    })
 
   /* ---- groups ---- */
 
@@ -463,6 +481,7 @@ function App() {
   if (page === 'settings' && settings) {
     return (
       <div className="app">
+        {error && <p className="app-error">{error}</p>}
         <SettingsPage
           settings={settings}
           tags={tags}
@@ -479,6 +498,7 @@ function App() {
   if (page === 'recurring') {
     return (
       <div className="app">
+        {error && <p className="app-error">{error}</p>}
         <RecurringPage
           rules={rules}
           tags={tags}
@@ -665,13 +685,14 @@ function App() {
       )}
 
       <NoteModal
+        key={noteTaskId ?? 'closed'}
         open={Boolean(noteTask)}
         task={noteTask}
         onClose={() => setNoteTaskId(null)}
         onSave={(note) => noteTask && saveNote(noteTask.id, note)}
       />
 
-      <DatePickModal open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
+      <DatePickModal key={dateTaskId ?? 'closed'} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
 
       <NagModal
         open={nagOpen && overdue.length > 0}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { Task } from '../../domain/types'
 import { Button } from '../../shared/ui/Button'
 import { Modal } from '../../shared/ui/Modal'
@@ -12,11 +12,9 @@ interface NoteModalProps {
 }
 
 export function NoteModal({ open, task, onClose, onSave }: NoteModalProps) {
-  const [note, setNote] = useState('')
-
-  useEffect(() => {
-    if (open && task) setNote(task.note)
-  }, [open, task])
+  // The parent remounts this modal (via `key`) per task, so the draft starts
+  // from the saved note.
+  const [note, setNote] = useState(task?.note ?? '')
 
   if (!task) return null
 

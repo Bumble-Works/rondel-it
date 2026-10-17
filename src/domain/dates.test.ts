@@ -64,6 +64,9 @@ describe('dates helpers', () => {
     expect(endOfMonth('2026-02-10')).toBe('2026-02-28')
     expect(firstDayOfNextWeek('2026-09-15', 1)).toBe('2026-09-21')
     expect(firstDayOfNextMonth('2026-09-15')).toBe('2026-10-01')
+    // The 31st must not overflow past the next month.
+    expect(firstDayOfNextMonth('2026-01-31')).toBe('2026-02-01')
+    expect(firstDayOfNextMonth('2026-10-31')).toBe('2026-11-01')
     expect(sameMonth('2026-09-01', '2026-09-30')).toBe(true)
     expect(sameMonth('2026-09-30', '2026-10-01')).toBe(false)
   })

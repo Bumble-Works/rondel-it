@@ -139,6 +139,10 @@ describe('mockDataSource recurring', () => {
   })
 
   it('syncs recurring tasks and prevents duplicate pending start-rule items', async () => {
+    // Rules start from their creation date, so pin the clock to keep the
+    // expected occurrences inside the ranges below.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 15, 12))
     const startRule = await mockDataSource.createRecurringRule({
       title: 'Start weekly',
       kind: 'weekly-start',
@@ -163,5 +167,6 @@ describe('mockDataSource recurring', () => {
     await mockDataSource.syncRecurring('2026-11-30')
     const afterDone = await mockDataSource.listRondelItems()
     expect(afterDone.filter((t) => t.recurringRuleId === startRule.id)).toHaveLength(2)
+    vi.useRealTimers()
   })
 })
