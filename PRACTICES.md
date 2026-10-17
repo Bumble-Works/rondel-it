@@ -46,7 +46,9 @@
 ## Process
 
 - Work on branches; open PRs; never push to `main` without review.
-- Stop and ask when unsure rather than guessing.
+- **Stop and ask** whenever any question or clarification comes up, at any
+    point in any task (coding, reviewing, planning). Never guess and continue.
+    This applies to every agent and every skill used in this repo.
 - Use latest Node / React / Vite (and keep deps permissively licensed).
 - When PR feedback reveals coding-style preferences, record them in this file
     before continuing so future work follows the updated style.
