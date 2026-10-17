@@ -30,6 +30,10 @@ daily loop with a real Rails backend and a local-first-friendly React client.
   the parked "Unassigned" container per week/month, the `canceled` status, and
   the overdue nag.
 - **Still needed:** see "Next PRs" below.
+- **Recurring tasks are created on their own day**, never ahead of time. The
+  sync horizon is today in the user's time zone, so browsing forward creates
+  nothing. While the app is open it re-syncs after midnight; otherwise it
+  syncs on the next open. (Later, Rails can do this with a nightly job.)
 - Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
 
 ## Architecture at a glance

@@ -98,6 +98,7 @@ function App() {
 
   const today = todayIso()
   const weekStartDay = settings?.weekStartDay ?? 1
+  const timezone = settings?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
 
   const anchorWeekStart = useMemo(
     () => startOfWeek(anchorDate, weekStartDay),
@@ -113,6 +114,7 @@ function App() {
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const naggedRef = useRef<Set<string>>(new Set())
+  const lastSeenDateRef = useRef<string | null>(null)
 
   const reportError = useCallback((context: string, e: unknown) => {
     console.error(`[rondel] ${context}`, e)
@@ -121,7 +123,9 @@ function App() {
 
   const loadBoard = useCallback(async () => {
     try {
-      await dataSource.syncRecurring(rangeEnd)
+      // Recurring tasks appear on their own day, never ahead of time — browsing
+      // forward must not pre-create them.
+      await dataSource.syncRecurring(nowInZone(timezone).date)
       const [range, bl, rondelItems] = await Promise.all([
         dataSource.listTasksInRange(rangeStart, rangeEnd),
         dataSource.listBucketTasks('bucket-list'),
@@ -165,7 +169,7 @@ function App() {
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today, weekStartDay])
+  }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today, weekStartDay])
 
   useEffect(() => {
     void (async () => {
@@ -205,6 +209,9 @@ function App() {
     const tz = settings.timezone
     const check = () => {
       const { date, time } = nowInZone(tz)
+      // Past midnight: reload so the new day's recurring tasks get created.
+      if (lastSeenDateRef.current !== null && date !== lastSeenDateRef.current) void loadBoard()
+      lastSeenDateRef.current = date
       const slots: Array<[string, string]> = [
         ['start', settings.dayStartTime],
         ['end', settings.endOfDayTime],
@@ -219,7 +226,7 @@ function App() {
     }
     const iv = window.setInterval(check, 30000)
     return () => window.clearInterval(iv)
-  }, [settings])
+  }, [settings, loadBoard])
 
   const allTasks = useMemo(
     () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...overdue],
