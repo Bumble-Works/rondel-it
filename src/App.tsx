@@ -121,8 +121,9 @@ function App() {
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const naggedRef = useRef<Set<string>>(new Set())
   const lastSeenDateRef = useRef<string | null>(null)
-  // The day recurring tasks were last created for. Creating them once a day (or
-  // when rules change) is enough; doing it on every click wastes work.
+  // The day recurring tasks were last created for. Browsing (which reloads the
+  // board a lot) reuses it; any change resets it, since finishing a "start of
+  // week/month" task is what lets the next one be created.
   const recurringSyncedFor = useRef<string | null>(null)
 
   const reportError = useCallback((context: string, e: unknown) => {
@@ -268,6 +269,7 @@ function App() {
   const attempt = useCallback(
     async (context: string, fn: () => Promise<unknown>) => {
       try {
+        recurringSyncedFor.current = null
         await fn()
         scheduleSync()
       } catch (e) {
@@ -430,7 +432,6 @@ function App() {
     void attempt('Unable to create recurring task', async () => {
       await dataSource.createRecurringRule(input)
       await refreshRules()
-      recurringSyncedFor.current = null
       await loadBoard()
     })
   const updateRuleTitle = (id: string, title: string) =>
