@@ -71,8 +71,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "build-${{ github.run_number }}" RondelIt-macos.zip scripts/install.sh \
-            --title "Rondel It 0.1.${{ github.run_number }}" \
-            --notes "Built from ${{ github.sha }}. Install or update with the command in INSTALL.md." \
-            --target "${{ github.sha }}" \
-            --latest
+          TAG="build-${{ github.run_number }}"
+          # Re-runs reuse the run number, so update that release instead of failing.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" RondelIt-macos.zip scripts/install.sh --clobber
+          else
+            gh release create "$TAG" RondelIt-macos.zip scripts/install.sh \
+              --title "Rondel It 0.1.${{ github.run_number }}" \
+              --notes "Built from ${{ github.sha }}. Install or update with the command in INSTALL.md." \
+              --target "${{ github.sha }}" \
+              --latest
+          fi
+
+      - name: Keep only the latest 5 builds
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("build-"))] | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
+            while read -r tag; do gh release delete "$tag" --yes --cleanup-tag; done
