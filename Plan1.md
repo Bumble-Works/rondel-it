@@ -16,6 +16,11 @@ daily loop with a real Rails backend and a local-first-friendly React client.
     History copies are greyed out, have a tooltip explaining why, and sort
     below active tasks but above done.
   - *done* (and history copies): rondel isn't offered.
+  - *drag between days* is a plain move (reorganizing), never a rondel. Only
+    an intentional "push this off" from the Rondel menu counts.
+    For now a drag keeps `origin_date` (Mon → Wed still says "first
+    scheduled Mon"). *Open:* we may want a plain move of a not-started task to
+    update `origin_date` instead, since reorganizing isn't pushing work off.
 - **Rondel data (reporting):** every task keeps `origin_date` (the first day it
   was scheduled) and `rondel_count`. Copies link back through
   `origin_task_id` / `previous_task_id`.
