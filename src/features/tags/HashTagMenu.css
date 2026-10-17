@@ -1,0 +1,40 @@
+.hashtag-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 2rem;
+  z-index: 20;
+  min-width: 180px;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.hashtag-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.38rem 0.55rem;
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hashtag-option.is-active {
+  background: var(--brand-tint);
+}
+
+.hashtag-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.hashtag-create {
+  color: var(--brand);
+}

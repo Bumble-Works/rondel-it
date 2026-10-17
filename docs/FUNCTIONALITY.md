@@ -20,6 +20,11 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   step. Clicking a done task's circle reopens it as todo. Double-clicking sets
   it to done.
 - `canceled` exists in the data model, but nothing in the UI sets it yet.
+- Reopening a done task (back to todo) moves it to the **top** of its day.
+- **Flag (important):** one flag per task, toggled from the row's flag button
+  or the detail panel. A flagged task's title is bold with a small amber flag.
+  Flagging **doesn't reorder**; drag it up yourself. The flag carries forward
+  when a task is rondeled. History copies can't be flagged or unflagged.
 - Done tasks always sink to the bottom of their day. Each day sorts as:
   **active tasks → carried-forward history → done**. Within each group, the
   order you set by dragging is kept.
@@ -39,9 +44,18 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - **Bucket List**: items you want to keep and never forget. They have no
   date and don't nag. From there an item can be given a date or rondeled.
   Nothing goes there automatically; it's always a deliberate choice.
+- Day section headers name the weekday too: **"Today (Wednesday)"**,
+  "Tomorrow (Thursday)", "Yesterday (Tuesday)"; other days show just the
+  weekday. The Day view's page title stays short ("Today") because its
+  subtitle already says "Wednesday, October 15".
+- Month view scrolls to today when it opens on the current month.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
 - The week starts on the day set in Settings.
+- **Narrow windows** (down to 360px, at least as narrow as Apple Reminders):
+  below 760px the sidebar becomes a drawer opened from the ☰ button, with all
+  its sections (views, filters, Recurring, Settings). Picking anything closes
+  it, as does clicking outside. The detail panel slides over the list.
 
 ## Rondeled items (the "Unassigned" container)
 
@@ -71,7 +85,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 | **history copy** | Not offered (button greyed out, with the history tooltip). |
 
 - The rondel button is **always shown** on every row and in the detail panel,
-  so row actions (note, delete, rondel) stay aligned in a fixed grid. When
+  so row actions (flag, note, delete, rondel) stay aligned in a fixed grid. When
   rondel doesn't apply, the button is greyed out and its tooltip says why.
 
 - Every rondel adds 1 to `rondelCount`. Copies carry the count forward.
@@ -119,6 +133,12 @@ Today, Next week, Next month, Pick a date, Mark done.
   status (or every tag in "any" mode) is the same as no filter.
 - Deleting a tag removes it from every task.
 - Tag names save on blur or Enter. Escape undoes the edit.
+- **`#tag` while adding a task:** typing `#` in "Add a task" suggests tags
+  (case-insensitive, so `#Family` = `family`). Enter/Tab or a click picks one:
+  the `#word` is stripped from the title and the tag is attached. A **new**
+  tag is only created when you deliberately pick "Create #name" (click, or
+  arrow to it then Enter). An unpicked `#word` stays as plain title text.
+  Active tag filters are added to the new task too.
 
 ## Recurring tasks
 
@@ -149,5 +169,7 @@ Today, Next week, Next month, Pick a date, Mark done.
   storage for the app's origin (`rondel.v6.*` keys).
 - Changes must stay **backward compatible** with existing saved data. New
   fields are filled in on read, and nothing is reset.
+- Done items left in a rondel container by older versions are moved, on read,
+  to the day they were completed.
 - Time zone: uses your computer's time zone. It isn't editable in Settings yet.
 - The Rails adapter (`VITE_DATA_SOURCE=rails`) sends snake_case and reads camelCase.

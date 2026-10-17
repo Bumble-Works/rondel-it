@@ -11,6 +11,7 @@ function task(fields: Partial<Task> = {}): Task {
     bucket: null,
     position: 0,
     rondelCount: 0,
+    flagged: false,
     tagIds: [],
     note: '',
     createdAt: '',

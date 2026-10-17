@@ -246,22 +246,61 @@
   font-weight: 600;
 }
 
-@media (max-width: 900px) {
-  .app {
-    flex-direction: column;
-    height: auto;
+/* The sidebar drawer's menu button and backdrop only show in narrow windows. */
+.app-menu-btn,
+.app-drawer-backdrop {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .app-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border: none;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--ink-soft);
   }
 
-  .app-main {
-    height: auto;
+  .app-menu-btn:hover {
+    background: var(--surface-3);
   }
 
-  .app-scroll {
-    overflow: visible;
-    padding: 0.2rem 0.85rem 0;
+  .app.is-sidebar-open .app-drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 89;
+    background: var(--overlay);
   }
 
   .app-topbar {
-    padding: 0.9rem 0.85rem 0.6rem;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    padding: 0.8rem 0.85rem 0.55rem;
+  }
+
+  .app-topbar-titles {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .app-topbar-titles h1,
+  .app-topbar-titles p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .app-topbar-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .app-scroll {
+    padding: 0.2rem 0.6rem 0;
   }
 }

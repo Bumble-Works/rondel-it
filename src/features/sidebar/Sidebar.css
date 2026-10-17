@@ -239,25 +239,26 @@
   border-top: 1px solid var(--border);
 }
 
-@media (max-width: 900px) {
+/* Narrow windows: the sidebar becomes a drawer, opened from the top bar. */
+@media (max-width: 760px) {
   .sidebar {
-    position: static;
-    width: 100%;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 90;
+    width: min(var(--sidebar-w), 86vw);
+    overflow-y: auto;
+    transform: translateX(-100%);
+    /* Hidden (and out of the tab order) once it has slid away. */
+    visibility: hidden;
+    transition: transform var(--dur) var(--ease), visibility 0s linear var(--dur);
   }
 
-  .sidebar-section {
-    display: none;
-  }
-
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-
-  .sidebar-link {
-    width: auto;
+  /* Shadow only when open, so the hidden drawer doesn't leave a strip. */
+  .app.is-sidebar-open .sidebar {
+    transform: none;
+    visibility: visible;
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--dur) var(--ease);
   }
 }

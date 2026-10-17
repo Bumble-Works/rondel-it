@@ -23,6 +23,9 @@ export type IconName =
   | 'grip'
   | 'repeat'
   | 'filter'
+  | 'menu'
+  | 'flag'
+  | 'flag-filled'
 
 const PATHS: Record<IconName, ReactNode> = {
   note: <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v6.7a1.5 1.5 0 0 1-.44 1.06l-3.3 3.3a1.5 1.5 0 0 1-1.06.44H5.5A1.5 1.5 0 0 1 4 15.5v-10Zm7.5 10.9V13a1 1 0 0 1 1-1h3.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
@@ -100,6 +103,9 @@ const PATHS: Record<IconName, ReactNode> = {
       strokeLinejoin="round"
     />
   ),
+  flag: <path d="M5.5 16.5V4m0 .5h8.2a.5.5 0 0 1 .4.8L12.3 8l1.8 2.7a.5.5 0 0 1-.4.8H5.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  'flag-filled': <path d="M5.5 16.5V4m0 .5h8.2a.5.5 0 0 1 .4.8L12.3 8l1.8 2.7a.5.5 0 0 1-.4.8H5.5" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  menu: <path d="M4 6h12M4 10h12M4 14h12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />,
   filter: (
     <path
       d="M4 5.5h12l-4.6 5.4v3.3l-2.8 1.4V10.9L4 5.5Z"

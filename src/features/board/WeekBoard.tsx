@@ -35,8 +35,10 @@ interface WeekBoardProps {
   onRondel: (task: Task, target: RondelTarget) => void
   onPickDate: (task: Task) => void
   onOpenNote: (task: Task) => void
+  onToggleFlag: (task: Task) => void
   onDelete: (task: Task) => void
-  onQuickAdd: (target: BoardGroupAddTarget, title: string) => void
+  onQuickAdd: (target: BoardGroupAddTarget, title: string, tagIds: string[]) => void
+  onCreateTag: (name: string) => Promise<Tag | null>
   onMove: (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => void
   weekStartDay?: number
 }
@@ -51,12 +53,15 @@ export function WeekBoard({
   onRondel,
   onPickDate,
   onOpenNote,
+  onToggleFlag,
   onDelete,
   onQuickAdd,
+  onCreateTag,
   onMove,
   weekStartDay,
 }: WeekBoardProps) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const tags = [...tagsById.values()]
   const isDragging = Boolean(draggingId)
 
   const beforeIdForDrop = (
@@ -111,6 +116,7 @@ export function WeekBoard({
               onRondel={(target) => onRondel(task, target)}
               onPickDate={() => onPickDate(task)}
               onOpenNote={() => onOpenNote(task)}
+              onToggleFlag={() => onToggleFlag(task)}
               onDelete={() => onDelete(task)}
               dragging={Boolean(draggingId)}
               isDragged={draggingId === task.id}
@@ -132,7 +138,9 @@ export function WeekBoard({
           {group.addTarget && (
             <InlineAdd
               placeholder={group.kind === 'bucket' ? 'Add to this bucket' : 'Add a task'}
-              onAdd={(title) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title)}
+              tags={tags}
+              onCreateTag={onCreateTag}
+              onAdd={(title, tagIds) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title, tagIds)}
             />
           )}
         </BoardSection>

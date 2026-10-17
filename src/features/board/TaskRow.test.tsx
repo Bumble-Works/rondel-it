@@ -11,6 +11,7 @@ const task: Task = {
   bucket: null,
   position: 0,
   rondelCount: 0,
+  flagged: false,
   tagIds: [],
   note: '',
   createdAt: '',
@@ -35,6 +36,7 @@ function renderRow(selected: boolean) {
       onRondel={noop}
       onPickDate={noop}
       onOpenNote={noop}
+      onToggleFlag={noop}
       onDelete={noop}
       dragging={false}
       isDragged={false}
@@ -48,14 +50,14 @@ function renderRow(selected: boolean) {
 describe('TaskRow', () => {
   it('locks row actions while the task is open in the detail panel', () => {
     renderRow(true)
-    for (const name of ['Add note', 'Delete task', 'Rondel this task', 'Mark as doing']) {
+    for (const name of ['Flag as important', 'Add note', 'Delete task', 'Rondel this task', 'Mark as doing']) {
       expect(screen.getByRole('button', { name })).toBeDisabled()
     }
   })
 
   it('keeps row actions available when the task is not open', () => {
     renderRow(false)
-    for (const name of ['Add note', 'Delete task', 'Rondel this task', 'Mark as doing']) {
+    for (const name of ['Flag as important', 'Add note', 'Delete task', 'Rondel this task', 'Mark as doing']) {
       expect(screen.getByRole('button', { name })).toBeEnabled()
     }
   })

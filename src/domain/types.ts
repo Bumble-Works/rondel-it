@@ -14,6 +14,7 @@ export interface Task {
   bucket: TaskBucket | null
   position: number
   rondelCount: number
+  flagged: boolean
   /** First day this task (or its lineage) was scheduled on. For reporting. */
   originDate: string | null
   /** First task in a carry-forward lineage; null when this is the original. */

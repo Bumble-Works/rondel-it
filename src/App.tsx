@@ -3,6 +3,7 @@ import './App.css'
 import {
   addDays,
   addMonths,
+  dayTitle,
   endOfMonth,
   formatDayLabel,
   formatMonthLabel,
@@ -92,6 +93,8 @@ function App() {
   const [activeStatuses, setActiveStatuses] = useState<TaskStatus[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [page, setPage] = useState<'board' | 'settings' | 'recurring'>('board')
+  // Narrow windows show the sidebar as a drawer (see App.css / Sidebar.css).
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
@@ -182,6 +185,16 @@ function App() {
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
+  // Month view lists the newest day first, so today can be far down: bring it
+  // into view whenever the month containing today is shown.
+  useEffect(() => {
+    if (view !== 'month' || !sameMonth(monthStart, today)) return
+    const frame = requestAnimationFrame(() =>
+      document.querySelector('.board-section.is-highlight')?.scrollIntoView({ block: 'start' }),
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [view, monthStart, today])
+
   /* ---- rondeled-items nag ---- */
 
   const undecidedRef = useRef<Task[]>([])
@@ -250,16 +263,28 @@ function App() {
     [attempt, loadBoard],
   )
 
-  const quickAdd = (target: BoardGroupAddTarget, title: string) =>
+  const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[]) =>
     run(() =>
       dataSource.createTask({
         title,
         dayDate: target.dayDate ?? null,
         rondeled: target.rondeled ?? false,
         bucket: target.bucket ?? null,
-        tagIds: [...activeTagIds],
+        tagIds: [...new Set([...activeTagIds, ...tagIds])],
       }),
     )
+
+  /** Creates a tag the user explicitly chose to create while typing #name. */
+  const createTagNamed = async (name: string): Promise<Tag | null> => {
+    try {
+      const tag = await dataSource.createTag({ name })
+      await refreshTags()
+      return tag
+    } catch (e) {
+      reportError('Unable to create tag', e)
+      return null
+    }
+  }
 
   const advance = (task: Task) => run(() => dataSource.advanceTask(task.id))
   const setDone = (task: Task) => run(() => dataSource.setTaskStatus(task.id, 'done'))
@@ -275,6 +300,7 @@ function App() {
         { rondel: true },
       ),
     )
+  const toggleFlag = (task: Task) => run(() => dataSource.updateTask(task.id, { flagged: !task.flagged }))
   const saveNote = (taskId: string, note: string) => run(() => dataSource.updateTask(taskId, { note }))
   const changeTitle = (taskId: string, title: string) => run(() => dataSource.updateTask(taskId, { title }))
   const removeTask = (taskId: string) =>
@@ -401,7 +427,7 @@ function App() {
     return {
       key: iso,
       kind: 'day',
-      title: relativeDayLabel(iso) ?? weekdayName(fromIso(iso).getDay()),
+      title: dayTitle(iso),
       eyebrow: formatShort(iso),
       highlight: isToday(iso),
       defaultCollapsed: view !== 'day' && todayInRange && iso > today,
@@ -478,6 +504,7 @@ function App() {
           : true
 
   const title =
+    // The subtitle already names the weekday, so the page title stays short.
     view === 'day' ? (relativeDayLabel(anchorDate) ?? weekdayName(fromIso(anchorDate).getDay())) : VIEW_TITLE[view]
   const subtitle =
     view === 'day'
@@ -522,12 +549,14 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${sidebarOpen ? 'is-sidebar-open' : ''}`.trim()}>
+      <div className="app-drawer-backdrop" onClick={() => setSidebarOpen(false)} />
       <Sidebar
         activeView={view}
         onSelectView={(v) => {
           setView(v)
           setPage('board')
+          setSidebarOpen(false)
         }}
         tags={tags}
         activeTagIds={activeTagIds}
@@ -538,12 +567,27 @@ function App() {
         activeStatuses={activeStatuses}
         onToggleStatus={toggleStatus}
         onResetStatuses={resetStatuses}
-        onOpenSettings={() => setPage('settings')}
-        onOpenRecurring={() => setPage('recurring')}
+        onOpenSettings={() => {
+          setPage('settings')
+          setSidebarOpen(false)
+        }}
+        onOpenRecurring={() => {
+          setPage('recurring')
+          setSidebarOpen(false)
+        }}
       />
 
       <main className="app-main">
         <header className="app-topbar">
+          <button
+            type="button"
+            className="app-menu-btn"
+            aria-label="Show sidebar"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Icon name="menu" size={20} />
+          </button>
           <div className="app-topbar-titles">
             <h1>{title}</h1>
             <p>{subtitle}</p>
@@ -665,8 +709,10 @@ function App() {
             onRondel={rondel}
             onPickDate={(task) => setDateTaskId(task.id)}
             onOpenNote={(task) => setNoteTaskId(task.id)}
+            onToggleFlag={toggleFlag}
             onDelete={(task) => removeTask(task.id)}
             onQuickAdd={quickAdd}
+            onCreateTag={createTagNamed}
             onMove={move}
             weekStartDay={weekStartDay}
           />
@@ -683,6 +729,7 @@ function App() {
           onChangeTitle={(title) => changeTitle(selectedTask.id, title)}
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}
           onSaveNote={(note) => saveNote(selectedTask.id, note)}
+          onToggleFlag={() => toggleFlag(selectedTask)}
           onAdvance={() => advance(selectedTask)}
           onSetDone={() => setDone(selectedTask)}
           onRondel={(target) => rondel(selectedTask, target)}

@@ -50,6 +50,7 @@ function mapTask(payload: Record<string, unknown>): Task {
     bucket: (payload.bucket as Task['bucket']) ?? null,
     position: Number(payload.position),
     rondelCount: Number(payload.rondelCount),
+    flagged: Boolean(payload.flagged),
     tagIds: (payload.tagIds as string[]) || [],
     note: String(payload.note || ''),
     createdAt: String(payload.createdAt || ''),
@@ -107,7 +108,7 @@ export const railsDataSource: DataSource = {
   async updateTask(id, input) {
     const response = await request<{ task: Record<string, unknown> }>(`/tasks/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ title: input.title, tag_ids: input.tagIds, note: input.note }),
+      body: JSON.stringify({ title: input.title, tag_ids: input.tagIds, note: input.note, flagged: input.flagged }),
     })
     return mapTask(response.task)
   },
