@@ -157,8 +157,17 @@ function findIndexOrThrow(tasks: Task[], id: string): number {
   return index
 }
 
+/**
+ * The id is derived from the rule and the day, so every device creating the
+ * same occurrence produces the same record and sync merges them into one.
+ */
+export function occurrenceId(ruleId: string, date: string): string {
+  return `rec:${ruleId}:${date}`
+}
+
 function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): Task {
   return newTask({
+    id: occurrenceId(rule.id, occ.date),
     title: rule.title,
     dayDate: occ.dayDate,
     rondeled: occ.rondeled,
@@ -421,12 +430,13 @@ export const mockDataSource: DataSource = {
       kind === 'weekly-start' || kind === 'monthly-start'
 
     // Keep only one outstanding (not-done) task per start-rule: clean up any
-    // duplicates from earlier over-generation, keeping the earliest.
+    // duplicates (from older versions, or two devices before sync), keeping the
+    // earliest. Ordered by creation then id, so every device keeps the same one.
     for (const rule of rules) {
       if (!isStartRule(rule.kind)) continue
       const pending = tasks
         .filter((t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t))
-        .sort((a, b) => a.position - b.position)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
       if (pending.length > 1) {
         const removeIds = new Set(pending.slice(1).map((t) => t.id))
         for (let i = tasks.length - 1; i >= 0; i--) {

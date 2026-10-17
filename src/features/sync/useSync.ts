@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { isDesktopApp, tauriFolder } from '../../services/sync/folder'
-import { getLastSyncedAt, getSyncFolder, startSyncingTo, syncNow, turnOffSync } from '../../services/sync/syncService'
+import {
+  SyncFolderUnavailable,
+  getLastSyncedAt,
+  getSyncFolder,
+  startSyncingTo,
+  syncNow,
+  turnOffSync,
+} from '../../services/sync/syncService'
 
 const AFTER_CHANGE_MS = 2000
 const WHILE_OPEN_MS = 2 * 60 * 1000
@@ -30,6 +37,8 @@ export function useSync({ onRemoteChange, reportError }: Options) {
   const [syncing, setSyncing] = useState(false)
   const [warning, setWarning] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
+  // Report a sync failure once, not on every retry.
+  const lastFailure = useRef<string | null>(null)
 
   const sync = useCallback(async () => {
     if (!available || !getSyncFolder()) return
@@ -37,16 +46,22 @@ export function useSync({ onRemoteChange, reportError }: Options) {
     try {
       const result = await syncNow(tauriFolder)
       setLastSyncedAt(getLastSyncedAt())
+      lastFailure.current = null
       setWarning(
         result.rebuilt
           ? 'The sync folder was missing, so it was rebuilt from this Mac’s data.'
           : result.unreadable.length
             ? `Ignored ${result.unreadable.length} unreadable sync file(s); nothing was changed from them.`
-            : null,
+            : result.droppedRecords
+              ? `Ignored ${result.droppedRecords} malformed item(s) from another device.`
+              : null,
       )
       if (result.changed) onRemoteChange()
     } catch (e) {
-      reportError('Sync failed', e)
+      const message = e instanceof Error ? e.message : String(e)
+      if (e instanceof SyncFolderUnavailable) setWarning(message)
+      if (lastFailure.current !== message) reportError('Sync failed', e)
+      lastFailure.current = message
     } finally {
       setSyncing(false)
     }
@@ -82,7 +97,8 @@ export function useSync({ onRemoteChange, reportError }: Options) {
   const chooseFolder = useCallback(async () => {
     try {
       const { open } = await import('@tauri-apps/plugin-dialog')
-      const picked = await open({ directory: true, title: 'Choose where to sync Rondel It' })
+      // Picking the folder is what grants the app access to it (and only it).
+      const picked = await open({ directory: true, recursive: true, title: 'Choose where to sync Rondel It' })
       if (typeof picked !== 'string') return
       setFolder(await startSyncingTo(tauriFolder, picked))
       await sync()

@@ -14,8 +14,22 @@ const KEYS = {
   meta: 'rondel.v6.meta',
 } as const
 
-function nowIso() {
-  return new Date().toISOString()
+function latestStamp(meta: SyncMeta): string {
+  let latest = meta.settingsUpdated ?? ''
+  for (const map of [...Object.values(meta.updated), ...Object.values(meta.deleted)]) {
+    for (const at of Object.values(map)) if (at > latest) latest = at
+  }
+  return latest
+}
+
+/**
+ * A change time that's always later than any change this device has seen,
+ * even if its clock is behind another device's, so a new edit always wins.
+ */
+function nextStamp(meta: SyncMeta): string {
+  const now = Date.now()
+  const seen = Date.parse(latestStamp(meta))
+  return new Date(Number.isNaN(seen) ? now : Math.max(now, seen + 1)).toISOString()
 }
 
 function readJson<T>(key: string, fallback: T): T {
@@ -60,7 +74,7 @@ export function writeCollection<T extends { id: string }>(
   const meta = readMeta()
   const updated = { ...meta.updated[collection] }
   const deleted = { ...meta.deleted[collection] }
-  const now = nowIso()
+  const now = nextStamp(meta)
 
   for (const record of next) {
     if (before.get(record.id) !== JSON.stringify(record)) updated[record.id] = now
@@ -84,7 +98,8 @@ export function readSettingsRaw(): Partial<UserSetting> | null {
 
 export function writeSettings(settings: UserSetting) {
   localStorage.setItem(KEYS.settings, JSON.stringify(settings))
-  writeMeta({ ...readMeta(), settingsUpdated: nowIso() })
+  const meta = readMeta()
+  writeMeta({ ...meta, settingsUpdated: nextStamp(meta) })
 }
 
 /** Everything sync needs, as stored. */

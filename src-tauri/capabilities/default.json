@@ -1,60 +1,18 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Core app permissions, plus picking and using a sync folder under the home folder.",
+  "description": "Core app permissions. File access is limited to the sync folder the user picks (granted by the folder picker, remembered by persisted-scope).",
   "windows": [
     "main"
   ],
   "permissions": [
     "core:default",
     "dialog:allow-open",
-    {
-      "identifier": "fs:allow-read-text-file",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        }
-      ]
-    },
-    {
-      "identifier": "fs:allow-write-text-file",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        }
-      ]
-    },
-    {
-      "identifier": "fs:allow-read-dir",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        }
-      ]
-    },
-    {
-      "identifier": "fs:allow-mkdir",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        }
-      ]
-    },
-    {
-      "identifier": "fs:allow-exists",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        }
-      ]
-    },
-    {
-      "identifier": "opener:allow-reveal-item-in-dir",
-      "allow": [
-        {
-          "path": "$HOME/**"
-        }
-      ]
-    }
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read-dir",
+    "fs:allow-mkdir",
+    "fs:allow-exists",
+    "opener:allow-reveal-item-in-dir"
   ]
 }
