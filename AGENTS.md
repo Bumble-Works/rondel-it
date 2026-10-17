@@ -6,7 +6,9 @@ Read these before doing any work:
 
 - `PRACTICES.md`: how we write code, test, and ship. It is the source of truth for working rules.
 - `PLAN.md`: the product vision.
-- `Plan1.md`: the Stage 1 engineering spec (models, API, build order).
+- `docs/FUNCTIONALITY.md`: how the app is **meant** to behave. Anything that
+  differs is a bug. When you change behavior, update it in the same change.
+- `Plan1.md`: the Stage 1 engineering spec (temporary; deleted once done).
 
 ## Always stop and ask
 

@@ -6,35 +6,14 @@ Stage 1 is a single-user MVP: no auth UI, no billing, no sync — just the core
 daily loop with a real Rails backend and a local-first-friendly React client.
 
 ## Decisions (2026-10-17)
-- **Tags, not categories.** We call them tags because they're used with `#`.
-  "Category" below means tag. The Rails API (PR #3) still needs renaming.
-- **Rondel rules (UX):**
-  - *todo:* the task moves to the target and no longer appears on the old day.
-  - *doing:* the old day keeps a read-only history copy (still `doing`,
-    `carried_to_id` set). The target gets a new `doing` copy. Changing the new
-    copy never affects the old one.
-    History copies are greyed out, have a tooltip explaining why, and sort
-    below active tasks but above done.
-  - *done* (and history copies): rondel isn't offered.
-  - *deleting a carried copy* makes the history it came from a normal task
-    again. Deleting a copy in the middle of a chain re-links its neighbors.
-  - *drag between days* is a plain move (reorganizing), never a rondel. Only
-    an intentional "push this off" from the Rondel menu counts.
-    For now a drag keeps `origin_date` (Mon → Wed still says "first
-    scheduled Mon"). *Open:* we may want a plain move of a not-started task to
-    update `origin_date` instead, since reorganizing isn't pushing work off.
-- **Rondel data (reporting):** every task keeps `origin_date` (the first day it
-  was scheduled) and `rondel_count`. Copies link back through
-  `origin_task_id` / `previous_task_id`.
-- **In Stage 1 scope** (already in the frontend): Bucket List, recurring tasks,
-  the parked "Unassigned" container per week/month, the `canceled` status, and
-  the overdue nag.
-- **Still needed:** see "Next PRs" below.
-- **Recurring tasks are created on their own day**, never ahead of time. The
-  sync horizon is today in the user's time zone, so browsing forward creates
-  nothing. While the app is open it re-syncs after midnight; otherwise it
-  syncs on the next open. (Later, Rails can do this with a nightly job.)
+Intended behavior now lives in `docs/FUNCTIONALITY.md` (permanent). This plan
+is temporary. Plan-only notes:
+- **Tags, not categories.** "Category" below means tag. The Rails API (PR #3)
+  still needs renaming.
+- **Rails must implement the rondel rules** in `docs/FUNCTIONALITY.md`,
+  including `origin_date` and `carried_to_id`, which aren't in the model below.
 - Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
+- Still needed: see "Next PRs" below.
 
 ## Architecture at a glance
 - Backend: Rails 7+ API-only app (`api/` folder), PostgreSQL, JSON endpoints.
