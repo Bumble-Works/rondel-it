@@ -8,13 +8,16 @@ import {
   formatDayLabel,
   formatMonthLabel,
   formatShort,
+  fromIso,
   isToday,
   nowInZone,
+  relativeDayLabel,
   sameMonth,
   startOfMonth,
   startOfWeek,
   todayIso,
   weekDays,
+  weekdayName,
 } from './domain/dates'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from './domain/types'
 import type { BoardGroup, BoardGroupAddTarget } from './features/board/WeekBoard'
@@ -501,7 +504,8 @@ function App() {
           : true
 
   const title =
-    view === 'day' ? dayTitle(anchorDate) : VIEW_TITLE[view]
+    // The subtitle already names the weekday, so the page title stays short.
+    view === 'day' ? (relativeDayLabel(anchorDate) ?? weekdayName(fromIso(anchorDate).getDay())) : VIEW_TITLE[view]
   const subtitle =
     view === 'day'
       ? formatDayLabel(anchorDate)

@@ -44,8 +44,10 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - **Bucket List**: items you want to keep and never forget. They have no
   date and don't nag. From there an item can be given a date or rondeled.
   Nothing goes there automatically; it's always a deliberate choice.
-- Day titles name the weekday too: **"Today (Wednesday)"**, "Tomorrow
-  (Thursday)", "Yesterday (Tuesday)". Other days show just the weekday.
+- Day section headers name the weekday too: **"Today (Wednesday)"**,
+  "Tomorrow (Thursday)", "Yesterday (Tuesday)"; other days show just the
+  weekday. The Day view's page title stays short ("Today") because its
+  subtitle already says "Wednesday, October 15".
 - Month view scrolls to today when it opens on the current month.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
