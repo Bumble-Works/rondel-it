@@ -1,6 +1,6 @@
 import { useRef, useState, type DragEvent } from 'react'
 import type { RondelTarget } from '../../services/adapters/DataSource'
-import { canRondel, isCarriedForward } from '../../domain/rondel'
+import { CARRIED_FORWARD_HINT, canRondel, isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
@@ -124,10 +124,15 @@ export function TaskRow({
         onClick={onAdvance}
         onDoubleClick={onSetDone}
         disabled={carried || task.rondeled || !task.dayDate}
-        disabledTitle={carried ? 'Carried forward — kept here as history' : undefined}
+        disabledTitle={carried ? CARRIED_FORWARD_HINT : undefined}
       />
 
-      <button type="button" className="task-main" onClick={onOpen}>
+      <button
+        type="button"
+        className="task-main"
+        title={carried ? CARRIED_FORWARD_HINT : undefined}
+        onClick={onOpen}
+      >
         <span className="task-title">
           {task.recurringRuleId && (
             <span className="task-recur" title="Recurring task">

@@ -13,6 +13,8 @@ daily loop with a real Rails backend and a local-first-friendly React client.
   - *doing:* the old day keeps a read-only history copy (still `doing`,
     `carried_to_id` set). The target gets a new `doing` copy. Changing the new
     copy never affects the old one.
+    History copies are greyed out, have a tooltip explaining why, and sort
+    below active tasks but above done.
   - *done* (and history copies): rondel isn't offered.
 - **Rondel data (reporting):** every task keeps `origin_date` (the first day it
   was scheduled) and `rondel_count`. Copies link back through

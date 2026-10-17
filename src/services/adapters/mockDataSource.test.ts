@@ -107,6 +107,18 @@ describe('mockDataSource tasks', () => {
     expect(next.previousTaskId).toBe(copy.id)
   })
 
+  it('orders a day as active, then carried-forward history, then done', async () => {
+    const carried = await mockDataSource.createTask({ title: 'Carried', dayDate: '2026-09-21' })
+    const done = await mockDataSource.createTask({ title: 'Done', dayDate: '2026-09-21' })
+    const active = await mockDataSource.createTask({ title: 'Active', dayDate: '2026-09-21' })
+    await mockDataSource.advanceTask(carried.id)
+    await mockDataSource.moveTask(carried.id, { dayDate: '2026-09-22' }, { rondel: true })
+    await mockDataSource.setTaskStatus(done.id, 'done')
+
+    const day = await mockDataSource.listTasksInRange('2026-09-21', '2026-09-21')
+    expect(day.map((t) => t.id)).toEqual([active.id, carried.id, done.id])
+  })
+
   it('refuses to rondel done tasks and carried-forward history', async () => {
     const done = await mockDataSource.createTask({ title: 'Done', dayDate: '2026-09-21' })
     await mockDataSource.setTaskStatus(done.id, 'done')

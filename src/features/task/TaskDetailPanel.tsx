@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
 import type { RondelTarget } from '../../services/adapters/DataSource'
-import { canRondel, isCarriedForward } from '../../domain/rondel'
+import { CARRIED_FORWARD_HINT, canRondel, isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { Button } from '../../shared/ui/Button'
@@ -79,7 +79,7 @@ export function TaskDetailPanel({
           onClick={onAdvance}
           onDoubleClick={onSetDone}
           disabled={carried || (task.status !== 'canceled' && (task.rondeled || !task.dayDate))}
-          disabledTitle={carried ? 'Carried forward — kept here as history' : undefined}
+          disabledTitle={carried ? CARRIED_FORWARD_HINT : undefined}
         />
         <span className="detail-head-spacer" />
         <IconButton icon="close" label="Close" onClick={onClose} />
