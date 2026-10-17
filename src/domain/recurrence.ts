@@ -81,9 +81,9 @@ function ordinal(n: number): string {
 export function describeRecurrence(kind: RecurrenceKind, weekday: number | null, dayOfMonth: number | null): string {
   switch (kind) {
     case 'weekly-start':
-      return 'Every week → Next Week bucket'
+      return 'Start of every week, rondeled into that week'
     case 'monthly-start':
-      return 'Every month → Next Month bucket'
+      return 'Start of every month, rondeled into that month'
     case 'weekly-on':
       return `Every ${WEEKDAY[weekday ?? 1]}`
     case 'monthly-on':

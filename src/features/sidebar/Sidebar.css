@@ -79,22 +79,6 @@
   flex: 1;
 }
 
-.sidebar-link-count {
-  min-width: 20px;
-  padding: 0.05rem 0.4rem;
-  border-radius: var(--r-pill);
-  background: var(--surface-3);
-  color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 800;
-  text-align: center;
-}
-
-.sidebar-link.is-active .sidebar-link-count {
-  background: color-mix(in srgb, var(--brand) 18%, var(--surface));
-  color: var(--brand-ink);
-}
-
 .sidebar-section {
   margin-top: 1.3rem;
   flex: 1;

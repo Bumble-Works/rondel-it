@@ -18,8 +18,8 @@ function clampDayOfMonth(text: string): number {
 const KIND_OPTIONS: Array<{ value: RecurrenceKind; label: string }> = [
   { value: 'weekly-on', label: 'Every week on a weekday' },
   { value: 'monthly-on', label: 'Every month on a date' },
-  { value: 'weekly-start', label: 'Every week → Next Week bucket' },
-  { value: 'monthly-start', label: 'Every month → Next Month bucket' },
+  { value: 'weekly-start', label: 'Start of every week, rondeled into that week' },
+  { value: 'monthly-start', label: 'Start of every month, rondeled into that month' },
 ]
 
 interface RecurringPageProps {

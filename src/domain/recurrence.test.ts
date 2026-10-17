@@ -56,8 +56,8 @@ describe('occurrencesBetween', () => {
 
 describe('describeRecurrence', () => {
   it('labels each supported recurrence kind', () => {
-    expect(describeRecurrence('weekly-start', null, null)).toBe('Every week → Next Week bucket')
-    expect(describeRecurrence('monthly-start', null, null)).toBe('Every month → Next Month bucket')
+    expect(describeRecurrence('weekly-start', null, null)).toBe('Start of every week, rondeled into that week')
+    expect(describeRecurrence('monthly-start', null, null)).toBe('Start of every month, rondeled into that month')
     expect(describeRecurrence('weekly-on', 5, null)).toBe('Every Friday')
     expect(describeRecurrence('monthly-on', null, 21)).toBe('Every 21st of the month')
   })

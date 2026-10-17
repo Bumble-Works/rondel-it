@@ -77,7 +77,7 @@ export function SettingsPage({
               type="time"
               className="field settings-control"
               value={settings.dayStartTime}
-              onChange={(e) => onUpdateSettings({ dayStartTime: e.target.value })}
+              onChange={(e) => e.target.value && onUpdateSettings({ dayStartTime: e.target.value })}
             />
           </div>
 
@@ -88,7 +88,7 @@ export function SettingsPage({
               type="time"
               className="field settings-control"
               value={settings.endOfDayTime}
-              onChange={(e) => onUpdateSettings({ endOfDayTime: e.target.value })}
+              onChange={(e) => e.target.value && onUpdateSettings({ endOfDayTime: e.target.value })}
             />
           </div>
         </section>

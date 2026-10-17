@@ -28,7 +28,6 @@ const STATUS_ITEMS: Array<{ key: TaskStatus; label: string }> = [
 interface SidebarProps {
   activeView: ViewKey
   onSelectView: (view: ViewKey) => void
-  counts: Partial<Record<ViewKey, number>>
   tags: Tag[]
   activeTagIds: string[]
   onToggleTag: (tagId: string) => void
@@ -45,7 +44,6 @@ interface SidebarProps {
 export function Sidebar({
   activeView,
   onSelectView,
-  counts,
   tags,
   activeTagIds,
   onToggleTag,
@@ -81,7 +79,6 @@ export function Sidebar({
               <Icon name={item.icon} size={18} />
             </span>
             <span className="sidebar-link-label">{item.label}</span>
-            {counts[item.key] ? <span className="sidebar-link-count">{counts[item.key]}</span> : null}
           </button>
         ))}
       </nav>

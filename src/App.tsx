@@ -529,7 +529,6 @@ function App() {
           setView(v)
           setPage('board')
         }}
-        counts={{}}
         tags={tags}
         activeTagIds={activeTagIds}
         onToggleTag={toggleTagFilter}
