@@ -18,6 +18,8 @@
 
 - Only comment when it adds real value (the "why", not the "what").
 - No convoluted or redundant comments.
+- Don't comment on things nobody would expect anyway (e.g. "flagging doesn't
+    reorder"). Explain surprising behavior, not the absence of it.
 
 ## Error handling
 
