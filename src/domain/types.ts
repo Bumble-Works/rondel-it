@@ -14,7 +14,6 @@ export interface Task {
   bucket: TaskBucket | null
   position: number
   rondelCount: number
-  /** Marked important (bold + flag). Doesn't change the order; the user drags it. */
   flagged: boolean
   /** First day this task (or its lineage) was scheduled on. For reporting. */
   originDate: string | null

@@ -112,8 +112,7 @@ function buildSeedRules(): RecurringRule[] {
 /* ---------- helpers ---------- */
 
 function ordered(tasks: Task[]): Task[] {
-  // Manual order (position) is respected so drag-and-drop reordering sticks
-  // (flagged items too: the user moves them up themselves).
+  // Manual order (position) is respected so drag-and-drop reordering sticks.
   // Carried-forward history sits below active work; done always sinks to the bottom.
   const rank = (t: Task): number => (t.status === 'done' ? 2 : isCarriedForward(t) ? 1 : 0)
   return [...tasks].sort((a, b) => {
