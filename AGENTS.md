@@ -1,5 +1,7 @@
 # Agent rules for Rondel It
 
+These rules apply to any coding agent or LLM tool (Claude, Copilot, Codex, Cursor, ...).
+
 Read these before doing any work:
 
 - `PRACTICES.md`: how we write code, test, and ship. It is the source of truth for working rules.
@@ -15,4 +17,4 @@ ask the user before continuing. Don't guess. This includes:
 - code that diverges from `PLAN.md` / `Plan1.md` when it's unclear whether that was intended
 - any action that is destructive or outward-facing
 
-This rule applies to every skill and subagent used in this repo.
+This rule applies to every tool, skill and subagent used in this repo.
