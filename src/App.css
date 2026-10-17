@@ -1,0 +1,267 @@
+.app {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.6rem 0.65rem;
+}
+
+.app-topbar-titles {
+  flex: none;
+}
+
+.app-topbar-titles h1 {
+  font-size: 1.42rem;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.app-topbar-titles p {
+  margin-top: 0.08rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-topbar-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.app-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.app-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 34px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.app-filter-btn:hover,
+.app-filter-btn.is-open {
+  border-color: var(--brand);
+  color: var(--brand-ink);
+}
+
+.app-filter-btn .icon,
+.app-filter-btn svg {
+  color: var(--muted);
+}
+
+.app-filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.3rem;
+  border-radius: var(--r-pill);
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.filter-panel {
+  width: 260px;
+  padding: 0.7rem;
+}
+
+.filter-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.filter-panel-clear {
+  border: none;
+  background: transparent;
+  color: var(--brand);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.filter-panel-clear:hover {
+  text-decoration: underline;
+}
+
+.filter-panel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filter-panel-group + .filter-panel-group {
+  margin-top: 0.7rem;
+}
+
+.filter-panel-label {
+  margin-bottom: 0.4rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.app-nav-arrow:hover {
+  background: var(--surface-2);
+  color: var(--brand-ink);
+}
+
+.app-nav-today {
+  padding: 0 0.7rem;
+  height: 30px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 800;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.app-nav-today:hover:not(:disabled) {
+  background: var(--brand-tint);
+  color: var(--brand-ink);
+}
+
+.app-nav-today:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+
+.app-nav-datepick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 30px;
+  padding: 0 0.5rem 0 0.6rem;
+  margin-left: 0.15rem;
+  border-radius: var(--r-pill);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+
+.app-nav-datepick:hover {
+  background: var(--surface-2);
+}
+
+.app-nav-datepick input {
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0;
+}
+
+.app-nav-datepick input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.app-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.2rem 1.6rem 0;
+}
+
+.app-error {
+  margin-bottom: 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: var(--r-md);
+  background: rgba(239, 71, 87, 0.1);
+  border: 1px solid color-mix(in srgb, var(--accent-red) 30%, transparent);
+  color: var(--accent-red);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .app {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .app-main {
+    height: auto;
+  }
+
+  .app-scroll {
+    overflow: visible;
+    padding: 0.2rem 0.85rem 0;
+  }
+
+  .app-topbar {
+    padding: 0.9rem 0.85rem 0.6rem;
+  }
+}

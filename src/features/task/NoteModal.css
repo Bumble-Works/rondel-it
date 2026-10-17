@@ -1,0 +1,12 @@
+.note-modal-task {
+  margin-bottom: 0.8rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.note-modal-input {
+  resize: vertical;
+  line-height: 1.5;
+  font-size: 0.92rem;
+}

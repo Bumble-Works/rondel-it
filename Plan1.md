@@ -5,6 +5,16 @@
 Stage 1 is a single-user MVP: no auth UI, no billing, no sync — just the core
 daily loop with a real Rails backend and a local-first-friendly React client.
 
+## Decisions (2026-10-17)
+Intended behavior now lives in `docs/FUNCTIONALITY.md` (permanent). This plan
+is temporary. Plan-only notes:
+- **Tags, not categories.** "Category" below means tag. The Rails API (PR #3)
+  still needs renaming.
+- **Rails must implement the rondel rules** in `docs/FUNCTIONALITY.md`,
+  including `origin_date` and `carried_to_id`, which aren't in the model below.
+- Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
+- Still needed: see "Next PRs" below.
+
 ## Architecture at a glance
 - Backend: Rails 7+ API-only app (`api/` folder), PostgreSQL, JSON endpoints.
 - Frontend: React + TypeScript + Vite (repo root), talks to Rails via a typed adapter.
@@ -103,6 +113,47 @@ Frontend:
 - Notes persist and are retrievable.
 - Full keyboard path: create → doing → done → rondel.
 - Runs against Rails API and (via seam) a mock adapter.
+
+## Next PRs (after #2, #3, #4 merge)
+
+### End-of-day rondel flow
+- At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).
+  Right now the nag only covers rondeled items waiting in a container.
+- Each task gets the Rondel options (tomorrow / pick a date / next week /
+  next month / Bucket List), plus "mark done" and "leave it".
+- Follows the rondel rules above (todo moves; doing leaves history).
+
+### Keyboard shortcuts
+- Create a task, move between tasks, open details, advance status,
+  rondel, add/edit a note, filter by tag.
+- Full keyboard path: create → doing → done → rondel (Stage 1 acceptance).
+- Customizing shortcuts stays out of scope (premium).
+
+### Smaller fixes found in the PR #2 review
+- Recurring "start" rules: finishing a task late creates the next one in a
+  past week (`lastRunDate` only moves when a task is created).
+- Recurring rules use the UTC date from `createdAt`, so a rule made in the
+  evening (US) can skip today.
+- Recurring sync silently deletes "duplicate" pending tasks, notes included.
+  Remove it, or log it.
+- Double-clicking the status circle sends 3 updates at once, which can race
+  against Rails.
+- Deleting a task needs a confirm or undo.
+- Split `App.tsx` (~720 lines) into per-feature hooks, and stop reloading the
+  whole board (plus the recurring sync) after every action: use optimistic
+  updates and reconcile with the result.
+- Naming: the Bucket List view's internal key is `'rondel'`. Rename it to
+  `'bucket'`. (Keep the `rondeled` field name: "rondeled items" is the term.)
+- Rondeled items don't record whether they're for a week or a month (both are
+  just a date). Add a field, or simplify the UX into fixed "Next week" /
+  "Next month" buckets.
+- "Today" uses the browser's time zone, but the recurring sync uses the
+  settings time zone. Use one everywhere (matters once Rails settings exist).
+- Repo housekeeping: replace the Vite boilerplate in README, add `src-tauri`
+  or drop `@tauri-apps/cli`, add the `check:practices` script PRACTICES.md
+  mentions, create `docs/TODO.md`.
+- Rails API (PR #3): rename categories → tags, and align endpoints with the
+  frontend adapter.
 
 ## Out of scope for Stage 1
 - Auth UI, multi-user, billing
