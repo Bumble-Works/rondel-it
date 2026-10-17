@@ -81,11 +81,23 @@ export async function startSyncingTo(fs: FolderAccess, picked: string): Promise<
   return dir
 }
 
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+/** Only files with the full expected shape are merged; anything else is "unreadable". */
 function parseDeviceFile(text: string): DeviceFile | null {
   try {
     const file = JSON.parse(text) as DeviceFile
     const d = file?.data
-    const valid = file.format === FORMAT && d && Array.isArray(d.tasks) && Array.isArray(d.tags) && Array.isArray(d.rules) && d.meta
+    const valid =
+      file.format === FORMAT &&
+      isObject(d) &&
+      Array.isArray(d.tasks) &&
+      Array.isArray(d.tags) &&
+      Array.isArray(d.rules) &&
+      isObject(d.meta) &&
+      isObject(d.meta.updated) &&
+      isObject(d.meta.deleted)
     return valid ? file : null
   } catch {
     return null

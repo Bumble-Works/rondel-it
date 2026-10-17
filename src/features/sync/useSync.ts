@@ -58,18 +58,26 @@ export function useSync({ onRemoteChange, reportError }: Options) {
     timer.current = window.setTimeout(() => void sync(), AFTER_CHANGE_MS)
   }, [sync])
 
+  // The schedule reads the latest `sync` through a ref, so it isn't reset (and
+  // doesn't write to the folder) every time the board's view changes.
+  const latestSync = useRef(sync)
+  useEffect(() => {
+    latestSync.current = sync
+  }, [sync])
+
   useEffect(() => {
     if (!available) return
-    const first = window.setTimeout(() => void sync(), 0)
-    const interval = window.setInterval(() => void sync(), WHILE_OPEN_MS)
-    const onFocus = () => void sync()
+    const run = () => void latestSync.current()
+    const first = window.setTimeout(run, 0)
+    const interval = window.setInterval(run, WHILE_OPEN_MS)
+    const onFocus = run
     window.addEventListener('focus', onFocus)
     return () => {
       window.clearTimeout(first)
       window.clearInterval(interval)
       window.removeEventListener('focus', onFocus)
     }
-  }, [available, sync])
+  }, [available])
 
   const chooseFolder = useCallback(async () => {
     try {
