@@ -150,6 +150,12 @@ Frontend:
   yours." (Guards against two people accidentally sharing one folder; sync stays anonymous.)
 - [ ] iPhone: same sync folder through the Files app (Tauri iOS)
 - [ ] Export/Import backup (JSON)
+- Later, if there's a web app: it can join the same sync as one more
+  "device" (same `devices/*.json` format). Browsers can't read the Drive
+  folder, so it would use the Google Drive API (reading files the Mac wrote
+  needs a Google "restricted" scope: a yearly paid security review before
+  public use; separate work per provider), or a small server (back to
+  hosting). Decide only if a web app becomes real.
 - [ ] Later: move local data from web storage to a file (SQLite) in the app's
   data folder
 - Rails on hold (PR #3 is to be closed and rebuilt later against
