@@ -27,8 +27,7 @@ daily loop with a real Rails backend and a local-first-friendly React client.
 - **In Stage 1 scope** (already in the frontend): Bucket List, recurring tasks,
   the parked "Unassigned" container per week/month, the `canceled` status, and
   the overdue nag.
-- **Still needed:** the end-of-day rondel flow (today's unfinished tasks) and
-  keyboard shortcuts for create / advance / rondel / navigation.
+- **Still needed:** see "Next PRs" below.
 - Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
 
 ## Architecture at a glance
@@ -129,6 +128,38 @@ Frontend:
 - Notes persist and are retrievable.
 - Full keyboard path: create → doing → done → rondel.
 - Runs against Rails API and (via seam) a mock adapter.
+
+## Next PRs (after #2, #3, #4 merge)
+
+### End-of-day rondel flow
+- At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).
+  Right now the nag only covers parked items from past weeks.
+- Each task gets the Rondel options (tomorrow / pick a date / next week /
+  next month / Bucket List), plus "mark done" and "leave it".
+- Follows the rondel rules above (todo moves; doing leaves history).
+
+### Keyboard shortcuts
+- Create a task, move between tasks, open details, advance status,
+  rondel, add/edit a note, filter by tag.
+- Full keyboard path: create → doing → done → rondel (Stage 1 acceptance).
+- Customizing shortcuts stays out of scope (premium).
+
+### Smaller fixes found in the PR #2 review
+- Recurring "start" rules: finishing a task late creates the next one in a
+  past week (`lastRunDate` only moves when a task is created).
+- Recurring rules use the UTC date from `createdAt`, so a rule made in the
+  evening (US) can skip today.
+- Recurring sync silently deletes "duplicate" pending tasks, notes included.
+  Remove it, or log it.
+- Double-clicking the status circle sends 3 updates at once, which can race
+  against Rails.
+- Deleting a task needs a confirm or undo.
+- Split `App.tsx` (~700 lines) into per-feature hooks.
+- Repo housekeeping: replace the Vite boilerplate in README, add `src-tauri`
+  or drop `@tauri-apps/cli`, add the `check:practices` script PRACTICES.md
+  mentions, create `docs/TODO.md`.
+- Rails API (PR #3): rename categories → tags, and align endpoints with the
+  frontend adapter.
 
 ## Out of scope for Stage 1
 - Auth UI, multi-user, billing
