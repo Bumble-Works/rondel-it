@@ -37,7 +37,7 @@ export interface DataSource {
   listRondelItems(): Promise<Task[]>
   createTask(input: CreateTaskInput): Promise<Task>
   deleteTask(id: string): Promise<void>
-  updateTask(id: string, input: { title?: string; tagIds?: string[]; note?: string }): Promise<Task>
+  updateTask(id: string, input: { title?: string; tagIds?: string[]; note?: string; flagged?: boolean }): Promise<Task>
   advanceTask(id: string): Promise<Task>
   setTaskStatus(id: string, status: TaskStatus): Promise<Task>
   /**

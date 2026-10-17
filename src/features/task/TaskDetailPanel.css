@@ -198,3 +198,7 @@
     width: 100%;
   }
 }
+
+.detail-flag.is-on {
+  color: var(--accent-amber);
+}

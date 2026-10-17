@@ -21,6 +21,10 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   it to done.
 - `canceled` exists in the data model, but nothing in the UI sets it yet.
 - Reopening a done task (back to todo) moves it to the **top** of its day.
+- **Flag (important):** one flag per task, toggled from the row's flag button
+  or the detail panel. A flagged task's title is bold with a small amber flag.
+  Flagging **doesn't reorder**; drag it up yourself. The flag carries forward
+  when a task is rondeled. History copies can't be flagged or unflagged.
 - Done tasks always sink to the bottom of their day. Each day sorts as:
   **active tasks → carried-forward history → done**. Within each group, the
   order you set by dragging is kept.
@@ -79,7 +83,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 | **history copy** | Not offered (button greyed out, with the history tooltip). |
 
 - The rondel button is **always shown** on every row and in the detail panel,
-  so row actions (note, delete, rondel) stay aligned in a fixed grid. When
+  so row actions (flag, note, delete, rondel) stay aligned in a fixed grid. When
   rondel doesn't apply, the button is greyed out and its tooltip says why.
 
 - Every rondel adds 1 to `rondelCount`. Copies carry the count forward.

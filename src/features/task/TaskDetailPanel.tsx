@@ -26,6 +26,7 @@ interface TaskDetailPanelProps {
   onChangeTitle: (title: string) => void
   onToggleTag: (tagId: string) => void
   onSaveNote: (note: string) => void
+  onToggleFlag: () => void
   onAdvance: () => void
   onSetDone: () => void
   onRondel: (target: RondelTarget) => void
@@ -43,6 +44,7 @@ export function TaskDetailPanel({
   onChangeTitle,
   onToggleTag,
   onSaveNote,
+  onToggleFlag,
   onAdvance,
   onSetDone,
   onRondel,
@@ -83,6 +85,14 @@ export function TaskDetailPanel({
           disabledTitle={carried ? CARRIED_FORWARD_HINT : undefined}
         />
         <span className="detail-head-spacer" />
+        <IconButton
+          icon={task.flagged ? 'flag-filled' : 'flag'}
+          label={task.flagged ? 'Remove flag' : 'Flag as important'}
+          className={task.flagged ? 'detail-flag is-on' : 'detail-flag'}
+          aria-pressed={task.flagged}
+          disabled={carried}
+          onClick={onToggleFlag}
+        />
         <IconButton icon="close" label="Close" onClick={onClose} />
       </header>
 

@@ -35,6 +35,7 @@ interface WeekBoardProps {
   onRondel: (task: Task, target: RondelTarget) => void
   onPickDate: (task: Task) => void
   onOpenNote: (task: Task) => void
+  onToggleFlag: (task: Task) => void
   onDelete: (task: Task) => void
   onQuickAdd: (target: BoardGroupAddTarget, title: string, tagIds: string[]) => void
   onCreateTag: (name: string) => Promise<Tag | null>
@@ -52,6 +53,7 @@ export function WeekBoard({
   onRondel,
   onPickDate,
   onOpenNote,
+  onToggleFlag,
   onDelete,
   onQuickAdd,
   onCreateTag,
@@ -114,6 +116,7 @@ export function WeekBoard({
               onRondel={(target) => onRondel(task, target)}
               onPickDate={() => onPickDate(task)}
               onOpenNote={() => onOpenNote(task)}
+              onToggleFlag={() => onToggleFlag(task)}
               onDelete={() => onDelete(task)}
               dragging={Boolean(draggingId)}
               isDragged={draggingId === task.id}

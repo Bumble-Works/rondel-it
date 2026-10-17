@@ -19,6 +19,7 @@ interface TaskRowProps {
   onRondel: (target: RondelTarget) => void
   onPickDate: () => void
   onOpenNote: () => void
+  onToggleFlag: () => void
   onDelete: () => void
   dragging: boolean
   isDragged: boolean
@@ -38,6 +39,7 @@ export function TaskRow({
   onRondel,
   onPickDate,
   onOpenNote,
+  onToggleFlag,
   onDelete,
   dragging,
   isDragged,
@@ -79,6 +81,7 @@ export function TaskRow({
         selected ? 'is-selected' : '',
         task.status === 'done' ? 'is-done' : '',
         task.status === 'canceled' ? 'is-canceled' : '',
+        task.flagged ? 'is-flagged' : '',
         carried ? 'is-carried' : '',
         isDragged ? 'is-dragged' : '',
         dropPosition === 'before' ? 'is-drop-before' : '',
@@ -137,6 +140,11 @@ export function TaskRow({
         onClick={onOpen}
       >
         <span className="task-title">
+          {task.flagged && (
+            <span className="task-flag-mark" title="Important">
+              <Icon name="flag-filled" size={13} />
+            </span>
+          )}
           {task.recurringRuleId && (
             <span className="task-recur" title="Recurring task">
               <Icon name="repeat" size={13} />
@@ -160,6 +168,17 @@ export function TaskRow({
       </button>
 
       <div className="task-actions">
+        <button
+          type="button"
+          className={`task-flag-btn ${task.flagged ? 'is-on' : ''}`.trim()}
+          aria-label={task.flagged ? 'Remove flag' : 'Flag as important'}
+          aria-pressed={task.flagged}
+          title={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : task.flagged ? 'Remove flag' : 'Flag as important'}
+          disabled={locked || carried}
+          onClick={onToggleFlag}
+        >
+          <Icon name={task.flagged ? 'flag-filled' : 'flag'} size={17} />
+        </button>
         <button
           type="button"
           className={`task-note-btn ${task.note ? 'has-note' : ''}`.trim()}

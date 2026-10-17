@@ -45,6 +45,7 @@ function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
   const normalized = {
     ...task,
     originDate: task.originDate ?? task.dayDate ?? null,
+    flagged: task.flagged ?? false,
     originTaskId: task.originTaskId ?? null,
     previousTaskId: task.previousTaskId ?? null,
     carriedToId: task.carriedToId ?? null,
@@ -111,7 +112,8 @@ function buildSeedRules(): RecurringRule[] {
 /* ---------- helpers ---------- */
 
 function ordered(tasks: Task[]): Task[] {
-  // Manual order (position) is respected so drag-and-drop reordering sticks.
+  // Manual order (position) is respected so drag-and-drop reordering sticks
+  // (flagged items too: the user moves them up themselves).
   // Carried-forward history sits below active work; done always sinks to the bottom.
   const rank = (t: Task): number => (t.status === 'done' ? 2 : isCarriedForward(t) ? 1 : 0)
   return [...tasks].sort((a, b) => {
@@ -139,6 +141,7 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
     rondeled: false,
     bucket: null,
     rondelCount: 0,
+    flagged: false,
     tagIds: [],
     note: '',
     createdAt: nowIso(),
@@ -263,6 +266,7 @@ export const mockDataSource: DataSource = {
       title: input.title?.trim() || tasks[index].title,
       tagIds: input.tagIds ?? tasks[index].tagIds,
       note: input.note ?? tasks[index].note,
+      flagged: input.flagged ?? tasks[index].flagged,
     }
     writeTasks(tasks)
     return tasks[index]
@@ -310,6 +314,7 @@ export const mockDataSource: DataSource = {
         bucket,
         position: tasks.length,
         rondelCount: source.rondelCount + 1,
+        flagged: source.flagged,
         tagIds: [...source.tagIds],
         note: source.note,
         recurringRuleId: source.recurringRuleId,

@@ -154,7 +154,7 @@
 .task-actions {
   /* Fixed columns (note, delete, rondel) so actions line up on every row. */
   display: grid;
-  grid-template-columns: 28px 28px 32px;
+  grid-template-columns: 28px 28px 28px 32px;
   align-items: center;
   justify-items: center;
   gap: 0.15rem;
@@ -167,6 +167,18 @@
   opacity: 1;
 }
 
+.task-flag-mark {
+  display: inline-flex;
+  vertical-align: -1px;
+  margin-right: 0.3rem;
+  color: var(--accent-amber);
+}
+
+.task-row.is-flagged .task-title {
+  font-weight: 750;
+}
+
+.task-flag-btn,
 .task-note-btn {
   display: inline-flex;
   align-items: center;
@@ -180,6 +192,11 @@
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
+.task-flag-btn.is-on {
+  color: var(--accent-amber);
+}
+
+.task-flag-btn:hover,
 .task-note-btn:hover {
   background: var(--surface-3);
   color: var(--ink);

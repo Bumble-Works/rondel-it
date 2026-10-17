@@ -150,6 +150,20 @@ describe('mockDataSource tasks', () => {
     expect(pushed.rondelCount).toBe(2)
   })
 
+  it('flags a task without reordering it, and carries the flag forward', async () => {
+    const first = await mockDataSource.createTask({ title: 'First', dayDate: '2026-09-21' })
+    const important = await mockDataSource.createTask({ title: 'Important', dayDate: '2026-09-21' })
+    expect(important.flagged).toBe(false)
+
+    await mockDataSource.updateTask(important.id, { flagged: true })
+    const day = await mockDataSource.listTasksInRange('2026-09-21', '2026-09-21')
+    expect(day.map((t) => [t.id, t.flagged])).toEqual([[first.id, false], [important.id, true]])
+
+    await mockDataSource.advanceTask(important.id)
+    const copy = await mockDataSource.moveTask(important.id, { dayDate: '2026-09-22' }, { rondel: true })
+    expect(copy.flagged).toBe(true)
+  })
+
   it('moves a reopened task to the top of its day', async () => {
     const first = await mockDataSource.createTask({ title: 'First', dayDate: '2026-09-21' })
     const reopened = await mockDataSource.createTask({ title: 'Reopened', dayDate: '2026-09-21' })
@@ -240,6 +254,7 @@ describe('mockDataSource tasks', () => {
     )
     const [task] = await mockDataSource.listTasksInRange('2026-09-01', '2026-09-01')
     expect(task).toMatchObject({
+      flagged: false,
       note: 'kept',
       rondelCount: 2,
       originDate: '2026-09-01',

@@ -123,7 +123,7 @@ Frontend:
 - [ ] `#tag` autocomplete when editing a title in the side panel
 - [x] Works in a narrow window (360px; sidebar drawer below 760px)
 - [x] Drag and drop: works now in the browser (fixed in PR #2)
-- [ ] Bold / flag items
+- [x] Flag items as important (bold + amber flag; no auto-reorder)
 
 ## Next PRs
 

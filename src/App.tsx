@@ -297,6 +297,7 @@ function App() {
         { rondel: true },
       ),
     )
+  const toggleFlag = (task: Task) => run(() => dataSource.updateTask(task.id, { flagged: !task.flagged }))
   const saveNote = (taskId: string, note: string) => run(() => dataSource.updateTask(taskId, { note }))
   const changeTitle = (taskId: string, title: string) => run(() => dataSource.updateTask(taskId, { title }))
   const removeTask = (taskId: string) =>
@@ -704,6 +705,7 @@ function App() {
             onRondel={rondel}
             onPickDate={(task) => setDateTaskId(task.id)}
             onOpenNote={(task) => setNoteTaskId(task.id)}
+            onToggleFlag={toggleFlag}
             onDelete={(task) => removeTask(task.id)}
             onQuickAdd={quickAdd}
             onCreateTag={createTagNamed}
@@ -723,6 +725,7 @@ function App() {
           onChangeTitle={(title) => changeTitle(selectedTask.id, title)}
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}
           onSaveNote={(note) => saveNote(selectedTask.id, note)}
+          onToggleFlag={() => toggleFlag(selectedTask)}
           onAdvance={() => advance(selectedTask)}
           onSetDone={() => setDone(selectedTask)}
           onRondel={(target) => rondel(selectedTask, target)}
