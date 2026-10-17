@@ -33,6 +33,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T
 }
 
+/** Rails permits snake_case params; responses come back camelCased. */
+function snakeKeys(input: object): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(input).map(([key, value]) => [key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`), value]),
+  )
+}
+
 function mapTask(payload: Record<string, unknown>): Task {
   return {
     id: String(payload.id),
@@ -142,7 +149,7 @@ export const railsDataSource: DataSource = {
   async createTag(input) {
     const response = await request<{ tag: Tag }>('/tags', {
       method: 'POST',
-      body: JSON.stringify(input),
+      body: JSON.stringify(snakeKeys(input)),
     })
     return response.tag
   },
@@ -150,7 +157,7 @@ export const railsDataSource: DataSource = {
   async updateTag(id, input) {
     const response = await request<{ tag: Tag }>(`/tags/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(input),
+      body: JSON.stringify(snakeKeys(input)),
     })
     return response.tag
   },
@@ -167,7 +174,7 @@ export const railsDataSource: DataSource = {
   async updateSettings(input) {
     const response = await request<{ settings: UserSetting }>('/settings', {
       method: 'PATCH',
-      body: JSON.stringify(input),
+      body: JSON.stringify(snakeKeys(input)),
     })
     return response.settings
   },
@@ -180,7 +187,7 @@ export const railsDataSource: DataSource = {
   async createRecurringRule(input: RecurringRuleInput) {
     const response = await request<{ rule: RecurringRule }>('/recurring_rules', {
       method: 'POST',
-      body: JSON.stringify(input),
+      body: JSON.stringify(snakeKeys(input)),
     })
     return response.rule
   },
@@ -188,7 +195,7 @@ export const railsDataSource: DataSource = {
   async updateRecurringRule(id, input) {
     const response = await request<{ rule: RecurringRule }>(`/recurring_rules/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(input),
+      body: JSON.stringify(snakeKeys(input)),
     })
     return response.rule
   },

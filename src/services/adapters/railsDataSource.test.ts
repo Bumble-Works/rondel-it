@@ -126,6 +126,9 @@ describe('railsDataSource', () => {
 
     expect(fetchMock.mock.calls[0][0]).toContain('/tags')
     expect(fetchMock.mock.calls[4][0]).toContain('/settings')
+    // Rails permits snake_case params.
+    expect(JSON.parse(fetchMock.mock.calls[5][1].body)).toEqual({ week_start_day: 0, end_of_day_time: '18:00' })
+    expect(JSON.parse(fetchMock.mock.calls[7][1].body)).toMatchObject({ kind: 'weekly-on', weekday: 2 })
     expect(fetchMock.mock.calls[6][0]).toContain('/recurring_rules')
     expect(fetchMock.mock.calls[10][0]).toContain('/recurring_rules/sync')
   })
