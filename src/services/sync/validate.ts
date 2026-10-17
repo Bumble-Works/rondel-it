@@ -35,6 +35,29 @@ const RECORD_CHECKS: Record<Collection, (r: Rec) => boolean> = {
     isString(r.createdAt),
 }
 
+const isTime = (v: unknown) => isString(v) && /^([01]\d|2[0-3]):[0-5]\d$/.test(v)
+const isTimeZone = (v: unknown) => {
+  if (!isString(v)) return false
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: v })
+    return true
+  } catch {
+    return false
+  }
+}
+
+const SETTING_CHECKS: Record<string, (v: unknown) => boolean> = {
+  weekStartDay: (v) => Number.isInteger(v) && (v as number) >= 0 && (v as number) <= 6,
+  dayStartTime: isTime,
+  endOfDayTime: isTime,
+  timezone: isTimeZone,
+}
+
+/** Settings are all-or-nothing: one bad field could break dates everywhere. */
+function settingsOk(settings: Rec): boolean {
+  return Object.entries(settings).every(([key, value]) => SETTING_CHECKS[key]?.(value) ?? false)
+}
+
 export type Validated =
   | { ok: true; snapshot: Snapshot; droppedRecords: number }
   | { ok: false; reason: string }
@@ -75,7 +98,9 @@ export function validateSnapshot(data: unknown, now = Date.now()): Validated {
     updated[c] = Object.fromEntries(Object.entries((meta.updated[c] ?? {}) as Record<string, string>).filter(([id]) => kept.has(id)))
   }
 
-  const settings = isObject(data.settings) ? data.settings : null
+  const settingsValid = isObject(data.settings) && settingsOk(data.settings)
+  if (isObject(data.settings) && !settingsValid) droppedRecords++
+  const settings = settingsValid ? (data.settings as Rec) : null
   return {
     ok: true,
     droppedRecords,
@@ -91,7 +116,8 @@ export function validateSnapshot(data: unknown, now = Date.now()): Validated {
           tags: (meta.deleted.tags ?? {}) as Record<string, string>,
           rules: (meta.deleted.rules ?? {}) as Record<string, string>,
         },
-        settingsUpdated: settingsUpdated as string | null,
+        // Without valid settings there's nothing for this stamp to win with.
+        settingsUpdated: settings ? (settingsUpdated as string | null) : null,
       },
     },
   }

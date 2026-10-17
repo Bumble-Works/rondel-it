@@ -48,4 +48,21 @@ describe('validateSnapshot', () => {
   it('rejects files missing their change history', () => {
     expect(validateSnapshot({ tasks: [], tags: [], rules: [], meta: {} }, NOW).ok).toBe(false)
   })
+
+  it('ignores settings with any invalid field, keeping the rest of the file', () => {
+    const bad = snapshot({ settings: { weekStartDay: 'Monday', endOfDayTime: '17:00' } })
+    bad.meta.settingsUpdated = '2026-10-01T09:30:00.000Z' as never
+    const result = validateSnapshot(bad, NOW)
+    expect(result.ok && result.snapshot.settings).toBeNull()
+    expect(result.ok && result.snapshot.meta.settingsUpdated).toBeNull()
+    expect(result.ok && result.snapshot.tags).toHaveLength(1)
+
+    for (const settings of [{ endOfDayTime: '25:00' }, { timezone: 'Mars/Olympus' }, { surprise: true }]) {
+      const r = validateSnapshot(snapshot({ settings }), NOW)
+      expect(r.ok && r.snapshot.settings).toBeNull()
+    }
+
+    const good = validateSnapshot(snapshot({ settings: { weekStartDay: 0, dayStartTime: '08:30', timezone: 'Asia/Tokyo' } }), NOW)
+    expect(good.ok && good.snapshot.settings).toEqual({ weekStartDay: 0, dayStartTime: '08:30', timezone: 'Asia/Tokyo' })
+  })
 })
