@@ -119,6 +119,29 @@ describe('mockDataSource tasks', () => {
     expect(day.map((t) => t.id)).toEqual([active.id, carried.id, done.id])
   })
 
+  it('restores the history copy when its carried-forward copy is deleted', async () => {
+    const monday = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
+    await mockDataSource.advanceTask(monday.id)
+    const tuesday = await mockDataSource.moveTask(monday.id, { dayDate: '2026-09-22' }, { rondel: true })
+
+    await mockDataSource.deleteTask(tuesday.id)
+    const [restored] = await mockDataSource.listTasksInRange('2026-09-21', '2026-09-21')
+    expect(restored.carriedToId).toBeNull()
+    expect(restored.status).toBe('doing')
+  })
+
+  it('keeps the chain linked when a middle history copy is deleted', async () => {
+    const monday = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
+    await mockDataSource.advanceTask(monday.id)
+    const tuesday = await mockDataSource.moveTask(monday.id, { dayDate: '2026-09-22' }, { rondel: true })
+    const wednesday = await mockDataSource.moveTask(tuesday.id, { dayDate: '2026-09-23' }, { rondel: true })
+
+    await mockDataSource.deleteTask(tuesday.id)
+    const week = await mockDataSource.listTasksInRange('2026-09-21', '2026-09-23')
+    expect(week.find((t) => t.id === monday.id)?.carriedToId).toBe(wednesday.id)
+    expect(week.find((t) => t.id === wednesday.id)?.previousTaskId).toBe(monday.id)
+  })
+
   it('refuses to rondel done tasks and carried-forward history', async () => {
     const done = await mockDataSource.createTask({ title: 'Done', dayDate: '2026-09-21' })
     await mockDataSource.setTaskStatus(done.id, 'done')

@@ -207,8 +207,15 @@ export const mockDataSource: DataSource = {
   async deleteTask(id) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
-    tasks.splice(index, 1)
-    writeTasks(tasks)
+    const [removed] = tasks.splice(index, 1)
+    // Stitch the carry-forward chain around the removed task. Deleting the live
+    // copy makes the history it came from a normal task again.
+    const stitched = tasks.map((t) => {
+      if (t.carriedToId === id) return { ...t, carriedToId: removed.carriedToId }
+      if (t.previousTaskId === id) return { ...t, previousTaskId: removed.previousTaskId }
+      return t
+    })
+    writeTasks(stitched)
   },
 
   async updateTask(id, input) {
