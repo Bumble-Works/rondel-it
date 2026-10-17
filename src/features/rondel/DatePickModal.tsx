@@ -14,6 +14,8 @@ export function DatePickModal({ open, onClose, onConfirm }: DatePickModalProps) 
   // The parent remounts this modal (via `key`) each time it opens, so the
   // date always starts fresh at tomorrow.
   const [date, setDate] = useState(() => addDays(todayIso(), 1))
+  // A cleared input yields '' — moving a task there would hide it from every view.
+  const isValid = date !== '' && date >= todayIso()
 
   return (
     <Modal
@@ -26,7 +28,7 @@ export function DatePickModal({ open, onClose, onConfirm }: DatePickModalProps) 
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={() => onConfirm(date)}>
+          <Button variant="primary" disabled={!isValid} onClick={() => isValid && onConfirm(date)}>
             Rondel it
           </Button>
         </>

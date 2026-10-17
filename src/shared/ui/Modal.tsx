@@ -11,14 +11,22 @@ interface ModalProps {
   width?: number
 }
 
+// Open modals, oldest first, so Escape only closes the one on top.
+const openModals: symbol[] = []
+
 export function Modal({ open, title, onClose, children, footer, width = 440 }: ModalProps) {
   useEffect(() => {
     if (!open) return
+    const id = Symbol('modal')
+    openModals.push(id)
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && openModals[openModals.length - 1] === id) onClose()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      openModals.splice(openModals.indexOf(id), 1)
+    }
   }, [open, onClose])
 
   if (!open) return null

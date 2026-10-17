@@ -51,12 +51,17 @@ export function TaskDetailPanel({
   onCreateTag,
   weekStartDay,
 }: TaskDetailPanelProps) {
-  const [title, setTitle] = useState(task.title)
-  const [note, setNote] = useState(task.note)
+  // Drafts are null until the user edits, so saves made elsewhere (e.g. the
+  // note modal) show here instead of being overwritten by a stale copy.
+  const [titleDraft, setTitleDraft] = useState<string | null>(null)
+  const [noteDraft, setNoteDraft] = useState<string | null>(null)
+  const title = titleDraft ?? task.title
+  const note = noteDraft ?? task.note
   const [newTag, setNewTag] = useState('')
 
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const carried = isCarriedForward(task)
+  const statusLocked = carried || task.rondeled || !task.dayDate
   const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
   const created = task.createdAt ? formatDayLabel(task.createdAt.slice(0, 10)) : '—'
   const where = task.dayDate
@@ -68,7 +73,7 @@ export function TaskDetailPanel({
   const commitTitle = () => {
     const next = title.trim()
     if (next && next !== task.title) onChangeTitle(next)
-    else setTitle(task.title)
+    setTitleDraft(null)
   }
 
   return (
@@ -78,7 +83,7 @@ export function TaskDetailPanel({
           status={task.status}
           onClick={onAdvance}
           onDoubleClick={onSetDone}
-          disabled={carried || (task.status !== 'canceled' && (task.rondeled || !task.dayDate))}
+          disabled={statusLocked}
           disabledTitle={carried ? CARRIED_FORWARD_HINT : undefined}
         />
         <span className="detail-head-spacer" />
@@ -90,7 +95,7 @@ export function TaskDetailPanel({
           className="detail-title"
           rows={2}
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => setTitleDraft(e.target.value)}
           onBlur={commitTitle}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -169,8 +174,11 @@ export function TaskDetailPanel({
           rows={6}
           placeholder="Add context, blockers, links…"
           value={note}
-          onChange={(e) => setNote(e.target.value)}
-          onBlur={() => note !== task.note && onSaveNote(note)}
+          onChange={(e) => setNoteDraft(e.target.value)}
+          onBlur={() => {
+            if (note !== task.note) onSaveNote(note)
+            setNoteDraft(null)
+          }}
         />
 
         <dl className="detail-meta">
@@ -202,7 +210,7 @@ export function TaskDetailPanel({
       </div>
 
       <footer className="detail-foot">
-        {!carried && (
+        {!statusLocked && (
           <Button variant="secondary" size="sm" onClick={onAdvance}>
             {task.status === 'todo' ? 'Start' : task.status === 'doing' ? 'Complete' : 'Reopen'}
           </Button>

@@ -456,7 +456,11 @@ function App() {
   const canPage = view !== 'rondel'
   const shiftAnchor = (dir: -1 | 1) =>
     setAnchorDate((a) =>
-      view === 'day' ? addDays(a, dir) : view === 'week' ? addDays(a, dir * 7) : addMonths(a, dir),
+      view === 'day'
+        ? addDays(a, dir)
+        : view === 'week'
+          ? addDays(a, dir * 7)
+          : addMonths(startOfMonth(a), dir), // from the 1st: the 31st would overflow
     )
   const isAnchorNow =
     view === 'day'
@@ -692,7 +696,6 @@ function App() {
         onSave={(note) => noteTask && saveNote(noteTask.id, note)}
       />
 
-      <DatePickModal key={dateTaskId ?? 'closed'} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
 
       <NagModal
         open={nagOpen && overdue.length > 0}
@@ -703,6 +706,9 @@ function App() {
         onSetDone={(task) => setDone(task)}
         onPickDate={(task) => setDateTaskId(task.id)}
       />
+
+      {/* After the nag so "Pick a date" from the nag opens on top of it. */}
+      <DatePickModal key={dateTaskId ?? 'closed'} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
     </div>
   )
 }
