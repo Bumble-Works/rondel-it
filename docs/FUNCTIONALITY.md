@@ -23,6 +23,9 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - Done tasks always sink to the bottom of their day. Each day sorts as:
   **active tasks → carried-forward history → done**. Within each group, the
   order you set by dragging is kept.
+- A **parked** task that you start (doing) or finish (done) **becomes a
+  regular task on today** with that status. It keeps its rondel count, first
+  scheduled day and created date. See "Parked items".
 - Bucket List tasks (no day) can't change status. The circle says "Give it a
   date to start".
 - Quick-add creates a todo in that section. If tag filters are active, the
