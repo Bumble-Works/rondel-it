@@ -3,6 +3,7 @@ import { weekdayName } from '../../domain/dates'
 import type { Tag, UserSetting } from '../../domain/types'
 import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
+import { InlineEditInput } from '../../shared/ui/InlineEditInput'
 import './SettingsPage.css'
 
 const TAG_COLORS = [
@@ -105,10 +106,11 @@ export function SettingsPage({
                   aria-label={`${tag.name} color`}
                   onChange={(e) => onUpdateTag(tag.id, { color: e.target.value })}
                 />
-                <input
+                <InlineEditInput
                   className="settings-tag-name"
+                  aria-label={`${tag.name} name`}
                   value={tag.name}
-                  onChange={(e) => onUpdateTag(tag.id, { name: e.target.value })}
+                  onCommit={(name) => onUpdateTag(tag.id, { name })}
                 />
                 <IconButton icon="trash" label={`Delete ${tag.name}`} onClick={() => onDeleteTag(tag.id)} />
               </li>

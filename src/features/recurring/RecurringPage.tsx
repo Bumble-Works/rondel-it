@@ -5,6 +5,7 @@ import type { RecurrenceKind, RecurringRule, Tag } from '../../domain/types'
 import type { RecurringRuleInput } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
+import { InlineEditInput } from '../../shared/ui/InlineEditInput'
 import { IconButton } from '../../shared/ui/IconButton'
 import { TagChip } from '../../shared/ui/TagChip'
 import './RecurringPage.css'
@@ -158,10 +159,11 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
                     <Icon name="repeat" size={18} />
                   </span>
                   <div className="recurring-item-body">
-                    <input
+                    <InlineEditInput
                       className="recurring-item-title"
+                      aria-label="Recurring task title"
                       value={rule.title}
-                      onChange={(e) => onUpdateTitle(rule.id, e.target.value)}
+                      onCommit={(title) => onUpdateTitle(rule.id, title)}
                     />
                     <span className="recurring-item-desc">
                       {describeRecurrence(rule.kind, rule.weekday, rule.dayOfMonth)}
