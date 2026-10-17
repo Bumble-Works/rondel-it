@@ -19,3 +19,27 @@ export function canRondel(task: Task): boolean {
 export function keepsHistoryOnRondel(task: Task): boolean {
   return task.status === 'doing' && task.dayDate !== null && !task.rondeled && task.bucket === null
 }
+
+/**
+ * A parked item nags from the day its week/month starts until the user
+ * decides: give it a day, rondel it on, finish it, or delete it.
+ */
+export function isWaitingForDecision(task: Task, today: string): boolean {
+  const active = task.status === 'todo' || task.status === 'doing'
+  return active && task.rondeled && task.dayDate !== null && task.dayDate <= today
+}
+
+/**
+ * Parked items shown in the viewed period's container. The period containing
+ * today also shows items parked for earlier periods, so they aren't lost.
+ */
+export function showsInParkedContainer(
+  task: Task,
+  period: { start: string; end: string },
+  today: string,
+): boolean {
+  if (!task.rondeled || !task.dayDate) return false
+  const inPeriod = task.dayDate >= period.start && task.dayDate <= period.end
+  const containsToday = today >= period.start && today <= period.end
+  return inPeriod || (containsToday && task.dayDate < period.start)
+}

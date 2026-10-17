@@ -31,6 +31,7 @@ import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
 import { Menu } from './shared/ui/Menu'
 import { TagChip } from './shared/ui/TagChip'
+import { isWaitingForDecision, showsInParkedContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 
@@ -81,7 +82,7 @@ function App() {
   const [rangeTasks, setRangeTasks] = useState<Task[]>([])
   const [buckets, setBuckets] = useState<Buckets>(EMPTY_BUCKETS)
   const [containerItems, setContainerItems] = useState<Task[]>([])
-  const [overdue, setOverdue] = useState<Task[]>([])
+  const [undecided, setUndecided] = useState<Task[]>([])
   const [nagOpen, setNagOpen] = useState(false)
 
   const [view, setView] = useState<ViewKey>('day')
@@ -134,31 +135,17 @@ function App() {
       setRangeTasks(range)
       setBuckets({ 'bucket-list': bl })
 
-      const weekStart = startOfWeek(today, weekStartDay)
-      const isActive = (t: Task) => t.status === 'todo' || t.status === 'doing'
+      const period = {
+        start: view === 'month' ? monthStart : anchorWeekStart,
+        end: view === 'month' ? monthEnd : anchorWeekEnd,
+      }
+      setContainerItems(rondelItems.filter((t) => showsInParkedContainer(t, period, today)))
 
-      // The rondel container for the viewed period. The period that contains
-      // today also catches overdue (past-period) parked items so they aren't lost.
-      const periodStart = view === 'month' ? monthStart : anchorWeekStart
-      const periodEnd = view === 'month' ? monthEnd : anchorWeekEnd
-      const containsToday = today >= periodStart && today <= periodEnd
-      setContainerItems(
-        rondelItems.filter((t) => {
-          if (!t.dayDate) return false
-          const inPeriod = t.dayDate >= periodStart && t.dayDate <= periodEnd
-          const overdueHere = containsToday && t.dayDate < weekStart
-          return inPeriod || overdueHere
-        }),
-      )
+      const undecidedItems = rondelItems.filter((t) => isWaitingForDecision(t, today))
+      setUndecided(undecidedItems)
 
-      // Overdue = parked (rondeled) items whose day is before this week.
-      const overdueItems = rondelItems.filter(
-        (t) => isActive(t) && t.dayDate !== null && t.dayDate < weekStart,
-      )
-      setOverdue(overdueItems)
-
-      // Nag once per app open if anything is overdue; auto-close when nothing is.
-      if (overdueItems.length === 0) {
+      // Nag once per app open if anything is waiting; auto-close when nothing is.
+      if (undecidedItems.length === 0) {
         setNagOpen(false)
       } else if (!naggedRef.current.has('open')) {
         naggedRef.current.add('open')
@@ -169,7 +156,7 @@ function App() {
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today, weekStartDay])
+  }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
   useEffect(() => {
     void (async () => {
@@ -195,12 +182,12 @@ function App() {
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
-  /* ---- overdue nag ---- */
+  /* ---- parked-items nag ---- */
 
-  const overdueRef = useRef<Task[]>([])
+  const undecidedRef = useRef<Task[]>([])
   useEffect(() => {
-    overdueRef.current = overdue
-  }, [overdue])
+    undecidedRef.current = undecided
+  }, [undecided])
 
   // Nag at begin-review and end-review times, in the user's timezone.
   // Never tied to navigation — only the clock triggers this.
@@ -220,7 +207,7 @@ function App() {
         const key = `${date}-${slot}`
         if (time === at && !naggedRef.current.has(key)) {
           naggedRef.current.add(key)
-          if (overdueRef.current.length > 0) setNagOpen(true)
+          if (undecidedRef.current.length > 0) setNagOpen(true)
         }
       }
     }
@@ -229,8 +216,8 @@ function App() {
   }, [settings, loadBoard])
 
   const allTasks = useMemo(
-    () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...overdue],
-    [rangeTasks, containerItems, buckets, overdue],
+    () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...undecided],
+    [rangeTasks, containerItems, buckets, undecided],
   )
   const selectedTask = allTasks.find((t) => t.id === selectedTaskId) ?? null
   const noteTask = allTasks.find((t) => t.id === noteTaskId) ?? null
@@ -705,8 +692,8 @@ function App() {
 
 
       <NagModal
-        open={nagOpen && overdue.length > 0}
-        items={overdue}
+        open={nagOpen && undecided.length > 0}
+        items={undecided}
         weekStartDay={weekStartDay}
         onClose={() => setNagOpen(false)}
         onRondel={(task, target) => rondel(task, target)}

@@ -36,7 +36,7 @@ export function NagModal({
       width={560}
       footer={
         <div className="nag-foot">
-          <span className="nag-foot-note">Rondel them forward so they don’t slip away.</span>
+          <span className="nag-foot-note">Give each a day, rondel it on, or let it go.</span>
           <Button variant="secondary" size="sm" onClick={onClose}>
             Later
           </Button>
@@ -45,8 +45,8 @@ export function NagModal({
     >
       <p className="nag-intro">
         {items.length === 1
-          ? 'You have 1 unfinished item from a past week.'
-          : `You have ${items.length} unfinished items from past weeks.`}
+          ? '1 parked item is waiting for a decision.'
+          : `${items.length} parked items are waiting for a decision.`}
       </p>
       <ul className="nag-list">
         {items.map((task) => (
