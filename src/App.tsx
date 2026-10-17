@@ -258,16 +258,28 @@ function App() {
     [attempt, loadBoard],
   )
 
-  const quickAdd = (target: BoardGroupAddTarget, title: string) =>
+  const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[]) =>
     run(() =>
       dataSource.createTask({
         title,
         dayDate: target.dayDate ?? null,
         rondeled: target.rondeled ?? false,
         bucket: target.bucket ?? null,
-        tagIds: [...activeTagIds],
+        tagIds: [...new Set([...activeTagIds, ...tagIds])],
       }),
     )
+
+  /** Creates a tag the user explicitly chose to create while typing #name. */
+  const createTagNamed = async (name: string): Promise<Tag | null> => {
+    try {
+      const tag = await dataSource.createTag({ name })
+      await refreshTags()
+      return tag
+    } catch (e) {
+      reportError('Unable to create tag', e)
+      return null
+    }
+  }
 
   const advance = (task: Task) => run(() => dataSource.advanceTask(task.id))
   const setDone = (task: Task) => run(() => dataSource.setTaskStatus(task.id, 'done'))
@@ -675,6 +687,7 @@ function App() {
             onOpenNote={(task) => setNoteTaskId(task.id)}
             onDelete={(task) => removeTask(task.id)}
             onQuickAdd={quickAdd}
+            onCreateTag={createTagNamed}
             onMove={move}
             weekStartDay={weekStartDay}
           />

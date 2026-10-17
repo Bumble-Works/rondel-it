@@ -123,6 +123,12 @@ Today, Next week, Next month, Pick a date, Mark done.
   status (or every tag in "any" mode) is the same as no filter.
 - Deleting a tag removes it from every task.
 - Tag names save on blur or Enter. Escape undoes the edit.
+- **`#tag` while adding a task:** typing `#` in "Add a task" suggests tags
+  (case-insensitive, so `#Family` = `family`). Enter/Tab or a click picks one:
+  the `#word` is stripped from the title and the tag is attached. A **new**
+  tag is only created when you deliberately pick "Create #name" (click, or
+  arrow to it then Enter). An unpicked `#word` stays as plain title text.
+  Active tag filters are added to the new task too.
 
 ## Recurring tasks
 

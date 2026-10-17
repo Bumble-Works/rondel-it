@@ -36,7 +36,8 @@ interface WeekBoardProps {
   onPickDate: (task: Task) => void
   onOpenNote: (task: Task) => void
   onDelete: (task: Task) => void
-  onQuickAdd: (target: BoardGroupAddTarget, title: string) => void
+  onQuickAdd: (target: BoardGroupAddTarget, title: string, tagIds: string[]) => void
+  onCreateTag: (name: string) => Promise<Tag | null>
   onMove: (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => void
   weekStartDay?: number
 }
@@ -53,10 +54,12 @@ export function WeekBoard({
   onOpenNote,
   onDelete,
   onQuickAdd,
+  onCreateTag,
   onMove,
   weekStartDay,
 }: WeekBoardProps) {
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  const tags = [...tagsById.values()]
   const isDragging = Boolean(draggingId)
 
   const beforeIdForDrop = (
@@ -132,7 +135,9 @@ export function WeekBoard({
           {group.addTarget && (
             <InlineAdd
               placeholder={group.kind === 'bucket' ? 'Add to this bucket' : 'Add a task'}
-              onAdd={(title) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title)}
+              tags={tags}
+              onCreateTag={onCreateTag}
+              onAdd={(title, tagIds) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title, tagIds)}
             />
           )}
         </BoardSection>
