@@ -121,7 +121,7 @@ Frontend:
 - [x] Month view scrolls to today
 - [x] `#tag` autocomplete in "Add a task" (strip from title; create only on explicit pick)
 - [ ] `#tag` autocomplete when editing a title in the side panel
-- [ ] Works in a much narrower window
+- [x] Works in a narrow window (360px; sidebar drawer below 760px)
 - [ ] Drag and drop issues (details needed)
 - [ ] Bold / flag items
 

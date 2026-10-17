@@ -90,6 +90,8 @@ function App() {
   const [activeStatuses, setActiveStatuses] = useState<TaskStatus[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [page, setPage] = useState<'board' | 'settings' | 'recurring'>('board')
+  // Narrow windows show the sidebar as a drawer (see App.css / Sidebar.css).
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
@@ -542,12 +544,14 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className={`app ${sidebarOpen ? 'is-sidebar-open' : ''}`.trim()}>
+      <div className="app-drawer-backdrop" onClick={() => setSidebarOpen(false)} />
       <Sidebar
         activeView={view}
         onSelectView={(v) => {
           setView(v)
           setPage('board')
+          setSidebarOpen(false)
         }}
         tags={tags}
         activeTagIds={activeTagIds}
@@ -558,12 +562,27 @@ function App() {
         activeStatuses={activeStatuses}
         onToggleStatus={toggleStatus}
         onResetStatuses={resetStatuses}
-        onOpenSettings={() => setPage('settings')}
-        onOpenRecurring={() => setPage('recurring')}
+        onOpenSettings={() => {
+          setPage('settings')
+          setSidebarOpen(false)
+        }}
+        onOpenRecurring={() => {
+          setPage('recurring')
+          setSidebarOpen(false)
+        }}
       />
 
       <main className="app-main">
         <header className="app-topbar">
+          <button
+            type="button"
+            className="app-menu-btn"
+            aria-label="Show sidebar"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Icon name="menu" size={20} />
+          </button>
           <div className="app-topbar-titles">
             <h1>{title}</h1>
             <p>{subtitle}</p>

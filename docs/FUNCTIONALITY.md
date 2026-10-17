@@ -46,6 +46,10 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
 - The week starts on the day set in Settings.
+- **Narrow windows** (down to 360px, at least as narrow as Apple Reminders):
+  below 760px the sidebar becomes a drawer opened from the ☰ button, with all
+  its sections (views, filters, Recurring, Settings). Picking anything closes
+  it, as does clicking outside. The detail panel slides over the list.
 
 ## Rondeled items (the "Unassigned" container)
 
