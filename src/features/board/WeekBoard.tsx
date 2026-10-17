@@ -1,0 +1,142 @@
+import { useState } from 'react'
+import type { RondelTarget } from '../../services/adapters/DataSource'
+import type { Tag, Task, TaskBucket } from '../../domain/types'
+import { BoardSection } from './BoardSection'
+import { InlineAdd } from './InlineAdd'
+import { TaskRow } from './TaskRow'
+import './WeekBoard.css'
+
+export interface BoardGroupAddTarget {
+  dayDate?: string
+  rondeled?: boolean
+  bucket?: TaskBucket
+}
+
+export interface BoardGroup {
+  key: string
+  kind: 'day' | 'bucket'
+  title: string
+  eyebrow?: string
+  highlight?: boolean
+  defaultCollapsed?: boolean
+  collapsible?: boolean
+  addTarget?: BoardGroupAddTarget
+  emptyLabel?: string
+  tasks: Task[]
+}
+
+interface WeekBoardProps {
+  groups: BoardGroup[]
+  tagsById: Map<string, Tag>
+  selectedTaskId: string | null
+  onOpen: (task: Task) => void
+  onAdvance: (task: Task) => void
+  onSetDone: (task: Task) => void
+  onRondel: (task: Task, target: RondelTarget) => void
+  onPickDate: (task: Task) => void
+  onOpenNote: (task: Task) => void
+  onDelete: (task: Task) => void
+  onQuickAdd: (target: BoardGroupAddTarget, title: string) => void
+  onMove: (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => void
+  weekStartDay?: number
+}
+
+export function WeekBoard({
+  groups,
+  tagsById,
+  selectedTaskId,
+  onOpen,
+  onAdvance,
+  onSetDone,
+  onRondel,
+  onPickDate,
+  onOpenNote,
+  onDelete,
+  onQuickAdd,
+  onMove,
+  weekStartDay,
+}: WeekBoardProps) {
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const isDragging = Boolean(draggingId)
+
+  const beforeIdForDrop = (
+    taskIds: string[],
+    dragId: string,
+    dropIndex: number,
+    position: 'before' | 'after',
+  ): string | null => {
+    const sourceIndex = taskIds.indexOf(dragId)
+    const baseIndex = position === 'before' ? dropIndex : dropIndex + 1
+    let insertAt = baseIndex
+
+    if (sourceIndex !== -1 && sourceIndex < baseIndex) {
+      insertAt -= 1
+    }
+
+    const remaining = taskIds.filter((id) => id !== dragId)
+    return remaining[insertAt] ?? null
+  }
+
+  return (
+    <div className={`week-board ${isDragging ? 'is-dragging' : ''}`.trim()}>
+      {groups.map((group) => (
+        <BoardSection
+          key={group.key}
+          title={group.title}
+          eyebrow={group.eyebrow}
+          count={group.tasks.length}
+          highlight={group.highlight}
+          tone={group.kind}
+          defaultCollapsed={group.defaultCollapsed}
+          collapsible={group.collapsible}
+          empty={group.tasks.length === 0 && !group.addTarget}
+          emptyLabel={group.emptyLabel}
+          onDropAtEnd={
+            group.addTarget
+              ? () => {
+                  if (draggingId) onMove(draggingId, group.addTarget as BoardGroupAddTarget, null)
+                }
+              : undefined
+          }
+        >
+          {group.tasks.map((task, index) => (
+            <TaskRow
+              key={task.id}
+              task={task}
+              tagsById={tagsById}
+              selected={task.id === selectedTaskId}
+              onOpen={() => onOpen(task)}
+              onAdvance={() => onAdvance(task)}
+              onSetDone={() => onSetDone(task)}
+              onRondel={(target) => onRondel(task, target)}
+              onPickDate={() => onPickDate(task)}
+              onOpenNote={() => onOpenNote(task)}
+              onDelete={() => onDelete(task)}
+              dragging={Boolean(draggingId)}
+              isDragged={draggingId === task.id}
+              onDragStartTask={() => setDraggingId(task.id)}
+              onDragEndTask={() => setDraggingId(null)}
+              onDropOnRow={(position) => {
+                if (!draggingId || !group.addTarget) return
+                const beforeId = beforeIdForDrop(
+                  group.tasks.map((t) => t.id),
+                  draggingId,
+                  index,
+                  position,
+                )
+                onMove(draggingId, group.addTarget, beforeId)
+              }}
+              weekStartDay={weekStartDay}
+            />
+          ))}
+          {group.addTarget && (
+            <InlineAdd
+              placeholder={group.kind === 'bucket' ? 'Add to this bucket' : 'Add a task'}
+              onAdd={(title) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title)}
+            />
+          )}
+        </BoardSection>
+      ))}
+    </div>
+  )
+}

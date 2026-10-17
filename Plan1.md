@@ -5,6 +5,31 @@
 Stage 1 is a single-user MVP: no auth UI, no billing, no sync — just the core
 daily loop with a real Rails backend and a local-first-friendly React client.
 
+## Decisions (2026-10-17)
+- **Tags, not categories.** We call them tags because they're used with `#`.
+  "Category" below means tag. The Rails API (PR #3) still needs renaming.
+- **Rondel rules (UX):**
+  - *todo:* the task moves to the target and no longer appears on the old day.
+  - *doing:* the old day keeps a read-only history copy (still `doing`,
+    `carried_to_id` set). The target gets a new `doing` copy. Changing the new
+    copy never affects the old one.
+    History copies are greyed out, have a tooltip explaining why, and sort
+    below active tasks but above done.
+  - *done* (and history copies): rondel isn't offered.
+  - *drag between days* is a plain move (reorganizing), never a rondel. Only
+    an intentional "push this off" from the Rondel menu counts.
+    For now a drag keeps `origin_date` (Mon → Wed still says "first
+    scheduled Mon"). *Open:* we may want a plain move of a not-started task to
+    update `origin_date` instead, since reorganizing isn't pushing work off.
+- **Rondel data (reporting):** every task keeps `origin_date` (the first day it
+  was scheduled) and `rondel_count`. Copies link back through
+  `origin_task_id` / `previous_task_id`.
+- **In Stage 1 scope** (already in the frontend): Bucket List, recurring tasks,
+  the parked "Unassigned" container per week/month, the `canceled` status, and
+  the overdue nag.
+- **Still needed:** see "Next PRs" below.
+- Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
+
 ## Architecture at a glance
 - Backend: Rails 7+ API-only app (`api/` folder), PostgreSQL, JSON endpoints.
 - Frontend: React + TypeScript + Vite (repo root), talks to Rails via a typed adapter.
@@ -103,6 +128,38 @@ Frontend:
 - Notes persist and are retrievable.
 - Full keyboard path: create → doing → done → rondel.
 - Runs against Rails API and (via seam) a mock adapter.
+
+## Next PRs (after #2, #3, #4 merge)
+
+### End-of-day rondel flow
+- At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).
+  Right now the nag only covers parked items from past weeks.
+- Each task gets the Rondel options (tomorrow / pick a date / next week /
+  next month / Bucket List), plus "mark done" and "leave it".
+- Follows the rondel rules above (todo moves; doing leaves history).
+
+### Keyboard shortcuts
+- Create a task, move between tasks, open details, advance status,
+  rondel, add/edit a note, filter by tag.
+- Full keyboard path: create → doing → done → rondel (Stage 1 acceptance).
+- Customizing shortcuts stays out of scope (premium).
+
+### Smaller fixes found in the PR #2 review
+- Recurring "start" rules: finishing a task late creates the next one in a
+  past week (`lastRunDate` only moves when a task is created).
+- Recurring rules use the UTC date from `createdAt`, so a rule made in the
+  evening (US) can skip today.
+- Recurring sync silently deletes "duplicate" pending tasks, notes included.
+  Remove it, or log it.
+- Double-clicking the status circle sends 3 updates at once, which can race
+  against Rails.
+- Deleting a task needs a confirm or undo.
+- Split `App.tsx` (~700 lines) into per-feature hooks.
+- Repo housekeeping: replace the Vite boilerplate in README, add `src-tauri`
+  or drop `@tauri-apps/cli`, add the `check:practices` script PRACTICES.md
+  mentions, create `docs/TODO.md`.
+- Rails API (PR #3): rename categories → tags, and align endpoints with the
+  frontend adapter.
 
 ## Out of scope for Stage 1
 - Auth UI, multi-user, billing
