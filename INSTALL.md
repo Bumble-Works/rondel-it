@@ -1,24 +1,35 @@
 # Installing Rondel It
 
-Rondel It is a native macOS app (built with Tauri). Your data lives **only on your machine** — no account, no server, no syncing.
+Rondel It is a native macOS app (built with Tauri). Your data lives **only on your machine**: no account, no server. (Optional sync to your own Google Drive / OneDrive / Box folder is planned.)
 
 ---
 
-## Option A — Install from a prebuilt file (easiest)
+## Option A — One command (install or update)
 
-If you have the built app or installer (from `src-tauri/target/release/bundle/`):
-
-1. **From the `.dmg`:** double-click `Rondel It_<version>_aarch64.dmg`, then drag **Rondel It** into your **Applications** folder.
-2. **Or from the `.app`:** drag **Rondel It.app** into **Applications**.
-3. Open it from **Launchpad** or **Applications**.
-
-**First launch (unsigned build):** macOS may say the app is from an unidentified developer. Right‑click (or Control‑click) the app → **Open** → **Open**. You only need to do this once. If it’s still blocked, run:
+Paste this into Terminal. It installs the latest build, or updates the one you have:
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Rondel It.app"
+curl -fsSL https://github.com/Bumble-Works/rondel-it/releases/latest/download/install.sh | bash
 ```
 
-> Apple Silicon (M‑series) build. For an Intel Mac, build from source (below) on that machine.
+If the repo is private, use the GitHub CLI instead (after `gh auth login` once):
+
+```bash
+gh release download -R Bumble-Works/rondel-it -p install.sh -O - | bash
+```
+
+What it does:
+
+1. Downloads the latest build (works on Apple Silicon and Intel).
+2. **Backs up your existing app data first**, to
+   `~/Library/Application Support/RondelIt-backups/<date-time>/`.
+3. If your old install used a different app identifier, copies its data over
+   so the new version opens with your tasks.
+4. Moves the old app to the Trash (not deleted) and installs the new one in
+   **Applications**, clearing the "unidentified developer" block.
+5. Opens it.
+
+Every merge to `main` publishes a new build automatically (version `0.1.<build>`).
 
 ---
 

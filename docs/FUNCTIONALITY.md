@@ -163,8 +163,13 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Data and storage
 
-- Today the app runs on the local adapter: data lives in the browser's
-  storage for the app's origin (`rondel.v6.*` keys).
+- Today the app runs on the local adapter: data lives in the web view's
+  storage (`rondel.v6.*` keys). In the browser that's per origin
+  (`localhost:1420`); in the Mac app it's per app identifier
+  (`com.bumbleworks.rondelit`). The two don't share data.
+- **Installing/updating the Mac app** (`scripts/install.sh`, see INSTALL.md)
+  always backs up existing data first, carries data over from an older
+  identifier, and moves the old app to the Trash. It never deletes data.
 - Changes must stay **backward compatible** with existing saved data. New
   fields are filled in on read, and nothing is reset.
 - Done items left in a rondel container by older versions are moved, on read,
