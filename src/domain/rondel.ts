@@ -5,7 +5,7 @@ export function isCarriedForward(task: Task): boolean {
   return task.carriedToId !== null
 }
 
-export const CARRIED_FORWARD_HINT = 'Rondeled while in progress — kept here as history'
+export const CARRIED_FORWARD_HINT = 'Just a memory now. The real one rolled forward.'
 
 /** Done tasks and already-carried history copies can't be rondeled. */
 export function canRondel(task: Task): boolean {
