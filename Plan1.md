@@ -127,9 +127,13 @@ Frontend:
 
 ## Next PRs
 
-### Package the Mac app (Tauri)
-- There's no `src-tauri` in this repo yet. An older build is installed on
-  another Mac (built from somewhere else).
+### Package the Mac app (Tauri) — in progress (branch `feat/mac-app`)
+- [x] `src-tauri` (identifier `com.bumbleworks.rondelit`, min width 360px)
+- [x] CI builds a universal app; each merge to main publishes the latest release
+- [x] One-command install/update (`scripts/install.sh`): backs up data, carries
+  it over from an older identifier, old app to Trash
+- [ ] First real install on the other Mac (an older build is installed there,
+  built from somewhere else)
 - **Keep that build's app identifier**, or the new version starts empty (its
   saved data is tied to the identifier). On that Mac, run
   `defaults read "/Applications/Rondel It.app/Contents/Info" CFBundleIdentifier`,

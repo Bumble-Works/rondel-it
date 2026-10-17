@@ -1,0 +1,93 @@
+name: Mac app
+
+# Builds the Mac app. On main, publishes it as the latest GitHub release so
+# `scripts/install.sh` can install or update it. On PRs, only checks it builds.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/mac-app.yml'
+      - '.nvmrc'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'public/**'
+      - 'scripts/install.sh'
+      - 'src/**'
+      - 'src-tauri/**'
+      - 'vite.config.ts'
+  # Any base branch, so stacked PRs are checked too.
+  pull_request:
+    paths:
+      - '.github/workflows/mac-app.yml'
+      - 'scripts/install.sh'
+      - 'src-tauri/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mac-app-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Setup Rust (Apple Silicon + Intel)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build universal app
+        # Version 0.1.<run> so the installed build is identifiable.
+        run: npx tauri build --target universal-apple-darwin --bundles app --config '{"version":"0.1.${{ github.run_number }}"}'
+
+      - name: Package
+        run: |
+          APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/Rondel It.app"
+          ditto -c -k --keepParent "$APP" RondelIt-macos.zip
+
+      - name: Publish latest release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          # Re-runs reuse the run number, so update that release instead of failing.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" RondelIt-macos.zip scripts/install.sh --clobber
+          else
+            gh release create "$TAG" RondelIt-macos.zip scripts/install.sh \
+              --title "Rondel It 0.1.${{ github.run_number }}" \
+              --notes "Built from ${{ github.sha }}. Install or update with the command in INSTALL.md." \
+              --target "${{ github.sha }}" \
+              --latest
+          fi
+
+      - name: Keep only the latest 5 builds
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 100 --json tagName,createdAt \
+            --jq '[.[] | select(.tagName | startswith("build-"))] | sort_by(.createdAt) | reverse | .[5:] | .[].tagName' |
+            while read -r tag; do gh release delete "$tag" --yes --cleanup-tag; done
