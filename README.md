@@ -1,75 +1,75 @@
-# React + TypeScript + Vite
+# Rondel It
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Don't lose it. Rondel it.**
 
-Currently, two official plugins are available:
+A daily task app built around one idea: unfinished work shouldn't silently
+disappear at the end of the day. You **rondel** it: deliberately push it to
+tomorrow, a date, next week, next month or your Bucket List, and Rondel It
+remembers how many times you did.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Tasks move **todo → doing → done**.
+- Rondeling something you'd started leaves a history copy on the original day,
+  so your week shows what you actually worked on.
+- Rondeled items nag you until you decide, because a to-do list should be conquerable.
+- Tags (`#tag` while typing), flags, notes, recurring tasks, Day / Week / Month views.
 
-## React Compiler
+How everything is meant to behave: [`docs/FUNCTIONALITY.md`](docs/FUNCTIONALITY.md).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Install the Mac app
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Paste this into Terminal. The same command **installs or updates**:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+curl -fsSL https://github.com/Bumble-Works/rondel-it/releases/latest/download/install.sh | bash
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+It downloads the latest build (Apple Silicon and Intel), **backs up your
+existing data first**, moves any old version to the Trash, and opens the app.
+Your data stays on your Mac. More detail, and the version for a private repo:
+[`INSTALL.md`](INSTALL.md).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Sync between devices (optional)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Rondel It syncs through a folder in a cloud drive you already use, so there's
+no account and no Rondel server.
 
+1. Install your cloud drive's desktop app: **Google Drive for desktop**,
+   OneDrive, Box or Dropbox. It appears in Finder.
+2. In Rondel It, open **Settings → Sync → Choose folder…** and pick a folder
+   inside that drive (for example *Google Drive › My Drive*). Rondel It
+   creates a **Rondel It** folder there.
+3. On your other Mac, install Rondel It, then choose **the same Rondel It
+   folder** (or the folder that contains it).
+
+It syncs when the app opens, when you switch back to it, a moment after each
+change, and every couple of minutes. If the same task is edited on two
+devices, the most recent edit wins.
+
+**Safe by design:** every device keeps its own full copy. Deleting or messing
+with the sync folder never deletes your tasks; Rondel It rebuilds the folder
+and ignores files it can't read. Please don't edit the files inside it.
+
+Sync works in the Mac app (not in the browser version). iPhone is planned.
+
+---
+
+## Develop
+
+Requires Node 22+ (`nvm use`).
+
+```bash
+npm install
+npm run dev        # browser version at http://localhost:1420
+npm run lint
+npm test
+npm run build
 ```
+
+The Mac app wraps the same code with [Tauri](https://tauri.app) (`src-tauri/`).
+`npm run app:dev` runs it locally (needs Rust). CI builds and publishes it on
+every merge to `main`.
+
+Working rules for people and AI agents: [`AGENTS.md`](AGENTS.md) and
+[`PRACTICES.md`](PRACTICES.md).

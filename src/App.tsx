@@ -32,6 +32,7 @@ import { TagChip } from './shared/ui/TagChip'
 import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
+import { useSync } from './features/sync/useSync'
 
 const dataSource = createDataSource()
 
@@ -158,22 +159,35 @@ function App() {
     }
   }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
-          dataSource.listTags(),
-          dataSource.getSettings(),
-          dataSource.listRecurringRules(),
-        ])
-        setTags(loadedTags)
-        setSettings(loadedSettings)
-        setRules(loadedRules)
-      } catch (e) {
-        reportError('Unable to load app data', e)
-      }
-    })()
+  /** Tags, settings and rules; the board reloads itself when settings change. */
+  const loadAppData = useCallback(async () => {
+    try {
+      const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
+        dataSource.listTags(),
+        dataSource.getSettings(),
+        dataSource.listRecurringRules(),
+      ])
+      setTags(loadedTags)
+      setSettings(loadedSettings)
+      setRules(loadedRules)
+    } catch (e) {
+      reportError('Unable to load app data', e)
+    }
   }, [reportError])
+
+  useEffect(() => {
+    // Sets state only after awaiting the data source (same as loadBoard below).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadAppData()
+  }, [loadAppData])
+
+  const sync = useSync({
+    onRemoteChange: useCallback(() => {
+      void loadAppData().then(() => loadBoard())
+    }, [loadAppData, loadBoard]),
+    reportError,
+  })
+  const { scheduleSync } = sync
 
   useEffect(() => {
     // loadBoard only sets state after awaiting the data source; the rule can't
@@ -244,11 +258,12 @@ function App() {
     async (context: string, fn: () => Promise<unknown>) => {
       try {
         await fn()
+        scheduleSync()
       } catch (e) {
         reportError(context, e)
       }
     },
-    [reportError],
+    [reportError, scheduleSync],
   )
 
   const run = useCallback(
@@ -522,6 +537,7 @@ function App() {
           onCreateTag={createTag}
           onUpdateTag={updateTag}
           onDeleteTag={deleteTag}
+          sync={sync}
           onBack={() => setPage('board')}
         />
       </div>

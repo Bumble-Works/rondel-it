@@ -142,9 +142,13 @@ Frontend:
 - Test drag and drop in the app (WebKit; Tauri file-drop can interfere).
 
 ### Storage: local file + optional sync folder
-- Export/Import backup (JSON) first, as a stopgap.
-- Then: SQLite in the app's data folder; optional sync folder (Drive, OneDrive,
-  Box, Dropbox) with a per-device change log, never the database file itself.
+- [x] Folder sync (branch `feat/sync`): per-device snapshot files, latest edit
+  wins per record, explicit deletion markers, folder rebuilt if deleted
+- [ ] Test on two real Macs with Google Drive for desktop
+- [ ] iPhone: same sync folder through the Files app (Tauri iOS)
+- [ ] Export/Import backup (JSON)
+- [ ] Later: move local data from web storage to a file (SQLite) in the app's
+  data folder
 - Rails on hold (PR #3 is to be closed and rebuilt later against
   `docs/FUNCTIONALITY.md` if a server is ever needed).
 

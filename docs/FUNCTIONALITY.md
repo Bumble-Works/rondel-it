@@ -156,6 +156,30 @@ Today, Next week, Next month, Pick a date, Mark done.
   any rondeled items are waiting for a decision. It closes when nothing is left.
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
+## Sync (Mac app)
+
+- **Off by default.** Settings → Sync → *Choose folder…* picks a folder in a
+  cloud drive's desktop folder (Google Drive, OneDrive, Box, Dropbox). Rondel
+  It creates `Rondel It/` there with a `README.txt` and a `devices/` folder.
+  Picking a folder that's already named "Rondel It" uses it as-is.
+- Settings shows where it is (e.g. "Google Drive › My Drive › Rondel It"),
+  when it last synced, and *Sync now*, *Show in Finder*, *Change folder…*,
+  *Turn off*. In the browser version it says sync needs the Mac app.
+- **When:** on open, when the window regains focus, ~2 seconds after any
+  change, and every 2 minutes while open.
+- **How:** each device writes its full data to `devices/<device-id>.json` and
+  reads the others. Per task / tag / recurring rule, **the most recent edit
+  wins**; settings too. Data saved before sync existed counts as oldest.
+- **Never loses data:**
+  - Each device keeps its own full copy; the folder is just a mailbox.
+  - Something is only deleted by an explicit deletion marker (made when you
+    delete it), never because it's missing from a file.
+  - A deletion only wins over edits made before it.
+  - If the folder disappears, it's rebuilt from this device's data, with a warning.
+  - Files that can't be read (half-downloaded, hand-edited) are ignored and
+    reported, never applied.
+- The sync folder choice and device id are per device and never synced.
+
 ## Errors
 
 - Every failed action is logged to the console and shown in a banner with
