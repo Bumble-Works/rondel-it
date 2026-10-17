@@ -1,5 +1,6 @@
 import { useRef, useState, type DragEvent } from 'react'
 import type { RondelTarget } from '../../services/adapters/DataSource'
+import { canRondel, isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
@@ -48,6 +49,7 @@ export function TaskRow({
   const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const canDrop = dragging && !isDragged
+  const carried = isCarriedForward(task)
 
   const startDrag = (e: DragEvent<HTMLElement>) => {
     e.dataTransfer.effectAllowed = 'move'
@@ -74,6 +76,7 @@ export function TaskRow({
         selected ? 'is-selected' : '',
         task.status === 'done' ? 'is-done' : '',
         task.status === 'canceled' ? 'is-canceled' : '',
+        carried ? 'is-carried' : '',
         isDragged ? 'is-dragged' : '',
         dropPosition === 'before' ? 'is-drop-before' : '',
         dropPosition === 'after' ? 'is-drop-after' : '',
@@ -101,7 +104,7 @@ export function TaskRow({
           : undefined
       }
     >
-      {task.status === 'done' ? (
+      {task.status === 'done' || carried ? (
         <span className="task-grip task-grip--empty" aria-hidden="true" />
       ) : (
         <span
@@ -120,7 +123,8 @@ export function TaskRow({
         status={task.status}
         onClick={onAdvance}
         onDoubleClick={onSetDone}
-        disabled={task.rondeled || !task.dayDate}
+        disabled={carried || task.rondeled || !task.dayDate}
+        disabledTitle={carried ? 'Carried forward — kept here as history' : undefined}
       />
 
       <button type="button" className="task-main" onClick={onOpen}>
@@ -166,7 +170,9 @@ export function TaskRow({
         >
           <Icon name="trash" size={17} />
         </button>
-        <RondelMenu onRondel={onRondel} onPickDate={onPickDate} weekStartDay={weekStartDay} />
+        {canRondel(task) && (
+          <RondelMenu onRondel={onRondel} onPickDate={onPickDate} weekStartDay={weekStartDay} />
+        )}
       </div>
     </div>
   )

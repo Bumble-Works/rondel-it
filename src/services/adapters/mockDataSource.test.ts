@@ -67,15 +67,94 @@ describe('mockDataSource tasks', () => {
     const order = await mockDataSource.listTasksInRange('2026-09-20', '2026-09-20')
     expect(order.map((t) => t.id)).toEqual([t3.id, t1.id, t2.id])
 
-    await mockDataSource.setTaskStatus(t1.id, 'done')
-    const moved = await mockDataSource.moveTask(
-      t1.id,
-      { dayDate: '2026-09-27', rondeled: true, bucket: null },
-      { rondel: true },
-    )
+  })
+
+  it('rondels a not-started task by moving it, keeping its first day', async () => {
+    const task = await mockDataSource.createTask({ title: 'Todo', dayDate: '2026-09-21' })
+    const moved = await mockDataSource.moveTask(task.id, { dayDate: '2026-09-22' }, { rondel: true })
+
+    expect(moved.id).toBe(task.id)
     expect(moved.status).toBe('todo')
-    expect(moved.completedAt).toBeNull()
     expect(moved.rondelCount).toBe(1)
+    expect(moved.originDate).toBe('2026-09-21')
+    expect(await mockDataSource.listTasksInRange('2026-09-21', '2026-09-21')).toHaveLength(0)
+  })
+
+  it('rondels a doing task by keeping it on its day and carrying a doing copy forward', async () => {
+    const task = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
+    await mockDataSource.advanceTask(task.id)
+    const copy = await mockDataSource.moveTask(task.id, { dayDate: '2026-09-22' }, { rondel: true })
+
+    expect(copy.id).not.toBe(task.id)
+    expect(copy.status).toBe('doing')
+    expect(copy.rondelCount).toBe(1)
+    expect(copy.originDate).toBe('2026-09-21')
+    expect(copy.originTaskId).toBe(task.id)
+    expect(copy.previousTaskId).toBe(task.id)
+
+    // Changing the copy never touches the history left on Monday.
+    await mockDataSource.setTaskStatus(copy.id, 'todo')
+    const [monday] = await mockDataSource.listTasksInRange('2026-09-21', '2026-09-21')
+    expect(monday.id).toBe(task.id)
+    expect(monday.status).toBe('doing')
+    expect(monday.carriedToId).toBe(copy.id)
+
+    // A second hop keeps the lineage pointing at the original.
+    await mockDataSource.advanceTask(copy.id)
+    const next = await mockDataSource.moveTask(copy.id, { dayDate: '2026-09-23' }, { rondel: true })
+    expect(next.rondelCount).toBe(2)
+    expect(next.originTaskId).toBe(task.id)
+    expect(next.previousTaskId).toBe(copy.id)
+  })
+
+  it('refuses to rondel done tasks and carried-forward history', async () => {
+    const done = await mockDataSource.createTask({ title: 'Done', dayDate: '2026-09-21' })
+    await mockDataSource.setTaskStatus(done.id, 'done')
+    await expect(
+      mockDataSource.moveTask(done.id, { dayDate: '2026-09-22' }, { rondel: true }),
+    ).rejects.toThrow('can not be rondeled')
+
+    const doing = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
+    await mockDataSource.advanceTask(doing.id)
+    await mockDataSource.moveTask(doing.id, { dayDate: '2026-09-22' }, { rondel: true })
+    await expect(
+      mockDataSource.moveTask(doing.id, { dayDate: '2026-09-23' }, { rondel: true }),
+    ).rejects.toThrow('can not be rondeled')
+  })
+
+  it('reads tasks saved before lineage fields existed', async () => {
+    localStorage.setItem('rondel.v6.tags', '[]')
+    localStorage.setItem(
+      'rondel.v6.tasks',
+      JSON.stringify([
+        {
+          id: 'old',
+          title: 'Old',
+          status: 'doing',
+          dayDate: '2026-09-01',
+          rondeled: false,
+          bucket: null,
+          position: 0,
+          rondelCount: 2,
+          tagIds: [],
+          note: 'kept',
+          createdAt: '2026-09-01T09:00:00.000Z',
+          completedAt: null,
+          recurringRuleId: null,
+        },
+      ]),
+    )
+    const [task] = await mockDataSource.listTasksInRange('2026-09-01', '2026-09-01')
+    expect(task).toMatchObject({
+      note: 'kept',
+      rondelCount: 2,
+      originDate: '2026-09-01',
+      originTaskId: null,
+      previousTaskId: null,
+      carriedToId: null,
+    })
+    const copy = await mockDataSource.moveTask('old', { dayDate: '2026-09-02' }, { rondel: true })
+    expect(copy.rondelCount).toBe(3)
   })
 
   it('throws for missing tasks', async () => {

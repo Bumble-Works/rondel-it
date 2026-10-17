@@ -8,8 +8,15 @@ daily loop with a real Rails backend and a local-first-friendly React client.
 ## Decisions (2026-10-17)
 - **Tags, not categories.** We call them tags because they're used with `#`.
   "Category" below means tag. The Rails API (PR #3) still needs renaming.
-- **Rondel keeps history.** A task left in todo/doing across several days
-  appears on each of those days. Rondel never moves the original task in place.
+- **Rondel rules (UX):**
+  - *todo:* the task moves to the target and no longer appears on the old day.
+  - *doing:* the old day keeps a read-only history copy (still `doing`,
+    `carried_to_id` set). The target gets a new `doing` copy. Changing the new
+    copy never affects the old one.
+  - *done* (and history copies): rondel isn't offered.
+- **Rondel data (reporting):** every task keeps `origin_date` (the first day it
+  was scheduled) and `rondel_count`. Copies link back through
+  `origin_task_id` / `previous_task_id`.
 - **In Stage 1 scope** (already in the frontend): Bucket List, recurring tasks,
   the parked "Unassigned" container per week/month, the `canceled` status, and
   the overdue nag.

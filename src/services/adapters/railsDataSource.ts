@@ -48,7 +48,15 @@ function mapTask(payload: Record<string, unknown>): Task {
     createdAt: String(payload.createdAt || ''),
     completedAt: payload.completedAt ? String(payload.completedAt) : null,
     recurringRuleId: payload.recurringRuleId ? String(payload.recurringRuleId) : null,
+    originDate: optionalString(payload.originDate) ?? optionalString(payload.dayDate),
+    originTaskId: optionalString(payload.originTaskId),
+    previousTaskId: optionalString(payload.previousTaskId),
+    carriedToId: optionalString(payload.carriedToId),
   }
+}
+
+function optionalString(value: unknown): string | null {
+  return value ? String(value) : null
 }
 
 export const railsDataSource: DataSource = {

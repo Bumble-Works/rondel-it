@@ -1,5 +1,6 @@
 import { addDays } from '../../domain/dates'
-import { occurrencesBetween } from '../../domain/recurrence'
+import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
+import { canRondel, isCarriedForward, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
 
@@ -44,9 +45,20 @@ function seedIfEmpty(): { tasks: Task[]; tags: Tag[] } {
   return seed
 }
 
+/** Fill fields added after v6 data was first saved, so existing tasks keep working. */
+function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
+  return {
+    ...task,
+    originDate: task.originDate ?? task.dayDate ?? null,
+    originTaskId: task.originTaskId ?? null,
+    previousTaskId: task.previousTaskId ?? null,
+    carriedToId: task.carriedToId ?? null,
+  } as Task
+}
+
 function readTasks(): Task[] {
   seedIfEmpty()
-  return JSON.parse(localStorage.getItem(TASKS_KEY) || '[]') as Task[]
+  return (JSON.parse(localStorage.getItem(TASKS_KEY) || '[]') as Task[]).map(normalizeTask)
 }
 
 function writeTasks(tasks: Task[]) {
@@ -118,10 +130,43 @@ function byTag(tasks: Task[], tagId?: string): Task[] {
   return tagId ? tasks.filter((t) => t.tagIds.includes(tagId)) : tasks
 }
 
+function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<Task>): Task {
+  return {
+    id: uid(),
+    status: 'todo',
+    rondeled: false,
+    bucket: null,
+    rondelCount: 0,
+    tagIds: [],
+    note: '',
+    createdAt: nowIso(),
+    completedAt: null,
+    recurringRuleId: null,
+    originDate: fields.dayDate,
+    originTaskId: null,
+    previousTaskId: null,
+    carriedToId: null,
+    ...fields,
+  }
+}
+
 function findIndexOrThrow(tasks: Task[], id: string): number {
   const index = tasks.findIndex((t) => t.id === id)
   if (index === -1) throw new Error('Task not found')
   return index
+}
+
+function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): Task {
+  return newTask({
+    title: rule.title,
+    dayDate: occ.dayDate,
+    rondeled: occ.rondeled,
+    bucket: occ.bucket,
+    position,
+    tagIds: [...rule.tagIds],
+    note: rule.note,
+    recurringRuleId: rule.id,
+  })
 }
 
 /* ---------- adapter ---------- */
@@ -146,21 +191,14 @@ export const mockDataSource: DataSource = {
 
   async createTask(input: CreateTaskInput) {
     const tasks = readTasks()
-    const task: Task = {
-      id: uid(),
+    const task = newTask({
       title: input.title.trim(),
-      status: 'todo',
       dayDate: input.dayDate ?? null,
       rondeled: input.rondeled ?? false,
       bucket: input.bucket ?? null,
       position: tasks.length,
-      rondelCount: 0,
       tagIds: input.tagIds || [],
-      note: '',
-      createdAt: nowIso(),
-      completedAt: null,
-      recurringRuleId: null,
-    }
+    })
     tasks.push(task)
     writeTasks(tasks)
     return task
@@ -214,6 +252,7 @@ export const mockDataSource: DataSource = {
   async moveTask(id, target, options) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
+    const source = tasks[index]
 
     const dayDate = target.dayDate ?? null
     const rondeled = target.rondeled ?? false
@@ -221,26 +260,57 @@ export const mockDataSource: DataSource = {
     const rondel = options?.rondel ?? false
     const beforeId = options?.beforeId ?? null
 
-    tasks[index] = {
-      ...tasks[index],
-      dayDate,
-      rondeled,
-      bucket,
-      // Rondeling is a carry-forward: reset to a fresh todo and bump the count.
-      ...(rondel
-        ? { status: 'todo' as const, completedAt: null, rondelCount: tasks[index].rondelCount + 1 }
-        : {}),
+    if (rondel && !canRondel(source)) {
+      throw new Error('Done tasks and carried-forward history can not be rondeled')
     }
+
+    let moved: Task
+    if (rondel && keepsHistoryOnRondel(source)) {
+      // Leave the source on its day as history; carry a doing copy forward.
+      moved = newTask({
+        title: source.title,
+        status: 'doing',
+        dayDate,
+        rondeled,
+        bucket,
+        position: tasks.length,
+        rondelCount: source.rondelCount + 1,
+        tagIds: [...source.tagIds],
+        note: source.note,
+        recurringRuleId: source.recurringRuleId,
+        originDate: source.originDate,
+        originTaskId: source.originTaskId ?? source.id,
+        previousTaskId: source.id,
+      })
+      tasks[index] = { ...source, carriedToId: moved.id }
+      tasks.push(moved)
+    } else {
+      moved = {
+        ...source,
+        dayDate,
+        rondeled,
+        bucket,
+        originDate: source.originDate ?? dayDate,
+        // Rondeling counts the carry-forward; a canceled task comes back as todo.
+        ...(rondel
+          ? {
+              rondelCount: source.rondelCount + 1,
+              ...(source.status === 'canceled' ? { status: 'todo' as const, completedAt: null } : {}),
+            }
+          : {}),
+      }
+      tasks[index] = moved
+    }
+    const movedId = moved.id
 
     const inGroup = (t: Task) =>
       bucket !== null
         ? t.bucket === bucket
         : t.dayDate === dayDate && t.rondeled === rondeled
 
-    const moved = tasks[index]
     // Build the group in the same order the UI displays it (ordered()), so the
     // beforeId — which comes from the rendered list — maps to the right slot.
-    const group = ordered(tasks.filter((t) => t.id !== id && inGroup(t)))
+    const group = ordered(tasks.filter((t) => t.id !== movedId && inGroup(t)))
 
     let insertAt = group.length
     if (beforeId) {
@@ -255,7 +325,7 @@ export const mockDataSource: DataSource = {
     })
 
     writeTasks(tasks)
-    return tasks[findIndexOrThrow(tasks, id)]
+    return tasks[findIndexOrThrow(tasks, movedId)]
   },
 
   async listTags() {
@@ -357,7 +427,7 @@ export const mockDataSource: DataSource = {
     for (const rule of rules) {
       if (!isStartRule(rule.kind)) continue
       const pending = tasks
-        .filter((t) => t.recurringRuleId === rule.id && t.status !== 'done')
+        .filter((t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t))
         .sort((a, b) => a.position - b.position)
       if (pending.length > 1) {
         const removeIds = new Set(pending.slice(1).map((t) => t.id))
@@ -377,26 +447,12 @@ export const mockDataSource: DataSource = {
       // the next until the current one is completed — no duplicates.
       if (isStartRule(rule.kind)) {
         const hasPending = tasks.some(
-          (t) => t.recurringRuleId === rule.id && t.status !== 'done',
+          (t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t),
         )
         if (hasPending) continue
 
         const occ = occurrences[0]
-        tasks.push({
-          id: uid(),
-          title: rule.title,
-          status: 'todo',
-          dayDate: occ.dayDate,
-          rondeled: occ.rondeled,
-          bucket: occ.bucket,
-          position: tasks.length,
-          rondelCount: 0,
-          tagIds: [...rule.tagIds],
-          note: rule.note,
-          createdAt: nowIso(),
-          completedAt: null,
-          recurringRuleId: rule.id,
-        })
+        tasks.push(taskFromRule(rule, occ, tasks.length))
         changedTasks = true
         if (!rule.lastRunDate || occ.date > rule.lastRunDate) {
           rule.lastRunDate = occ.date
@@ -407,21 +463,7 @@ export const mockDataSource: DataSource = {
 
       let last = rule.lastRunDate
       for (const occ of occurrences) {
-        tasks.push({
-          id: uid(),
-          title: rule.title,
-          status: 'todo',
-          dayDate: occ.dayDate,
-          rondeled: occ.rondeled,
-          bucket: occ.bucket,
-          position: tasks.length,
-          rondelCount: 0,
-          tagIds: [...rule.tagIds],
-          note: rule.note,
-          createdAt: nowIso(),
-          completedAt: null,
-          recurringRuleId: rule.id,
-        })
+        tasks.push(taskFromRule(rule, occ, tasks.length))
         changedTasks = true
         if (!last || occ.date > last) last = occ.date
       }

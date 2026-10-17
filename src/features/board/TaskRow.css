@@ -125,6 +125,10 @@
   text-decoration-color: color-mix(in srgb, var(--faint) 60%, transparent);
 }
 
+.task-row.is-carried .task-title {
+  color: var(--muted);
+}
+
 .task-meta {
   display: flex;
   flex-wrap: wrap;

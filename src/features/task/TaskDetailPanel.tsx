@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
 import type { RondelTarget } from '../../services/adapters/DataSource'
+import { canRondel, isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { Button } from '../../shared/ui/Button'
@@ -55,6 +56,8 @@ export function TaskDetailPanel({
   const [newTag, setNewTag] = useState('')
 
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
+  const carried = isCarriedForward(task)
+  const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
   const created = task.createdAt ? formatDayLabel(task.createdAt.slice(0, 10)) : '—'
   const where = task.dayDate
     ? formatDayLabel(task.dayDate)
@@ -75,7 +78,8 @@ export function TaskDetailPanel({
           status={task.status}
           onClick={onAdvance}
           onDoubleClick={onSetDone}
-          disabled={task.status !== 'canceled' && (task.rondeled || !task.dayDate)}
+          disabled={carried || (task.status !== 'canceled' && (task.rondeled || !task.dayDate))}
+          disabledTitle={carried ? 'Carried forward — kept here as history' : undefined}
         />
         <span className="detail-head-spacer" />
         <IconButton icon="close" label="Close" onClick={onClose} />
@@ -184,6 +188,12 @@ export function TaskDetailPanel({
           </div>
           <div>
             <dt>
+              <Icon name="calendar" size={15} /> First scheduled
+            </dt>
+            <dd>{firstScheduled}</dd>
+          </div>
+          <div>
+            <dt>
               <Icon name="note" size={15} /> Created
             </dt>
             <dd>{created}</dd>
@@ -192,12 +202,16 @@ export function TaskDetailPanel({
       </div>
 
       <footer className="detail-foot">
-        <Button variant="secondary" size="sm" onClick={onAdvance}>
-          {task.status === 'todo' ? 'Start' : task.status === 'doing' ? 'Complete' : 'Reopen'}
-        </Button>
-        <div className="detail-foot-rondel">
-          <RondelMenu onRondel={onRondel} onPickDate={onPickDate} size={26} weekStartDay={weekStartDay} />
-        </div>
+        {!carried && (
+          <Button variant="secondary" size="sm" onClick={onAdvance}>
+            {task.status === 'todo' ? 'Start' : task.status === 'doing' ? 'Complete' : 'Reopen'}
+          </Button>
+        )}
+        {canRondel(task) && (
+          <div className="detail-foot-rondel">
+            <RondelMenu onRondel={onRondel} onPickDate={onPickDate} size={26} weekStartDay={weekStartDay} />
+          </div>
+        )}
         <Button variant="danger" size="sm" onClick={onDelete}>
           <Icon name="trash" size={14} /> Delete
         </Button>

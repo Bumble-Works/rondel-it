@@ -14,6 +14,14 @@ export interface Task {
   bucket: TaskBucket | null
   position: number
   rondelCount: number
+  /** First day this task (or its lineage) was scheduled on. For reporting. */
+  originDate: string | null
+  /** First task in a carry-forward lineage; null when this is the original. */
+  originTaskId: string | null
+  /** The task this one was carried forward from. */
+  previousTaskId: string | null
+  /** Set on a history copy left behind when work in progress was carried forward. */
+  carriedToId: string | null
   tagIds: string[]
   note: string
   createdAt: string

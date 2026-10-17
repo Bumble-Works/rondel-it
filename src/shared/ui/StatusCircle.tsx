@@ -13,6 +13,8 @@ interface StatusCircleProps {
   presentational?: boolean
   /** Disable interaction (e.g. a Bucket List dream with no date yet). */
   disabled?: boolean
+  /** Tooltip explaining why it's disabled. */
+  disabledTitle?: string
 }
 
 const NEXT_LABEL: Record<TaskStatus, string> = {
@@ -30,6 +32,7 @@ export function StatusCircle({
   accent,
   presentational = false,
   disabled = false,
+  disabledTitle = 'Give it a date to start',
 }: StatusCircleProps) {
   const style = {
     width: size,
@@ -54,7 +57,7 @@ export function StatusCircle({
       className={`status-circle status-circle--${status}`}
       style={style}
       aria-label={NEXT_LABEL[status]}
-      title={disabled ? 'Give it a date to start' : NEXT_LABEL[status]}
+      title={disabled ? disabledTitle : NEXT_LABEL[status]}
       aria-pressed={status === 'done'}
       disabled={disabled}
       onClick={(e) => {
