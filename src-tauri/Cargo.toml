@@ -26,6 +26,7 @@ tauri-plugin-log = "2"
 tauri-plugin-fs = "2.7"
 tauri-plugin-dialog = "2.8"
 tauri-plugin-opener = "2.7"
+tauri-plugin-persisted-scope = "2.4"
 
 # Smaller app binary (Tauri's recommended release settings).
 [profile.release]

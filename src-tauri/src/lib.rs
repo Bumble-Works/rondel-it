@@ -4,6 +4,8 @@ pub fn run() {
     // Sync: pick a folder, read/write its files, and reveal it in Finder.
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
+    // Remembers the folder the user granted access to, across restarts.
+    .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_opener::init())
     .setup(|app| {
       if cfg!(debug_assertions) {

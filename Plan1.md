@@ -144,7 +144,17 @@ Frontend:
 ### Storage: local file + optional sync folder
 - [x] Folder sync (branch `feat/sync`): per-device snapshot files, latest edit
   wins per record, explicit deletion markers, folder rebuilt if deleted
+- [x] Review fixes: deterministic recurring ids, monotonic stamps + reject
+  future-dated files, per-record validation, no local stand-in when the drive is
+  gone, access limited to the picked folder, cloned-Mac detection, follow-up
+  pass, skip unchanged writes
 - [ ] Test on two real Macs with Google Drive for desktop
+- [ ] Later: prune old deletion markers / change history (localStorage ~5 MB)
+- [ ] Later: settings merge per field (today the whole settings object wins)
+- [ ] Later: first sync of two Macs that both have data can duplicate
+  same-named tags (different ids): offer to merge them
+- [ ] Later: a recurring task deleted on one Mac can come back if another Mac
+  creates it before it syncs (rare; same id makes it fixable)
 - [ ] When choosing a folder that already has other devices, confirm: "This
   folder already syncs N other device(s). Joining merges their tasks with
   yours." (Guards against two people accidentally sharing one folder; sync stays anonymous.)

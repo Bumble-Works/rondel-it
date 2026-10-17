@@ -174,6 +174,20 @@ Today, Next week, Next month, Pick a date, Mark done.
 - **How:** each device writes its full data to `devices/<device-id>.json` and
   reads the others. Per task / tag / recurring rule, **the most recent edit
   wins**; settings too. Data saved before sync existed counts as oldest.
+- **Access:** the app can only read and write inside the folder you picked
+  (macOS grants it when you choose the folder; it's remembered across restarts).
+- **Cloud drive not running:** if the picked folder is gone (drive signed out
+  or not running), sync stops with a message once, and Settings shows it. It
+  never creates a local stand-in folder.
+- **Clocks:** each edit is stamped later than anything this device has seen,
+  so a slightly-behind clock can't lose your edit. A device file stamped more
+  than a day in the future is ignored entirely (wrong clock or tampering).
+- **Recurring tasks** get the same id on every device (rule + day), so two
+  Macs opening on the same day produce one task, not two.
+- **Copied Macs** (e.g. Migration Assistant) are detected and get their own
+  device id, so both keep syncing.
+- It only rewrites its own file when something changed. An edit made while a
+  sync is running goes out in a follow-up pass right after.
 - **Never loses data:**
   - Each device keeps its own full copy; the folder is just a mailbox.
   - Something is only deleted by an explicit deletion marker (made when you
@@ -181,7 +195,8 @@ Today, Next week, Next month, Pick a date, Mark done.
   - A deletion only wins over edits made before it.
   - If the folder disappears, it's rebuilt from this device's data, with a warning.
   - Files that can't be read (half-downloaded, hand-edited) are ignored and
-    reported, never applied.
+    reported, never applied. Malformed items inside a file are skipped and
+    reported; the rest of that file is used.
 - The sync folder choice and device id are per device and never synced.
 
 ## Errors

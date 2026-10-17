@@ -362,4 +362,13 @@ describe('mockDataSource recurring', () => {
     expect(finished).toMatchObject({ id: startPending[0].id, status: 'done', rondeled: false })
     vi.useRealTimers()
   })
+
+  it('gives the same recurring occurrence the same id on every device', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 14, 9)) // Mon Sep 14
+    const rule = await mockDataSource.createRecurringRule({ title: 'Standup', kind: 'weekly-on', weekday: 1 })
+    await mockDataSource.syncRecurring('2026-09-14')
+    const [task] = await mockDataSource.listTasksInRange('2026-09-14', '2026-09-14')
+    expect(task.id).toBe(`rec:${rule.id}:2026-09-14`)
+  })
 })
