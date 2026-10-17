@@ -194,7 +194,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   - If the folder disappears, it's rebuilt from this device's data, with a warning.
   - Files that can't be read (half-downloaded, hand-edited) are ignored and
     reported, never applied. Malformed items inside a file are skipped and
-    reported; the rest of that file is used.
+    reported; the rest of that file is used. Settings from another device are
+    used only if every field is valid (week start 0–6, times as HH:mm, a real
+    time zone).
 - The sync folder choice and device id are per device and never synced.
 
 ## Errors
