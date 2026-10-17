@@ -37,10 +37,23 @@ export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task'
           if (e.key === 'Enter') submit()
           if (e.key === 'Escape') input.reset()
         }}
-        onBlur={submit}
+        onBlur={(e) => {
+          // Focus moving to a chip's remove button stays inside the widget.
+          if (e.currentTarget.parentElement?.contains(e.relatedTarget)) return
+          submit()
+        }}
       />
       {picked.map((tag) => (
-        <TagChip key={tag.id} name={tag.name} color={tag.color} size="sm" onRemove={() => input.removeTag(tag.id)} />
+        <TagChip
+          key={tag.id}
+          name={tag.name}
+          color={tag.color}
+          size="sm"
+          onRemove={() => {
+            input.removeTag(tag.id)
+            input.inputRef.current?.focus()
+          }}
+        />
       ))}
       {input.open && <HashTagMenu options={input.options} highlight={input.highlight} onPick={input.pick} />}
     </div>

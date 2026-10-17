@@ -152,7 +152,7 @@
 }
 
 .task-actions {
-  /* Fixed columns (note, delete, rondel) so actions line up on every row. */
+  /* Fixed columns (flag, note, delete, rondel) so actions line up on every row. */
   display: grid;
   grid-template-columns: 28px 28px 28px 32px;
   align-items: center;
