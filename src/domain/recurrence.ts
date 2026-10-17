@@ -53,7 +53,7 @@ export function occurrencesBetween(
     let w = startOfWeek(startIso, weekStartDay)
     if (w < startIso) w = addDays(w, 7)
     while (w <= horizonIso && out.length < CAP) {
-      // Parked in the week's rondel container, anchored to its first day.
+      // Waits in the week's rondel container, anchored to its first day.
       out.push({ date: w, dayDate: w, rondeled: true, bucket: null })
       w = addDays(w, 7)
     }
@@ -61,7 +61,7 @@ export function occurrencesBetween(
     let m = startOfMonth(startIso)
     if (m < startIso) m = addMonths(m, 1)
     while (m <= horizonIso && out.length < CAP) {
-      // Parked in the month's rondel container, anchored to its first day.
+      // Waits in the month's rondel container, anchored to its first day.
       out.push({ date: m, dayDate: m, rondeled: true, bucket: null })
       m = addMonths(m, 1)
     }

@@ -146,16 +146,16 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
 }
 
 /**
- * Starting or finishing a parked task turns it into a regular task on today.
+ * Starting or finishing a rondeled (waiting) task turns it into a regular task on today.
  * Its history (rondelCount, originDate, createdAt) is kept.
  */
 function withStatus(task: Task, status: TaskStatus): Task {
-  const leavesParking = task.rondeled && (status === 'doing' || status === 'done')
+  const leavesRondelContainer = task.rondeled && (status === 'doing' || status === 'done')
   return {
     ...task,
     status,
     completedAt: status === 'done' ? nowIso() : null,
-    ...(leavesParking ? { dayDate: todayIso(), rondeled: false } : {}),
+    ...(leavesRondelContainer ? { dayDate: todayIso(), rondeled: false } : {}),
   }
 }
 

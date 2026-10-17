@@ -8,7 +8,7 @@ export interface Task {
   status: TaskStatus
   /** Scheduled day (YYYY-MM-DD). Null only for a Bucket List dream. */
   dayDate: string | null
-  /** Parked in the rondel container (carried forward, not yet committed to its day). */
+  /** Rondeled to a week/month: waits in its container until that period starts nagging. */
   rondeled: boolean
   /** Unscheduled bucket. Null when the task has a concrete dayDate. */
   bucket: TaskBucket | null

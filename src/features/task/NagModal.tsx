@@ -45,8 +45,8 @@ export function NagModal({
     >
       <p className="nag-intro">
         {items.length === 1
-          ? '1 parked item is waiting for a decision.'
-          : `${items.length} parked items are waiting for a decision.`}
+          ? '1 rondeled item is waiting for a decision.'
+          : `${items.length} rondeled items are waiting for a decision.`}
       </p>
       <ul className="nag-list">
         {items.map((task) => (

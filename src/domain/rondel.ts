@@ -21,7 +21,7 @@ export function keepsHistoryOnRondel(task: Task): boolean {
 }
 
 /**
- * A parked item nags from the day its week/month starts until the user
+ * A rondeled item nags from the day its week/month starts until the user
  * decides: give it a day, rondel it on, finish it, or delete it.
  */
 export function isWaitingForDecision(task: Task, today: string): boolean {
@@ -30,10 +30,10 @@ export function isWaitingForDecision(task: Task, today: string): boolean {
 }
 
 /**
- * Parked items shown in the viewed period's container. The period containing
- * today also shows items parked for earlier periods, so they aren't lost.
+ * Rondeled items shown in the viewed period's container. The period containing
+ * today also shows items rondeled to earlier periods, so they aren't lost.
  */
-export function showsInParkedContainer(
+export function showsInRondelContainer(
   task: Task,
   period: { start: string; end: string },
   today: string,

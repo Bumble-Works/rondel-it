@@ -10,7 +10,7 @@ export interface CreateTaskInput {
 
 export interface RondelTarget {
   toDate?: string | null
-  /** When true, the task is parked in the rondel container for that period. */
+  /** When true, the task waits in the rondel container for that period. */
   rondeled?: boolean
   toBucket?: TaskBucket | null
 }

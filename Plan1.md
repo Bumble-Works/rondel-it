@@ -118,7 +118,7 @@ Frontend:
 
 ### End-of-day rondel flow
 - At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).
-  Right now the nag only covers parked items from past weeks.
+  Right now the nag only covers rondeled items waiting in a container.
 - Each task gets the Rondel options (tomorrow / pick a date / next week /
   next month / Bucket List), plus "mark done" and "leave it".
 - Follows the rondel rules above (todo moves; doing leaves history).
@@ -142,10 +142,9 @@ Frontend:
 - Split `App.tsx` (~720 lines) into per-feature hooks, and stop reloading the
   whole board (plus the recurring sync) after every action: use optimistic
   updates and reconcile with the result.
-- Naming: "rondel" means three things. Rename the `rondeled` field to
-  `parked` (waiting until its week/month starts nagging), and the
-  `'rondel'` view key to `'bucket'`. Needs a read-time migration for saved data.
-- Parked items don't record whether they're for a week or a month (both are
+- Naming: the Bucket List view's internal key is `'rondel'`. Rename it to
+  `'bucket'`. (Keep the `rondeled` field name: "rondeled items" is the term.)
+- Rondeled items don't record whether they're for a week or a month (both are
   just a date). Add a field, or simplify the UX into fixed "Next week" /
   "Next month" buckets.
 - "Today" uses the browser's time zone, but the recurring sync uses the

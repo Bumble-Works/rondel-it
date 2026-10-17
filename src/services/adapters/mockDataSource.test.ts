@@ -119,15 +119,15 @@ describe('mockDataSource tasks', () => {
     expect(day.map((t) => t.id)).toEqual([active.id, carried.id, done.id])
   })
 
-  it('turns a parked task into a regular task on today when started or finished', async () => {
+  it('turns a rondeled task into a regular task on today when started or finished', async () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 3, 12)) // Nov 3
 
-    const parked = await mockDataSource.createTask({ title: 'Parked', dayDate: '2026-10-26' })
-    await mockDataSource.moveTask(parked.id, { dayDate: '2026-11-01', rondeled: true }, { rondel: true })
-    const started = await mockDataSource.advanceTask(parked.id)
+    const waiting = await mockDataSource.createTask({ title: 'Waiting', dayDate: '2026-10-26' })
+    await mockDataSource.moveTask(waiting.id, { dayDate: '2026-11-01', rondeled: true }, { rondel: true })
+    const started = await mockDataSource.advanceTask(waiting.id)
     expect(started).toMatchObject({ status: 'doing', dayDate: '2026-11-03', rondeled: false })
-    expect(started).toMatchObject({ rondelCount: 1, originDate: '2026-10-26', createdAt: parked.createdAt })
+    expect(started).toMatchObject({ rondelCount: 1, originDate: '2026-10-26', createdAt: waiting.createdAt })
 
     const other = await mockDataSource.createTask({ title: 'Other', dayDate: '2026-11-01', rondeled: true })
     const done = await mockDataSource.setTaskStatus(other.id, 'done')
@@ -295,11 +295,11 @@ describe('mockDataSource recurring', () => {
 
     await mockDataSource.setTaskStatus(startPending[0].id, 'done')
     await mockDataSource.syncRecurring('2026-11-30')
-    // The finished one became a regular done task on today; the next one is parked.
+    // The finished one became a regular done task on today; the next one waits in its container.
     const afterDone = await mockDataSource.listRondelItems()
-    const parkedForRule = afterDone.filter((t) => t.recurringRuleId === startRule.id)
-    expect(parkedForRule).toHaveLength(1)
-    expect(parkedForRule[0].status).toBe('todo')
+    const waitingForRule = afterDone.filter((t) => t.recurringRuleId === startRule.id)
+    expect(waitingForRule).toHaveLength(1)
+    expect(waitingForRule[0].status).toBe('todo')
     const [finished] = await mockDataSource.listTasksInRange('2026-09-15', '2026-09-15')
     expect(finished).toMatchObject({ id: startPending[0].id, status: 'done', rondeled: false })
     vi.useRealTimers()

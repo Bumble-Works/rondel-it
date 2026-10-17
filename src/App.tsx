@@ -31,7 +31,7 @@ import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
 import { Menu } from './shared/ui/Menu'
 import { TagChip } from './shared/ui/TagChip'
-import { isWaitingForDecision, showsInParkedContainer } from './domain/rondel'
+import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 
@@ -139,7 +139,7 @@ function App() {
         start: view === 'month' ? monthStart : anchorWeekStart,
         end: view === 'month' ? monthEnd : anchorWeekEnd,
       }
-      setContainerItems(rondelItems.filter((t) => showsInParkedContainer(t, period, today)))
+      setContainerItems(rondelItems.filter((t) => showsInRondelContainer(t, period, today)))
 
       const undecidedItems = rondelItems.filter((t) => isWaitingForDecision(t, today))
       setUndecided(undecidedItems)
@@ -182,7 +182,7 @@ function App() {
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
-  /* ---- parked-items nag ---- */
+  /* ---- rondeled-items nag ---- */
 
   const undecidedRef = useRef<Task[]>([])
   useEffect(() => {
@@ -286,7 +286,7 @@ function App() {
     })
   const move = (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => {
     const task = allTasks.find((t) => t.id === taskId)
-    // Reordering inside the parked container keeps the week/month it was parked
+    // Reordering inside the rondel container keeps the week/month it was rondeled
     // for; only tasks dragged in from a day take the container's period.
     const keepsPeriod = target.rondeled && task?.rondeled && task.dayDate
     const placed = keepsPeriod ? { ...target, dayDate: task.dayDate ?? undefined } : target
@@ -419,7 +419,7 @@ function App() {
     defaultCollapsed: false,
     addTarget: { dayDate: view === 'month' ? monthStart : anchorWeekStart, rondeled: true },
     tasks: containerItems.filter(visible),
-    emptyLabel: 'Nothing parked here',
+    emptyLabel: 'Nothing rondeled here',
   })
 
   const bucketGroup = (bucket: keyof Buckets, title: string, eyebrow: string): BoardGroup => ({

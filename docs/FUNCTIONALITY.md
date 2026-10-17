@@ -9,7 +9,7 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 ## Philosophy
 
 - A to-do list should be **conquerable**, not a pile that's always carried over.
-- Unfinished and parked work **nags on purpose**, until you make a deliberate
+- Unfinished and rondeled work **nags on purpose**, until you make a deliberate
   decision: give it a day, rondel it on, finish it, or delete it.
 - Rondeling is a decision ("I'm pushing this off"), so it's tracked.
   Reorganizing (dragging) isn't.
@@ -23,9 +23,9 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - Done tasks always sink to the bottom of their day. Each day sorts as:
   **active tasks → carried-forward history → done**. Within each group, the
   order you set by dragging is kept.
-- A **parked** task that you start (doing) or finish (done) **becomes a
-  regular task on today** with that status. It keeps its rondel count, first
-  scheduled day and created date. See "Parked items".
+- A **rondeled item** (waiting for next week/month) that you start (doing) or
+  finish (done) **becomes a regular task on today** with that status. It keeps
+  its rondel count, first scheduled day and created date. See "Rondeled items".
 - Bucket List tasks (no day) can't change status. The circle says "Give it a
   date to start".
 - Quick-add creates a todo in that section. If tag filters are active, the
@@ -33,23 +33,26 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 
 ## Views
 
-- **Day**: that day's tasks, plus the current week's parked container.
-- **Week**: each day of the week (newest first), plus the week's parked container.
-- **Month**: each day of the month (newest first), plus the month's parked container.
-- **Bucket List**: undated "someday" tasks.
+- **Day**: that day's tasks, plus the current week's rondel container ("Unassigned").
+- **Week**: each day of the week (newest first), plus the week's rondel container.
+- **Month**: each day of the month (newest first), plus the month's rondel container.
+- **Bucket List**: items you want to keep and never forget. They have no
+  date and don't nag. From there an item can be given a date or rondeled.
+  Nothing goes there automatically; it's always a deliberate choice.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
 - The week starts on the day set in Settings.
 
-## Parked items ("Unassigned" container)
+## Rondeled items (the "Unassigned" container)
 
-- Rondel → **Next week** parks a task on the first day of next week.
-  **Next month** parks it on the 1st of next month.
-- A parked task **nags from the day its week or month starts** (not before),
+- Rondel → **Next week** puts a task in next week's container (dated the
+  first day of the week). **Next month** puts it in next month's (dated the 1st).
+- A rondeled item **nags from the day its week or month starts** (not before),
   at every review time, until you decide.
 - The container for the period that includes today also shows anything still
-  parked from earlier periods, so nothing is lost.
-- **Starting or finishing a parked task** (status circle, or "Mark done" in the
+  rondeled to earlier periods, so nothing is lost. Nothing moves on its own:
+  an item rondeled to Nov 1 that's never acted on is still nagging on Dec 1.
+- **Starting or finishing a rondeled item** (status circle, or "Mark done" in the
   nag) turns it into a regular task **on today**, with that status. Its rondel
   count, first scheduled day and created date are kept.
 
@@ -63,7 +66,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 | --- | --- |
 | **todo** | Moves to the target. It's gone from the old day. |
 | **doing** (on a real day) | The old day keeps a **read-only, greyed-out history copy** (still "doing"). The target gets a new **doing** copy. |
-| **doing** (parked / Bucket List) | Moves to the target and stays "doing". |
+| **doing** (in a rondel container / Bucket List) | Moves to the target and stays "doing". |
 | **done** | Not offered. |
 | **history copy** | Not offered. |
 
@@ -112,7 +115,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 ## Recurring tasks
 
 - Rules: every week on a weekday, every month on a day (the 31st becomes the
-  month's last day), or "start of each week/month" (parked in that period's container).
+  month's last day), or "start of each week/month" (waits in that period's rondel container).
 - A task is created **on its own day, never ahead of time**: the sync only
   goes up to today in your time zone. Browsing forward creates nothing.
 - While the app is open, it syncs after midnight. Otherwise it syncs on the next open.
@@ -124,7 +127,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 - Settings: **morning review time** and **end-of-day rondel time**.
 - The nag opens once when the app opens, and again at each review time, if
-  any parked items are waiting for a decision. It closes when nothing is left.
+  any rondeled items are waiting for a decision. It closes when nothing is left.
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
 ## Errors
