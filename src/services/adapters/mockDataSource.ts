@@ -2,12 +2,8 @@ import { addDays, toIso, todayIso } from '../../domain/dates'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { canRondel, isCarriedForward, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
+import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
-
-const TASKS_KEY = 'rondel.v6.tasks'
-const TAGS_KEY = 'rondel.v6.tags'
-const SETTINGS_KEY = 'rondel.v6.settings'
-const RULES_KEY = 'rondel.v6.rules'
 
 const defaultSettings: UserSetting = {
   weekStartDay: 1, // Monday
@@ -24,21 +20,7 @@ function nowIso() {
   return new Date().toISOString()
 }
 
-/* ---------- seed ---------- */
-
-// The app starts empty — a clean slate for the user's own tasks.
-function buildSeed(): { tasks: Task[]; tags: Tag[] } {
-  return { tasks: [], tags: [] }
-}
-
-/* ---------- storage ---------- */
-
-function seedIfEmpty() {
-  if (localStorage.getItem(TASKS_KEY) && localStorage.getItem(TAGS_KEY)) return
-  const seed = buildSeed()
-  localStorage.setItem(TASKS_KEY, JSON.stringify(seed.tasks))
-  localStorage.setItem(TAGS_KEY, JSON.stringify(seed.tags))
-}
+/* ---------- storage (see services/storage/localStore) ---------- */
 
 /** Fill fields added after v6 data was first saved, so existing tasks keep working. */
 function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
@@ -60,53 +42,33 @@ function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
 }
 
 function readTasks(): Task[] {
-  seedIfEmpty()
-  return (JSON.parse(localStorage.getItem(TASKS_KEY) || '[]') as Task[]).map(normalizeTask)
+  return readRaw<Task>('tasks').map(normalizeTask)
 }
 
 function writeTasks(tasks: Task[]) {
-  localStorage.setItem(TASKS_KEY, JSON.stringify(tasks))
+  writeCollection('tasks', tasks, normalizeTask)
 }
 
 function readTags(): Tag[] {
-  seedIfEmpty()
-  return JSON.parse(localStorage.getItem(TAGS_KEY) || '[]') as Tag[]
+  return readRaw<Tag>('tags')
 }
 
 function writeTags(tags: Tag[]) {
-  localStorage.setItem(TAGS_KEY, JSON.stringify(tags))
+  writeCollection('tags', tags)
 }
 
+// Defaults aren't saved until the user changes something, so a fresh device
+// never "edits" settings and overrides another device's real ones on sync.
 function readSettings(): UserSetting {
-  const raw = localStorage.getItem(SETTINGS_KEY)
-  if (!raw) {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings))
-    return defaultSettings
-  }
-  return { ...defaultSettings, ...(JSON.parse(raw) as Partial<UserSetting>) }
-}
-
-function writeSettings(settings: UserSetting) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  return { ...defaultSettings, ...(readSettingsRaw() ?? {}) }
 }
 
 function readRules(): RecurringRule[] {
-  const raw = localStorage.getItem(RULES_KEY)
-  if (!raw) {
-    const seeded = buildSeedRules()
-    localStorage.setItem(RULES_KEY, JSON.stringify(seeded))
-    return seeded
-  }
-  return JSON.parse(raw) as RecurringRule[]
+  return readRaw<RecurringRule>('rules')
 }
 
 function writeRules(rules: RecurringRule[]) {
-  localStorage.setItem(RULES_KEY, JSON.stringify(rules))
-}
-
-function buildSeedRules(): RecurringRule[] {
-  // Start with no recurring rules — the user creates their own.
-  return []
+  writeCollection('rules', rules)
 }
 
 /* ---------- helpers ---------- */
