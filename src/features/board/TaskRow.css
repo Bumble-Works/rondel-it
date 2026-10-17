@@ -186,6 +186,16 @@
   color: var(--brand);
 }
 
+.task-actions button:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: auto;
+}
+
+.task-actions button:disabled:hover {
+  background: transparent;
+}
+
 .task-delete-btn {
   display: inline-flex;
   align-items: center;

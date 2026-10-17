@@ -51,12 +51,8 @@ export function TaskDetailPanel({
   onCreateTag,
   weekStartDay,
 }: TaskDetailPanelProps) {
-  // Drafts are null until the user edits, so saves made elsewhere (e.g. the
-  // note modal) show here instead of being overwritten by a stale copy.
-  const [titleDraft, setTitleDraft] = useState<string | null>(null)
-  const [noteDraft, setNoteDraft] = useState<string | null>(null)
-  const title = titleDraft ?? task.title
-  const note = noteDraft ?? task.note
+  const [title, setTitle] = useState(task.title)
+  const [note, setNote] = useState(task.note)
   const [newTag, setNewTag] = useState('')
 
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
@@ -73,7 +69,7 @@ export function TaskDetailPanel({
   const commitTitle = () => {
     const next = title.trim()
     if (next && next !== task.title) onChangeTitle(next)
-    setTitleDraft(null)
+    else setTitle(task.title)
   }
 
   return (
@@ -95,7 +91,7 @@ export function TaskDetailPanel({
           className="detail-title"
           rows={2}
           value={title}
-          onChange={(e) => setTitleDraft(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
           onBlur={commitTitle}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -174,11 +170,8 @@ export function TaskDetailPanel({
           rows={6}
           placeholder="Add context, blockers, links…"
           value={note}
-          onChange={(e) => setNoteDraft(e.target.value)}
-          onBlur={() => {
-            if (note !== task.note) onSaveNote(note)
-            setNoteDraft(null)
-          }}
+          onChange={(e) => setNote(e.target.value)}
+          onBlur={() => note !== task.note && onSaveNote(note)}
         />
 
         <dl className="detail-meta">

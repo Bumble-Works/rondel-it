@@ -6,6 +6,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
 import { TagChip } from '../../shared/ui/TagChip'
 import { RondelMenu } from '../rondel/RondelMenu'
+import { OPEN_IN_PANEL_HINT } from '../task/hints'
 import './TaskRow.css'
 
 interface TaskRowProps {
@@ -50,6 +51,8 @@ export function TaskRow({
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const canDrop = dragging && !isDragged
   const carried = isCarriedForward(task)
+  // While a task is open in the detail panel, the panel is its only editor.
+  const locked = selected
 
   const startDrag = (e: DragEvent<HTMLElement>) => {
     e.dataTransfer.effectAllowed = 'move'
@@ -104,7 +107,7 @@ export function TaskRow({
           : undefined
       }
     >
-      {task.status === 'done' || carried ? (
+      {task.status === 'done' || carried || locked ? (
         <span className="task-grip task-grip--empty" aria-hidden="true" />
       ) : (
         <span
@@ -123,8 +126,8 @@ export function TaskRow({
         status={task.status}
         onClick={onAdvance}
         onDoubleClick={onSetDone}
-        disabled={carried || task.rondeled || !task.dayDate}
-        disabledTitle={carried ? CARRIED_FORWARD_HINT : undefined}
+        disabled={locked || carried || task.rondeled || !task.dayDate}
+        disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
       />
 
       <button
@@ -161,7 +164,8 @@ export function TaskRow({
           type="button"
           className={`task-note-btn ${task.note ? 'has-note' : ''}`.trim()}
           aria-label={task.note ? 'Edit note' : 'Add note'}
-          title={task.note ? 'Edit note' : 'Add note'}
+          title={locked ? OPEN_IN_PANEL_HINT : task.note ? 'Edit note' : 'Add note'}
+          disabled={locked}
           onClick={onOpenNote}
         >
           <Icon name={task.note ? 'note-filled' : 'note'} size={18} />
@@ -170,13 +174,14 @@ export function TaskRow({
           type="button"
           className="task-delete-btn"
           aria-label="Delete task"
-          title="Delete task"
+          title={locked ? OPEN_IN_PANEL_HINT : 'Delete task'}
+          disabled={locked}
           onClick={onDelete}
         >
           <Icon name="trash" size={17} />
         </button>
         {canRondel(task) && (
-          <RondelMenu onRondel={onRondel} onPickDate={onPickDate} weekStartDay={weekStartDay} />
+          <RondelMenu onRondel={onRondel} onPickDate={onPickDate} weekStartDay={weekStartDay} disabled={locked} />
         )}
       </div>
     </div>

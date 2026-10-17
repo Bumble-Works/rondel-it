@@ -1,5 +1,6 @@
 import { addDays, firstDayOfNextMonth, firstDayOfNextWeek, todayIso } from '../../domain/dates'
 import type { RondelTarget } from '../../services/adapters/DataSource'
+import { OPEN_IN_PANEL_HINT } from '../task/hints'
 import { Icon } from '../../shared/ui/Icon'
 import { Menu, MenuItem, MenuLabel, MenuSeparator } from '../../shared/ui/Menu'
 import './RondelMenu.css'
@@ -9,9 +10,10 @@ interface RondelMenuProps {
   onPickDate: () => void
   size?: number
   weekStartDay?: number
+  disabled?: boolean
 }
 
-export function RondelMenu({ onRondel, onPickDate, size = 22, weekStartDay = 1 }: RondelMenuProps) {
+export function RondelMenu({ onRondel, onPickDate, size = 22, weekStartDay = 1, disabled = false }: RondelMenuProps) {
   return (
     <Menu
       align="right"
@@ -20,7 +22,8 @@ export function RondelMenu({ onRondel, onPickDate, size = 22, weekStartDay = 1 }
           type="button"
           className={`rondel-trigger ${expanded ? 'is-open' : ''}`.trim()}
           aria-label="Rondel this task"
-          title="Rondel — move it forward"
+          title={disabled ? OPEN_IN_PANEL_HINT : 'Rondel — move it forward'}
+          disabled={disabled}
           onClick={onClick}
         >
           <img src="/icon.svg" alt="" width={size} height={size} className="rondel-glyph" />
