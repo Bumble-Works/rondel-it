@@ -145,6 +145,9 @@ Frontend:
 - [x] Folder sync (branch `feat/sync`): per-device snapshot files, latest edit
   wins per record, explicit deletion markers, folder rebuilt if deleted
 - [ ] Test on two real Macs with Google Drive for desktop
+- [ ] When choosing a folder that already has other devices, confirm: "This
+  folder already syncs N other device(s). Joining merges their tasks with
+  yours." (Guards against two people accidentally sharing one folder; sync stays anonymous.)
 - [ ] iPhone: same sync folder through the Files app (Tauri iOS)
 - [ ] Export/Import backup (JSON)
 - [ ] Later: move local data from web storage to a file (SQLite) in the app's
