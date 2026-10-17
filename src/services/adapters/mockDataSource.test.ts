@@ -135,6 +135,21 @@ describe('mockDataSource tasks', () => {
     expect(done.completedAt).not.toBeNull()
   })
 
+  it('does not count giving a waiting item a day as another rondel', async () => {
+    const task = await mockDataSource.createTask({ title: 'Waiting', dayDate: '2026-10-26' })
+    await mockDataSource.moveTask(task.id, { dayDate: '2026-11-01', rondeled: true }, { rondel: true })
+    const scheduled = await mockDataSource.moveTask(task.id, { dayDate: '2026-11-03' }, { rondel: true })
+    expect(scheduled).toMatchObject({ dayDate: '2026-11-03', rondeled: false, rondelCount: 1 })
+
+    const dream = await mockDataSource.createTask({ title: 'Dream', bucket: 'bucket-list' })
+    const dated = await mockDataSource.moveTask(dream.id, { dayDate: '2026-11-03' }, { rondel: true })
+    expect(dated).toMatchObject({ dayDate: '2026-11-03', bucket: null, rondelCount: 0 })
+
+    // Pushing it off again still counts.
+    const pushed = await mockDataSource.moveTask(task.id, { dayDate: '2026-11-04' }, { rondel: true })
+    expect(pushed.rondelCount).toBe(2)
+  })
+
   it('restores the history copy when its carried-forward copy is deleted', async () => {
     const monday = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
     await mockDataSource.advanceTask(monday.id)

@@ -1,4 +1,4 @@
-import type { Task } from './types'
+import type { Task, TaskBucket } from './types'
 
 /** A task left behind on its day when an in-progress copy was carried forward. */
 export function isCarriedForward(task: Task): boolean {
@@ -19,6 +19,18 @@ export function rondelBlockedReason(task: Task): string | null {
 /** Done tasks and already-carried history copies can't be rondeled. */
 export function canRondel(task: Task): boolean {
   return rondelBlockedReason(task) === null
+}
+
+/**
+ * Giving a waiting item (in a rondel container or the Bucket List) a day is a
+ * decision, not pushing it off again, so it doesn't count as a rondel.
+ */
+export function isSchedulingDecision(
+  task: Task,
+  target: { dayDate: string | null; rondeled: boolean; bucket: TaskBucket | null },
+): boolean {
+  const waiting = task.rondeled || task.bucket !== null
+  return waiting && target.dayDate !== null && !target.rondeled && target.bucket === null
 }
 
 /**

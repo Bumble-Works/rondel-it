@@ -1,6 +1,6 @@
 import { addDays, todayIso } from '../../domain/dates'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
-import { canRondel, isCarriedForward, keepsHistoryOnRondel } from '../../domain/rondel'
+import { canRondel, isCarriedForward, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
 
@@ -264,7 +264,7 @@ export const mockDataSource: DataSource = {
     const dayDate = target.dayDate ?? null
     const rondeled = target.rondeled ?? false
     const bucket = target.bucket ?? null
-    const rondel = options?.rondel ?? false
+    const rondel = (options?.rondel ?? false) && !isSchedulingDecision(source, { dayDate, rondeled, bucket })
     const beforeId = options?.beforeId ?? null
 
     if (rondel && !canRondel(source)) {

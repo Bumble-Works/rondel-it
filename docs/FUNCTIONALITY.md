@@ -75,6 +75,10 @@ Today, Next week, Next month, Pick a date, Mark done.
   rondel doesn't apply, the button is greyed out and its tooltip says why.
 
 - Every rondel adds 1 to `rondelCount`. Copies carry the count forward.
+- **Giving a waiting item a day is a decision, not a rondel.** A rondeled
+  item in a container, or a Bucket List item, that gets a day (Today, Tomorrow,
+  Pick a date) moves there with **no** count increase. Rondeling it to next
+  week, next month or the Bucket List still counts.
 - Changing the new copy (e.g. back to todo) never affects the history copy.
 - History copies: greyed out, can't be dragged or changed, and the tooltip
   says "Just a memory now. The real one rolled forward."
