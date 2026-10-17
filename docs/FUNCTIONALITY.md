@@ -67,8 +67,12 @@ Today, Next week, Next month, Pick a date, Mark done.
 | **todo** | Moves to the target. It's gone from the old day. |
 | **doing** (on a real day) | The old day keeps a **read-only, greyed-out history copy** (still "doing"). The target gets a new **doing** copy. |
 | **doing** (in a rondel container / Bucket List) | Moves to the target and stays "doing". |
-| **done** | Not offered. |
-| **history copy** | Not offered. |
+| **done** | Not offered (button greyed out: "Done — nothing left to rondel"). |
+| **history copy** | Not offered (button greyed out, with the history tooltip). |
+
+- The rondel button is **always shown** on every row and in the detail panel,
+  so row actions (note, delete, rondel) stay aligned in a fixed grid. When
+  rondel doesn't apply, the button is greyed out and its tooltip says why.
 
 - Every rondel adds 1 to `rondelCount`. Copies carry the count forward.
 - Changing the new copy (e.g. back to todo) never affects the history copy.

@@ -1,6 +1,6 @@
 import { useRef, useState, type DragEvent } from 'react'
 import type { RondelTarget } from '../../services/adapters/DataSource'
-import { CARRIED_FORWARD_HINT, canRondel, isCarriedForward } from '../../domain/rondel'
+import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
@@ -180,9 +180,12 @@ export function TaskRow({
         >
           <Icon name="trash" size={17} />
         </button>
-        {canRondel(task) && (
-          <RondelMenu onRondel={onRondel} onPickDate={onPickDate} weekStartDay={weekStartDay} disabled={locked} />
-        )}
+        <RondelMenu
+          onRondel={onRondel}
+          onPickDate={onPickDate}
+          weekStartDay={weekStartDay}
+          disabledReason={locked ? OPEN_IN_PANEL_HINT : rondelBlockedReason(task)}
+        />
       </div>
     </div>
   )

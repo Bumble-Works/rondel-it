@@ -152,8 +152,11 @@
 }
 
 .task-actions {
-  display: flex;
+  /* Fixed columns (note, delete, rondel) so actions line up on every row. */
+  display: grid;
+  grid-template-columns: 28px 28px 32px;
   align-items: center;
+  justify-items: center;
   gap: 0.15rem;
   opacity: 0.5;
   transition: opacity var(--dur) var(--ease);
@@ -186,7 +189,8 @@
   color: var(--brand);
 }
 
-.task-actions button:disabled {
+/* The rondel button fades its own glyph (see RondelMenu.css). */
+.task-actions button:disabled:not(.rondel-trigger) {
   opacity: 0.35;
   cursor: default;
   pointer-events: auto;

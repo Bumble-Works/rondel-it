@@ -7,9 +7,18 @@ export function isCarriedForward(task: Task): boolean {
 
 export const CARRIED_FORWARD_HINT = 'Just a memory now. The real one rolled forward.'
 
+export const DONE_RONDEL_HINT = 'Done — nothing left to rondel'
+
+/** Why a task can't be rondeled, or null when it can. */
+export function rondelBlockedReason(task: Task): string | null {
+  if (isCarriedForward(task)) return CARRIED_FORWARD_HINT
+  if (task.status === 'done') return DONE_RONDEL_HINT
+  return null
+}
+
 /** Done tasks and already-carried history copies can't be rondeled. */
 export function canRondel(task: Task): boolean {
-  return task.status !== 'done' && !isCarriedForward(task)
+  return rondelBlockedReason(task) === null
 }
 
 /**

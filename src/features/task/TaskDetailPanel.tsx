@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
 import type { RondelTarget } from '../../services/adapters/DataSource'
-import { CARRIED_FORWARD_HINT, canRondel, isCarriedForward } from '../../domain/rondel'
+import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { Button } from '../../shared/ui/Button'
@@ -208,11 +208,15 @@ export function TaskDetailPanel({
             {task.status === 'todo' ? 'Start' : task.status === 'doing' ? 'Complete' : 'Reopen'}
           </Button>
         )}
-        {canRondel(task) && (
-          <div className="detail-foot-rondel">
-            <RondelMenu onRondel={onRondel} onPickDate={onPickDate} size={26} weekStartDay={weekStartDay} />
-          </div>
-        )}
+        <div className="detail-foot-rondel">
+          <RondelMenu
+            onRondel={onRondel}
+            onPickDate={onPickDate}
+            size={26}
+            weekStartDay={weekStartDay}
+            disabledReason={rondelBlockedReason(task)}
+          />
+        </div>
         <Button variant="danger" size="sm" onClick={onDelete}>
           <Icon name="trash" size={14} /> Delete
         </Button>
