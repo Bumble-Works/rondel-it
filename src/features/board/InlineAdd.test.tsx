@@ -48,4 +48,14 @@ describe('InlineAdd #tags', () => {
     expect(onCreateTag).not.toHaveBeenCalled()
     expect(onAdd).toHaveBeenCalledWith('Fix issue #42', [])
   })
+
+  it('removing a picked tag chip does not submit the task', async () => {
+    const { onAdd, input } = setup()
+    await userEvent.type(input, 'Call mom #fam{Enter}')
+    await userEvent.click(screen.getByRole('button', { name: 'Remove family' }))
+    expect(onAdd).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Remove family' })).not.toBeInTheDocument()
+    expect(input).toHaveValue('Call mom')
+    expect(input).toHaveFocus()
+  })
 })
