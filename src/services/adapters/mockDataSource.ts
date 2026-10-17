@@ -1,4 +1,4 @@
-import { addDays } from '../../domain/dates'
+import { addDays, todayIso } from '../../domain/dates'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { canRondel, isCarriedForward, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
@@ -145,6 +145,20 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
   }
 }
 
+/**
+ * Starting or finishing a parked task turns it into a regular task on today.
+ * Its history (rondelCount, originDate, createdAt) is kept.
+ */
+function withStatus(task: Task, status: TaskStatus): Task {
+  const leavesParking = task.rondeled && (status === 'doing' || status === 'done')
+  return {
+    ...task,
+    status,
+    completedAt: status === 'done' ? nowIso() : null,
+    ...(leavesParking ? { dayDate: todayIso(), rondeled: false } : {}),
+  }
+}
+
 function findIndexOrThrow(tasks: Task[], id: string): number {
   const index = tasks.findIndex((t) => t.id === id)
   if (index === -1) throw new Error('Task not found')
@@ -229,12 +243,7 @@ export const mockDataSource: DataSource = {
   async advanceTask(id) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
-    const status = nextStatus(tasks[index].status)
-    tasks[index] = {
-      ...tasks[index],
-      status,
-      completedAt: status === 'done' ? nowIso() : null,
-    }
+    tasks[index] = withStatus(tasks[index], nextStatus(tasks[index].status))
     writeTasks(tasks)
     return tasks[index]
   },
@@ -242,11 +251,7 @@ export const mockDataSource: DataSource = {
   async setTaskStatus(id, status) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
-    tasks[index] = {
-      ...tasks[index],
-      status,
-      completedAt: status === 'done' ? nowIso() : null,
-    }
+    tasks[index] = withStatus(tasks[index], status)
     writeTasks(tasks)
     return tasks[index]
   },

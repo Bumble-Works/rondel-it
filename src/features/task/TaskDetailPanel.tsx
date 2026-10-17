@@ -57,7 +57,7 @@ export function TaskDetailPanel({
 
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const carried = isCarriedForward(task)
-  const statusLocked = carried || task.rondeled || !task.dayDate
+  const statusLocked = carried || !task.dayDate
   const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
   const created = task.createdAt ? formatDayLabel(task.createdAt.slice(0, 10)) : '—'
   const where = task.dayDate

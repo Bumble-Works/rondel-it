@@ -126,7 +126,7 @@ export function TaskRow({
         status={task.status}
         onClick={onAdvance}
         onDoubleClick={onSetDone}
-        disabled={locked || carried || task.rondeled || !task.dayDate}
+        disabled={locked || carried || !task.dayDate}
         disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
       />
 

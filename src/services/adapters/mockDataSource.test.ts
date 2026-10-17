@@ -119,6 +119,22 @@ describe('mockDataSource tasks', () => {
     expect(day.map((t) => t.id)).toEqual([active.id, carried.id, done.id])
   })
 
+  it('turns a parked task into a regular task on today when started or finished', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 3, 12)) // Nov 3
+
+    const parked = await mockDataSource.createTask({ title: 'Parked', dayDate: '2026-10-26' })
+    await mockDataSource.moveTask(parked.id, { dayDate: '2026-11-01', rondeled: true }, { rondel: true })
+    const started = await mockDataSource.advanceTask(parked.id)
+    expect(started).toMatchObject({ status: 'doing', dayDate: '2026-11-03', rondeled: false })
+    expect(started).toMatchObject({ rondelCount: 1, originDate: '2026-10-26', createdAt: parked.createdAt })
+
+    const other = await mockDataSource.createTask({ title: 'Other', dayDate: '2026-11-01', rondeled: true })
+    const done = await mockDataSource.setTaskStatus(other.id, 'done')
+    expect(done).toMatchObject({ status: 'done', dayDate: '2026-11-03', rondeled: false })
+    expect(done.completedAt).not.toBeNull()
+  })
+
   it('restores the history copy when its carried-forward copy is deleted', async () => {
     const monday = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
     await mockDataSource.advanceTask(monday.id)
@@ -279,8 +295,13 @@ describe('mockDataSource recurring', () => {
 
     await mockDataSource.setTaskStatus(startPending[0].id, 'done')
     await mockDataSource.syncRecurring('2026-11-30')
+    // The finished one became a regular done task on today; the next one is parked.
     const afterDone = await mockDataSource.listRondelItems()
-    expect(afterDone.filter((t) => t.recurringRuleId === startRule.id)).toHaveLength(2)
+    const parkedForRule = afterDone.filter((t) => t.recurringRuleId === startRule.id)
+    expect(parkedForRule).toHaveLength(1)
+    expect(parkedForRule[0].status).toBe('todo')
+    const [finished] = await mockDataSource.listTasksInRange('2026-09-15', '2026-09-15')
+    expect(finished).toMatchObject({ id: startPending[0].id, status: 'done', rondeled: false })
     vi.useRealTimers()
   })
 })

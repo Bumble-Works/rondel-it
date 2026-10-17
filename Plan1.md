@@ -139,7 +139,17 @@ Frontend:
 - Double-clicking the status circle sends 3 updates at once, which can race
   against Rails.
 - Deleting a task needs a confirm or undo.
-- Split `App.tsx` (~700 lines) into per-feature hooks.
+- Split `App.tsx` (~720 lines) into per-feature hooks, and stop reloading the
+  whole board (plus the recurring sync) after every action: use optimistic
+  updates and reconcile with the result.
+- Naming: "rondel" means three things. Rename the `rondeled` field to
+  `parked` (waiting until its week/month starts nagging), and the
+  `'rondel'` view key to `'bucket'`. Needs a read-time migration for saved data.
+- Parked items don't record whether they're for a week or a month (both are
+  just a date). Add a field, or simplify the UX into fixed "Next week" /
+  "Next month" buckets.
+- "Today" uses the browser's time zone, but the recurring sync uses the
+  settings time zone. Use one everywhere (matters once Rails settings exist).
 - Repo housekeeping: replace the Vite boilerplate in README, add `src-tauri`
   or drop `@tauri-apps/cli`, add the `check:practices` script PRACTICES.md
   mentions, create `docs/TODO.md`.
