@@ -16,8 +16,8 @@ on:
       - 'src/**'
       - 'src-tauri/**'
       - 'vite.config.ts'
+  # Any base branch, so stacked PRs are checked too.
   pull_request:
-    branches: [main]
     paths:
       - '.github/workflows/mac-app.yml'
       - 'scripts/install.sh'
