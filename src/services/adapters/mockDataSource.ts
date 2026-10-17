@@ -1,4 +1,4 @@
-import { addDays, todayIso } from '../../domain/dates'
+import { addDays, toIso, todayIso } from '../../domain/dates'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { canRondel, isCarriedForward, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
@@ -42,13 +42,20 @@ function seedIfEmpty() {
 
 /** Fill fields added after v6 data was first saved, so existing tasks keep working. */
 function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
-  return {
+  const normalized = {
     ...task,
     originDate: task.originDate ?? task.dayDate ?? null,
     originTaskId: task.originTaskId ?? null,
     previousTaskId: task.previousTaskId ?? null,
     carriedToId: task.carriedToId ?? null,
   } as Task
+  // Older data could finish a rondeled item without leaving the container. Move
+  // it to the day it was completed, as finishing one does now.
+  if (normalized.rondeled && normalized.status === 'done') {
+    const completedOn = normalized.completedAt ? toIso(new Date(normalized.completedAt)) : normalized.dayDate
+    return { ...normalized, rondeled: false, dayDate: completedOn }
+  }
+  return normalized
 }
 
 function readTasks(): Task[] {
@@ -159,6 +166,27 @@ function withStatus(task: Task, status: TaskStatus): Task {
   }
 }
 
+type Placement = Pick<Task, 'dayDate' | 'rondeled' | 'bucket'>
+
+/** Tasks shown together: the same bucket, or the same day (or day's container). */
+function inSameGroup(task: Task, place: Placement): boolean {
+  return place.bucket !== null
+    ? task.bucket === place.bucket
+    : task.dayDate === place.dayDate && task.rondeled === place.rondeled
+}
+
+function changeStatus(tasks: Task[], index: number, status: TaskStatus): Task {
+  const before = tasks[index]
+  let next = withStatus(before, status)
+  // Reopened work goes back to the top of its group, not under everything else.
+  if (status === 'todo' && before.status !== 'todo') {
+    const positions = tasks.filter((t) => t.id !== next.id && inSameGroup(t, next)).map((t) => t.position)
+    next = { ...next, position: Math.min(0, ...positions) - 1 }
+  }
+  tasks[index] = next
+  return next
+}
+
 function findIndexOrThrow(tasks: Task[], id: string): number {
   const index = tasks.findIndex((t) => t.id === id)
   if (index === -1) throw new Error('Task not found')
@@ -243,17 +271,17 @@ export const mockDataSource: DataSource = {
   async advanceTask(id) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
-    tasks[index] = withStatus(tasks[index], nextStatus(tasks[index].status))
+    const task = changeStatus(tasks, index, nextStatus(tasks[index].status))
     writeTasks(tasks)
-    return tasks[index]
+    return task
   },
 
   async setTaskStatus(id, status) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
-    tasks[index] = withStatus(tasks[index], status)
+    const task = changeStatus(tasks, index, status)
     writeTasks(tasks)
-    return tasks[index]
+    return task
   },
 
   async moveTask(id, target, options) {
@@ -310,10 +338,7 @@ export const mockDataSource: DataSource = {
     }
     const movedId = moved.id
 
-    const inGroup = (t: Task) =>
-      bucket !== null
-        ? t.bucket === bucket
-        : t.dayDate === dayDate && t.rondeled === rondeled
+    const inGroup = (t: Task) => inSameGroup(t, { dayDate, rondeled, bucket })
 
     // Build the group in the same order the UI displays it (ordered()), so the
     // beforeId — which comes from the rendered list — maps to the right slot.

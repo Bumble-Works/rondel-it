@@ -1,6 +1,7 @@
 import {
   addDays,
   addMonths,
+  dayTitle,
   endOfMonth,
   firstDayOfNextMonth,
   firstDayOfNextWeek,
@@ -42,6 +43,11 @@ describe('dates helpers', () => {
     expect(relativeDayLabel(addDays(today, 1))).toBe('Tomorrow')
     expect(relativeDayLabel(addDays(today, -1))).toBe('Yesterday')
     expect(relativeDayLabel(addDays(today, 2))).toBeNull()
+    // Relative days also name the weekday; other days show just the weekday.
+    const weekday = (iso: string) => weekdayName(fromIso(iso).getDay())
+    expect(dayTitle(today)).toBe(`Today (${weekday(today)})`)
+    expect(dayTitle(addDays(today, 1))).toBe(`Tomorrow (${weekday(addDays(today, 1))})`)
+    expect(dayTitle(addDays(today, 3))).toBe(weekday(addDays(today, 3)))
     vi.useRealTimers()
   })
 

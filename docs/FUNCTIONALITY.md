@@ -20,6 +20,7 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   step. Clicking a done task's circle reopens it as todo. Double-clicking sets
   it to done.
 - `canceled` exists in the data model, but nothing in the UI sets it yet.
+- Reopening a done task (back to todo) moves it to the **top** of its day.
 - Done tasks always sink to the bottom of their day. Each day sorts as:
   **active tasks → carried-forward history → done**. Within each group, the
   order you set by dragging is kept.
@@ -39,6 +40,9 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - **Bucket List**: items you want to keep and never forget. They have no
   date and don't nag. From there an item can be given a date or rondeled.
   Nothing goes there automatically; it's always a deliberate choice.
+- Day titles name the weekday too: **"Today (Wednesday)"**, "Tomorrow
+  (Thursday)", "Yesterday (Tuesday)". Other days show just the weekday.
+- Month view scrolls to today when it opens on the current month.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
 - The week starts on the day set in Settings.
@@ -149,5 +153,7 @@ Today, Next week, Next month, Pick a date, Mark done.
   storage for the app's origin (`rondel.v6.*` keys).
 - Changes must stay **backward compatible** with existing saved data. New
   fields are filled in on read, and nothing is reset.
+- Done items left in a rondel container by older versions are moved, on read,
+  to the day they were completed.
 - Time zone: uses your computer's time zone. It isn't editable in Settings yet.
 - The Rails adapter (`VITE_DATA_SOURCE=rails`) sends snake_case and reads camelCase.

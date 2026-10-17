@@ -114,7 +114,17 @@ Frontend:
 - Full keyboard path: create → doing → done → rondel.
 - Runs against Rails API and (via seam) a mock adapter.
 
-## Next PRs (after #2, #3, #4 merge)
+## In progress: UX feedback (branch `feat/ux-feedback`)
+- [x] Day titles: "Today (Wednesday)" in day / week / month
+- [x] Done from the rondel list moves to that day; old stuck items fixed on read
+- [x] Reopened (back to todo) tasks move to the top
+- [x] Month view scrolls to today
+- [ ] Easier tagging from the main view (`#tag` in the title?)
+- [ ] Works in a much narrower window
+- [ ] Drag and drop issues (details needed)
+- [ ] Bold / flag items
+
+## Next PRs
 
 ### End-of-day rondel flow
 - At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).

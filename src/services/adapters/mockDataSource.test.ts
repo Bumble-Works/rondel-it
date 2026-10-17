@@ -150,6 +150,34 @@ describe('mockDataSource tasks', () => {
     expect(pushed.rondelCount).toBe(2)
   })
 
+  it('moves a reopened task to the top of its day', async () => {
+    const first = await mockDataSource.createTask({ title: 'First', dayDate: '2026-09-21' })
+    const reopened = await mockDataSource.createTask({ title: 'Reopened', dayDate: '2026-09-21' })
+    await mockDataSource.setTaskStatus(reopened.id, 'done')
+    await mockDataSource.advanceTask(reopened.id) // done → todo
+
+    const day = await mockDataSource.listTasksInRange('2026-09-21', '2026-09-21')
+    expect(day.map((t) => t.id)).toEqual([reopened.id, first.id])
+  })
+
+  it('moves done items left in a rondel container to the day they were completed', async () => {
+    const completedAt = new Date(2026, 9, 14, 15).toISOString() // Oct 14, local afternoon
+    localStorage.setItem('rondel.v6.tags', '[]')
+    localStorage.setItem(
+      'rondel.v6.tasks',
+      JSON.stringify([
+        {
+          id: 'stuck', title: 'Stuck', status: 'done', dayDate: '2026-10-12', rondeled: true,
+          bucket: null, position: 0, rondelCount: 1, tagIds: [], note: '',
+          createdAt: '2026-10-01T09:00:00.000Z', completedAt, recurringRuleId: null,
+        },
+      ]),
+    )
+    expect(await mockDataSource.listRondelItems()).toHaveLength(0)
+    const [task] = await mockDataSource.listTasksInRange('2026-10-14', '2026-10-14')
+    expect(task).toMatchObject({ id: 'stuck', rondeled: false, dayDate: '2026-10-14', rondelCount: 1 })
+  })
+
   it('restores the history copy when its carried-forward copy is deleted', async () => {
     const monday = await mockDataSource.createTask({ title: 'Doing', dayDate: '2026-09-21' })
     await mockDataSource.advanceTask(monday.id)

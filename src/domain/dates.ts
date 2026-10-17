@@ -73,6 +73,13 @@ export function relativeDayLabel(iso: string): string | null {
   return null
 }
 
+/** Day header title: "Today (Wednesday)", or just "Wednesday" for other days. */
+export function dayTitle(iso: string): string {
+  const weekday = weekdayName(fromIso(iso).getDay())
+  const relative = relativeDayLabel(iso)
+  return relative ? `${relative} (${weekday})` : weekday
+}
+
 export function addMonths(iso: string, months: number): string {
   const date = fromIso(iso)
   date.setMonth(date.getMonth() + months)

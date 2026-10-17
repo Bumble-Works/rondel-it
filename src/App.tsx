@@ -3,20 +3,18 @@ import './App.css'
 import {
   addDays,
   addMonths,
+  dayTitle,
   endOfMonth,
   formatDayLabel,
   formatMonthLabel,
   formatShort,
-  fromIso,
   isToday,
   nowInZone,
-  relativeDayLabel,
   sameMonth,
   startOfMonth,
   startOfWeek,
   todayIso,
   weekDays,
-  weekdayName,
 } from './domain/dates'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from './domain/types'
 import type { BoardGroup, BoardGroupAddTarget } from './features/board/WeekBoard'
@@ -181,6 +179,16 @@ function App() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (settings) void loadBoard()
   }, [settings, loadBoard])
+
+  // Month view lists the newest day first, so today can be far down: bring it
+  // into view whenever the month containing today is shown.
+  useEffect(() => {
+    if (view !== 'month' || !sameMonth(monthStart, today)) return
+    const frame = requestAnimationFrame(() =>
+      document.querySelector('.board-section.is-highlight')?.scrollIntoView({ block: 'start' }),
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [view, monthStart, today])
 
   /* ---- rondeled-items nag ---- */
 
@@ -401,7 +409,7 @@ function App() {
     return {
       key: iso,
       kind: 'day',
-      title: relativeDayLabel(iso) ?? weekdayName(fromIso(iso).getDay()),
+      title: dayTitle(iso),
       eyebrow: formatShort(iso),
       highlight: isToday(iso),
       defaultCollapsed: view !== 'day' && todayInRange && iso > today,
@@ -478,7 +486,7 @@ function App() {
           : true
 
   const title =
-    view === 'day' ? (relativeDayLabel(anchorDate) ?? weekdayName(fromIso(anchorDate).getDay())) : VIEW_TITLE[view]
+    view === 'day' ? dayTitle(anchorDate) : VIEW_TITLE[view]
   const subtitle =
     view === 'day'
       ? formatDayLabel(anchorDate)
