@@ -4,6 +4,7 @@ import type { Tag, UserSetting } from '../../domain/types'
 import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
 import { InlineEditInput } from '../../shared/ui/InlineEditInput'
+import { TagColorInput } from './TagColorInput'
 import './SettingsPage.css'
 
 const TAG_COLORS = [
@@ -99,12 +100,11 @@ export function SettingsPage({
           <ul className="settings-taglist">
             {tags.map((tag) => (
               <li key={tag.id} className="settings-tag">
-                <input
-                  type="color"
+                <TagColorInput
                   className="settings-tag-color"
                   value={tag.color}
-                  aria-label={`${tag.name} color`}
-                  onChange={(e) => onUpdateTag(tag.id, { color: e.target.value })}
+                  label={`${tag.name} color`}
+                  onCommit={(color) => onUpdateTag(tag.id, { color })}
                 />
                 <InlineEditInput
                   className="settings-tag-name"

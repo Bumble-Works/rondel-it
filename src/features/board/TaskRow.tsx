@@ -95,17 +95,17 @@ export function TaskRow({
           : undefined
       }
       onDragLeave={canDrop ? () => setDropPosition(null) : undefined}
-      onDrop={
-        canDrop
-          ? (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-            const position = calcDropPosition(e.clientY)
-            setDropPosition(null)
-            onDropOnRow(position)
-            }
-          : undefined
-      }
+      onDrop={(e) => {
+        if (!dragging) return
+        e.preventDefault()
+        // Swallow drops on the dragged row itself, so they don't bubble up to
+        // the section's "drop at end" and move the task to the bottom.
+        e.stopPropagation()
+        if (!canDrop) return
+        const position = calcDropPosition(e.clientY)
+        setDropPosition(null)
+        onDropOnRow(position)
+      }}
     >
       {task.status === 'done' || carried || locked ? (
         <span className="task-grip task-grip--empty" aria-hidden="true" />

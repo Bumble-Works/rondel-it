@@ -33,16 +33,11 @@ function buildSeed(): { tasks: Task[]; tags: Tag[] } {
 
 /* ---------- storage ---------- */
 
-function seedIfEmpty(): { tasks: Task[]; tags: Tag[] } {
-  const rawTasks = localStorage.getItem(TASKS_KEY)
-  const rawTags = localStorage.getItem(TAGS_KEY)
-  if (rawTasks && rawTags) {
-    return { tasks: JSON.parse(rawTasks) as Task[], tags: JSON.parse(rawTags) as Tag[] }
-  }
+function seedIfEmpty() {
+  if (localStorage.getItem(TASKS_KEY) && localStorage.getItem(TAGS_KEY)) return
   const seed = buildSeed()
   localStorage.setItem(TASKS_KEY, JSON.stringify(seed.tasks))
   localStorage.setItem(TAGS_KEY, JSON.stringify(seed.tags))
-  return seed
 }
 
 /** Fill fields added after v6 data was first saved, so existing tasks keep working. */

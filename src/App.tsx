@@ -194,18 +194,24 @@ function App() {
   useEffect(() => {
     if (!settings) return
     const tz = settings.timezone
+    const slots: Array<[string, string]> = [
+      ['start', settings.dayStartTime],
+      ['end', settings.endOfDayTime],
+    ]
+    // Review times already past are covered by the nag shown on open.
+    const opened = nowInZone(tz)
+    for (const [slot, at] of slots) {
+      if (opened.time >= at) naggedRef.current.add(`${opened.date}-${slot}`)
+    }
     const check = () => {
       const { date, time } = nowInZone(tz)
       // Past midnight: reload so the new day's recurring tasks get created.
       if (lastSeenDateRef.current !== null && date !== lastSeenDateRef.current) void loadBoard()
       lastSeenDateRef.current = date
-      const slots: Array<[string, string]> = [
-        ['start', settings.dayStartTime],
-        ['end', settings.endOfDayTime],
-      ]
       for (const [slot, at] of slots) {
         const key = `${date}-${slot}`
-        if (time === at && !naggedRef.current.has(key)) {
+        // ">=" so a throttled background tab that skips the exact minute still nags.
+        if (time >= at && !naggedRef.current.has(key)) {
           naggedRef.current.add(key)
           if (undecidedRef.current.length > 0) setNagOpen(true)
         }
@@ -278,8 +284,14 @@ function App() {
       if (noteTaskId === taskId) setNoteTaskId(null)
       if (dateTaskId === taskId) setDateTaskId(null)
     })
-  const move = (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) =>
-    run(() => dataSource.moveTask(taskId, target, { beforeId }))
+  const move = (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => {
+    const task = allTasks.find((t) => t.id === taskId)
+    // Reordering inside the parked container keeps the week/month it was parked
+    // for; only tasks dragged in from a day take the container's period.
+    const keepsPeriod = target.rondeled && task?.rondeled && task.dayDate
+    const placed = keepsPeriod ? { ...target, dayDate: task.dayDate ?? undefined } : target
+    return run(() => dataSource.moveTask(taskId, placed, { beforeId }))
+  }
 
   const statusOk = (t: Task) => activeStatuses.length === 0 || activeStatuses.includes(t.status)
   const tagOk = (t: Task) =>

@@ -10,6 +10,11 @@ import { IconButton } from '../../shared/ui/IconButton'
 import { TagChip } from '../../shared/ui/TagChip'
 import './RecurringPage.css'
 
+function clampDayOfMonth(text: string): number {
+  const day = Math.round(Number(text))
+  return Number.isFinite(day) ? Math.min(31, Math.max(1, day)) : 1
+}
+
 const KIND_OPTIONS: Array<{ value: RecurrenceKind; label: string }> = [
   { value: 'weekly-on', label: 'Every week on a weekday' },
   { value: 'monthly-on', label: 'Every month on a date' },
@@ -30,7 +35,9 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
   const [title, setTitle] = useState('')
   const [kind, setKind] = useState<RecurrenceKind>('weekly-on')
   const [weekday, setWeekday] = useState(1)
-  const [dayOfMonth, setDayOfMonth] = useState(1)
+  // Kept as text so the field can be cleared while typing; clamped on blur/submit.
+  const [dayOfMonthText, setDayOfMonthText] = useState('1')
+  const dayOfMonth = clampDayOfMonth(dayOfMonthText)
   const [tagIds, setTagIds] = useState<string[]>([])
 
   const tagsById = new Map(tags.map((t) => [t.id, t]))
@@ -119,8 +126,9 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
                 min={1}
                 max={31}
                 className="field recurring-control"
-                value={dayOfMonth}
-                onChange={(e) => setDayOfMonth(Math.min(31, Math.max(1, Number(e.target.value))))}
+                value={dayOfMonthText}
+                onChange={(e) => setDayOfMonthText(e.target.value)}
+                onBlur={() => setDayOfMonthText(String(dayOfMonth))}
               />
             </div>
           )}
