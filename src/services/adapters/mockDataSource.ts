@@ -1,4 +1,5 @@
 import { addDays, fromIso, toIso, todayIso } from '../../domain/dates'
+import { nextTagColor } from '../../domain/hashTags'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
@@ -239,6 +240,11 @@ export const mockDataSource: DataSource = {
       .sort((a, b) => (a.dayDate ?? '').localeCompare(b.dayDate ?? '') || a.position - b.position)
   },
 
+  async getTask(id) {
+    const tasks = readTasks()
+    return tasks[findIndexOrThrow(tasks, id)]
+  },
+
   async createTask(input: CreateTaskInput) {
     const tasks = readTasks()
     const task = newTask({
@@ -383,7 +389,7 @@ export const mockDataSource: DataSource = {
 
   async createTag(input) {
     const tags = readTags()
-    const tag: Tag = { id: uid(), name: input.name.trim(), color: input.color || '#3b82f6' }
+    const tag: Tag = { id: uid(), name: input.name.trim(), color: input.color || nextTagColor(tags) }
     tags.push(tag)
     writeTags(tags)
     return tag
@@ -447,10 +453,18 @@ export const mockDataSource: DataSource = {
     const rules = readRules()
     const index = rules.findIndex((r) => r.id === id)
     if (index === -1) throw new Error('Recurring rule not found')
-    if (options?.applyToOpenTasks && input.reminderTime !== undefined) {
-      const reminderTime = input.reminderTime
-      const isOpen = (t: Task) => t.recurringRuleId === id && t.status !== 'done' && !isCarriedForward(t)
-      writeTasks(readTasks().map((t) => (isOpen(t) ? { ...t, reminderTime } : t)))
+    if (options?.applyToOpenTasks) {
+      // The open (to-do/doing) task takes the rule's new details; its day stays.
+      const isOpen = (t: Task) =>
+        t.recurringRuleId === id && (t.status === 'todo' || t.status === 'doing') && !isCarriedForward(t)
+      const details = {
+        ...(input.title?.trim() ? { title: input.title.trim() } : {}),
+        ...(input.tagIds !== undefined ? { tagIds: [...input.tagIds] } : {}),
+        ...(input.note !== undefined ? { note: input.note } : {}),
+        ...(input.flagged !== undefined ? { flagged: input.flagged } : {}),
+        ...(input.reminderTime !== undefined ? { reminderTime: input.reminderTime } : {}),
+      }
+      writeTasks(readTasks().map((t) => (isOpen(t) ? { ...t, ...details } : t)))
     }
     rules[index] = {
       ...rules[index],

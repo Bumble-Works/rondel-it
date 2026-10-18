@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { weekdayName } from '../../domain/dates'
+import { nextTagColor, TAG_COLORS } from '../../domain/hashTags'
 import type { Tag, UserSetting } from '../../domain/types'
 import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
@@ -10,16 +11,6 @@ import { SyncSettings } from './SyncSettings'
 import { TagColorInput } from './TagColorInput'
 import './SettingsPage.css'
 
-const TAG_COLORS = [
-  '#3b82f6',
-  '#16b98a',
-  '#f59022',
-  '#eab308',
-  '#ef4757',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8c4',
-]
 
 interface SettingsPageProps {
   settings: UserSetting
@@ -45,7 +36,13 @@ export function SettingsPage({
   onBack,
 }: SettingsPageProps) {
   const [newTag, setNewTag] = useState('')
-  const [newColor, setNewColor] = useState(TAG_COLORS[0])
+  const [newColor, setNewColor] = useState(() => nextTagColor(tags))
+  const addTag = () => {
+    onCreateTag(newTag.trim(), newColor)
+    setNewTag('')
+    // The next tag gets the next color (you can still pick any).
+    setNewColor(nextTagColor([...tags, { id: '', name: '', color: newColor }]))
+  }
 
   return (
     <div className="settings">
@@ -144,19 +141,14 @@ export function SettingsPage({
               value={newTag}
               onChange={(e) => setNewTag(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && newTag.trim()) {
-                  onCreateTag(newTag.trim(), newColor)
-                  setNewTag('')
-                }
+                if (e.key === 'Enter' && newTag.trim()) addTag()
               }}
             />
             <Button
               variant="primary"
               disabled={!newTag.trim()}
               onClick={() => {
-                if (!newTag.trim()) return
-                onCreateTag(newTag.trim(), newColor)
-                setNewTag('')
+                if (newTag.trim()) addTag()
               }}
             >
               Add tag

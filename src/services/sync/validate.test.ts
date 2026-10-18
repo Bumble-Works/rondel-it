@@ -71,7 +71,13 @@ describe('validateSnapshot', () => {
     const bad = { id: 'r2', title: 'Broken', kind: 'repeat', tagIds: [], createdAt: 'x', repeat: { unit: 'fortnight', every: 0 } }
     const badMonth = { ...good, id: 'r3', repeat: { ...good.repeat, unit: 'month', monthly: { type: 'date', day: 5 } } }
     const badWeek = { ...good, id: 'r4', repeat: { ...good.repeat, weekdays: 'Mon' } }
-    const result = validateSnapshot(snapshot({ rules: [good, bad, badMonth, badWeek] }), NOW)
-    expect(result.ok && result.snapshot.rules.map((r) => r.id)).toEqual(['r1'])
+    // Out of range: no fifth week, no weekday 7, no 32nd.
+    const month = (monthly: object) => ({ ...good.repeat, unit: 'month', monthly })
+    const badNth = { ...good, id: 'r5', repeat: month({ type: 'weekday', nth: 5, weekday: 1 }) }
+    const badWeekday = { ...good, id: 'r6', repeat: { ...good.repeat, weekdays: [7] } }
+    const badDate = { ...good, id: 'r7', repeat: month({ type: 'date', days: [32] }) }
+    const lastFriday = { ...good, id: 'r8', repeat: month({ type: 'weekday', nth: -1, weekday: 5 }) }
+    const result = validateSnapshot(snapshot({ rules: [good, bad, badMonth, badWeek, badNth, badWeekday, badDate, lastFriday] }), NOW)
+    expect(result.ok && result.snapshot.rules.map((r) => r.id)).toEqual(['r1', 'r8'])
   })
 })

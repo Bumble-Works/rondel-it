@@ -98,6 +98,11 @@ export const railsDataSource: DataSource = {
     return response.tasks.map(mapTask)
   },
 
+  async getTask(id) {
+    const response = await request<{ task: Record<string, unknown> }>(`/tasks/${id}`)
+    return mapTask(response.task)
+  },
+
   async createTask(input: CreateTaskInput) {
     const response = await request<{ task: Record<string, unknown> }>('/tasks', {
       method: 'POST',

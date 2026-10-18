@@ -28,6 +28,8 @@ interface TaskDetailPanelProps {
   onClose: () => void
   onChangeTitle: (title: string) => void
   onToggleTag: (tagId: string) => void
+  /** A #tag picked in the title: only ever adds. */
+  onAddTag: (tagId: string) => void
   onSaveNote: (note: string) => void
   onToggleFlag: () => void
   onChangeReminder: (reminderTime: string | null, scope: ReminderScope) => void
@@ -49,6 +51,7 @@ export function TaskDetailPanel({
   onClose,
   onChangeTitle,
   onToggleTag,
+  onAddTag,
   onSaveNote,
   onToggleFlag,
   onChangeReminder,
@@ -101,7 +104,7 @@ export function TaskDetailPanel({
           task={task}
           allTags={allTags}
           onChangeTitle={onChangeTitle}
-          onAddTag={onToggleTag}
+          onAddTag={onAddTag}
           createTag={createTag}
         />
 

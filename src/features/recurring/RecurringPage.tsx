@@ -48,7 +48,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdate, onDelete, onCre
         </h1>
         <p className="recurring-lead">
           <strong>One task at a time:</strong> the first appears right away, and each next one only once the last is
-          done (days missed meanwhile are skipped). Edits only change tasks still to come.
+          done (days missed meanwhile are skipped). Edits also update the open one; its day stays.
         </p>
 
         <RecurringForm

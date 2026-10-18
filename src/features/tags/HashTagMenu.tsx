@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import type { HashTagOption } from './useHashTagInput'
 import './HashTagMenu.css'
@@ -45,25 +45,34 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
       role="listbox"
       aria-label="Tag suggestions"
       style={{ top: position?.top ?? -9999, left: position?.left ?? -9999, visibility: position ? 'visible' : 'hidden' }}
+      // Clicks anywhere in the menu (even between chips) keep focus in the text
+      // box, so it doesn't blur and save the half-typed #word.
+      onMouseDown={(e) => e.preventDefault()}
     >
       {options.map((option, index) => (
         <li
-          key={option.kind === 'tag' ? option.tag.id : `create:${option.name}`}
+          key={option.kind === 'create' ? `create:${option.name}` : option.tag.id}
           role="option"
           aria-selected={index === highlight}
-          className={`hashtag-option ${index === highlight ? 'is-active' : ''}`.trim()}
-          // mousedown, not click: keep focus in the input so it doesn't blur-submit.
-          onMouseDown={(e) => {
-            e.preventDefault()
-            onPick(option)
-          }}
+          className={[
+            'hashtag-option',
+            option.kind === 'create' ? 'hashtag-option--create' : '',
+            option.kind === 'added' ? 'is-added' : '',
+            index === highlight ? 'is-active' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          style={option.kind === 'create' ? undefined : ({ '--tag': option.tag.color } as CSSProperties)}
+          // mousedown, not click: picks before any blur (the list keeps focus too).
+          onMouseDown={() => onPick(option)}
         >
-          {option.kind === 'tag' ? (
-            <>
-              <span className="hashtag-dot" style={{ background: option.tag.color }} />#{option.tag.name}
-            </>
+          {option.kind === 'create' ? (
+            <>Create #{option.name}</>
           ) : (
-            <span className="hashtag-create">Create #{option.name}</span>
+            <>
+              <span className="hashtag-dot" />#{option.tag.name}
+              {option.kind === 'added' && <span className="hashtag-added">✓ Added</span>}
+            </>
           )}
         </li>
       ))}

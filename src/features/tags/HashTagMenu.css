@@ -2,9 +2,13 @@
   /* Placed by HashTagMenu.tsx, over everything (side panel and modals too). */
   position: fixed;
   z-index: 120;
-  min-width: 180px;
+  /* Matching tags as chips in a wrapping row; "Create #…" gets its own line. */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  max-width: min(360px, calc(100vw - 16px));
   margin: 0;
-  padding: 0.3rem;
+  padding: 0.4rem;
   list-style: none;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -13,27 +17,45 @@
 }
 
 .hashtag-option {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.38rem 0.55rem;
-  border-radius: var(--r-sm);
+  gap: 0.35rem;
+  padding: 0.22rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--tag) 45%, transparent);
+  border-radius: var(--r-pill);
   color: var(--ink);
-  font-size: 0.86rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 650;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 .hashtag-option.is-active {
-  background: var(--brand-tint);
+  background: color-mix(in srgb, var(--tag) 16%, transparent);
+  border-color: var(--tag);
 }
 
 .hashtag-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background: var(--tag);
 }
 
-.hashtag-create {
+/* Already on the task/rule: say so, quietly. */
+.hashtag-option.is-added {
+  color: var(--muted);
+}
+
+.hashtag-added {
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.hashtag-option--create {
+  --tag: var(--brand);
+  flex-basis: 100%;
+  border-color: transparent;
+  border-radius: var(--r-sm);
   color: var(--brand);
 }

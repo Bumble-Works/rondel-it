@@ -375,6 +375,7 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
   await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
 })
 
+<<<<<<< HEAD
 test('tag filter: "Any selected" shows either tag, "All selected" only both', async ({ page }) => {
   const input = page.getByPlaceholder('Add a task')
   const add = async (title: string, tag?: string) => {
@@ -408,3 +409,41 @@ test('tag filter: "Any selected" shows either tag, "All selected" only both', as
   await expect(row(page, 'Fix sink')).toBeHidden()
   await expect(row(page, 'Ship report')).toBeHidden()
 })
+=======
+test('two quick #tag picks in the side panel title both stick', async ({ page }) => {
+  await addTask(page, 'Plan trip')
+  await page.getByRole('button', { name: 'Open Plan trip' }).click()
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  const title = panel.getByLabel('Title')
+  await title.click()
+  await title.press('End')
+  // The second pick doesn't wait for the first tag to be saved.
+  await title.pressSequentially(' #travel')
+  await page.getByRole('option', { name: 'Create #travel' }).click()
+  await expect(title).toHaveValue('Plan trip')
+  await title.pressSequentially(' #family')
+  await page.getByRole('option', { name: 'Create #family' }).click()
+
+  await expect(panel.locator('.tag-picker .chip', { hasText: 'travel' })).toBeVisible()
+  await expect(panel.locator('.tag-picker .chip', { hasText: 'family' })).toBeVisible()
+  await page.reload()
+  const saved = row(page, 'Plan trip')
+  await expect(saved.locator('.chip', { hasText: 'travel' })).toBeVisible()
+  await expect(saved.locator('.chip', { hasText: 'family' })).toBeVisible()
+})
+
+test('editing a recurring rule updates the task already on the list', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Stretch')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await expect(page.locator('.recurring-item-title')).toHaveText('Stretch')
+  await page.getByRole('button', { name: 'Edit Stretch' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Morning stretch')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await page.getByRole('button', { name: 'Back to tasks' }).click()
+
+  await expect(row(page, 'Morning stretch')).toBeVisible()
+  await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
+})
+
+>>>>>>> origin/main

@@ -15,17 +15,22 @@ const isString = (v: unknown): v is string => typeof v === 'string'
 const isStringOrNull = (v: unknown) => v === null || isString(v)
 const isStringArray = (v: unknown) => Array.isArray(v) && v.every(isString)
 
-const isIntArray = (v: unknown) => Array.isArray(v) && v.length > 0 && v.every(Number.isInteger)
+const isIntIn = (min: number, max: number) => (v: unknown) => Number.isInteger(v) && (v as number) >= min && (v as number) <= max
+const isWeekday = isIntIn(0, 6) // 0 = Sunday
+const isDayOfMonth = isIntIn(1, 31)
+const isListOf = (check: (v: unknown) => boolean) => (v: unknown) => Array.isArray(v) && v.length > 0 && v.every(check)
+// "Which week" of the month: first to fourth, or -1 for the last.
+const NTHS = [1, 2, 3, 4, -1]
 const isMonthly = (v: unknown) =>
   v === undefined ||
   (isObject(v) &&
-    ((v.type === 'date' && isIntArray(v.days)) ||
-      (v.type === 'weekday' && Number.isInteger(v.nth) && Number.isInteger(v.weekday))))
+    ((v.type === 'date' && isListOf(isDayOfMonth)(v.days)) ||
+      (v.type === 'weekday' && NTHS.includes(v.nth as number) && isWeekday(v.weekday))))
 
 const isRepeat = (v: unknown) =>
   isObject(v) &&
   isMonthly(v.monthly) &&
-  (v.weekdays === undefined || isIntArray(v.weekdays)) &&
+  (v.weekdays === undefined || isListOf(isWeekday)(v.weekdays)) &&
   ['day', 'week', 'month', 'year'].includes(v.unit as string) &&
   Number.isInteger(v.every) &&
   (v.every as number) >= 1 &&

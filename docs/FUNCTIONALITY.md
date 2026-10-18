@@ -161,7 +161,9 @@ Today, Next week, Next month, Pick a date, Mark done.
 ## Tags and filters
 
 - Tags have a name and a color. They're managed in Settings, or created from
-  the detail panel.
+  the detail panel or by typing `#name`. **New tags cycle through the colors**
+  (the least-used one next), so they don't all come out blue. Settings
+  suggests the next color too; you can always pick another.
 - Filters by tag (match **any** or **all**) and by status. Selecting every
   status is the same as no filter. Selecting every tag is not: it hides
   untagged tasks (so with a single tag, you can filter by it).
@@ -175,7 +177,12 @@ Today, Next week, Next month, Pick a date, Mark done.
   Active tag filters are added to the new task too.
 - **`#tag` in the side panel title** works the same way: picking a suggestion
   attaches the tag right away and strips the `#word`; the title saves on blur
-  or Enter. Tags already on the task aren't suggested.
+  or Enter. Suggestions are colored chips in a wrapping row (just `#` lists
+  every tag; each letter narrows it down), with "Create #…" on its own line.
+  A tag that's already on the task (or rule) still shows, marked
+  "✓ Added", so it's clear why there's nothing to add; picking it just clears
+  the typed `#word`. In the side panel, the title (without the `#word`) is
+  saved as soon as you pick, so the board row matches right away.
 - The suggestions open just below the text box (or above, if there's no
   room), on top of everything, so they're never cut off.
 
@@ -221,8 +228,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   **Note** (copied onto each task) lists its links underneath.
 - **Editing:** each rule in the list has Edit (pencil) and Delete. Edit fills
   the form with the rule (title "Edit recurring task", Save changes /
-  Cancel) and highlights it in the list. Saving changes only tasks still to
-  come; ones already on your list stay put. Rules made before custom repeat
+  Cancel) and highlights it in the list. Saving also updates the rule's open
+  task (to-do or doing): its title, tags, note, flag and reminder follow the
+  edit, but it stays on its day. Done tasks stay as they were. Rules made before custom repeat
   open as the same pattern (e.g. "every Monday" as weekly on Monday).
 - After adding or saving, the form starts over (empty, Daily, no tags, flag,
   note or reminder).
