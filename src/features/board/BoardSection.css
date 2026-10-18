@@ -25,6 +25,7 @@
   padding: 0.4rem 0.55rem 0.4rem 0.45rem;
 }
 
+/* Section headers don't change on hover (the caret shows they fold). */
 .board-section-toggle {
   flex: 1;
   display: flex;
@@ -37,17 +38,9 @@
   text-align: left;
 }
 
-.board-section-toggle:hover {
-  background: var(--surface-2);
-}
-
 .board-section-toggle--static {
   cursor: default;
   padding-left: calc(0.35rem + 16px + 0.55rem);
-}
-
-.board-section-toggle--static:hover {
-  background: transparent;
 }
 
 /* No title (Day / Bucket List views): a slim row with the tally and actions. */
@@ -64,10 +57,6 @@
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 600;
-}
-
-.board-section--bucket .board-section-toggle:hover {
-  background: var(--surface-3);
 }
 
 .board-section-caret {

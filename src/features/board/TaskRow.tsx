@@ -9,7 +9,13 @@ import { LinkifiedText } from '../../shared/ui/LinkifiedText'
 import { TagChip } from '../../shared/ui/TagChip'
 import { RondelMenu } from '../rondel/RondelMenu'
 import { OPEN_IN_PANEL_HINT } from '../task/hints'
+import { TaskMoreMenu } from './TaskMoreMenu'
 import './TaskRow.css'
+
+// Note and rondel sit side by side, so they're drawn the same size. The note
+// glyph fills less of its box than the rondel logo does, hence the numbers.
+const NOTE_ICON = 26
+const RONDEL_ICON = 18
 
 interface TaskRowProps {
   task: Task
@@ -25,6 +31,10 @@ interface TaskRowProps {
   onOpenNote: () => void
   onToggleFlag: () => void
   onDelete: () => void
+  /** Makes a fresh to-do copy on that day. */
+  onCopy: (dayIso: string) => void
+  onPickCopyDate: () => void
+  onOpenReminder: () => void
   dragging: boolean
   isDragged: boolean
   onDragStartTask: () => void
@@ -46,6 +56,9 @@ export function TaskRow({
   onOpenNote,
   onToggleFlag,
   onDelete,
+  onCopy,
+  onPickCopyDate,
+  onOpenReminder,
   dragging,
   isDragged,
   onDragStartTask,
@@ -195,34 +208,13 @@ export function TaskRow({
       <div className="task-actions">
         <button
           type="button"
-          className={`task-flag-btn ${task.flagged ? 'is-on' : ''}`.trim()}
-          aria-label={task.flagged ? 'Remove flag' : 'Flag as important'}
-          aria-pressed={task.flagged}
-          title={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : task.flagged ? 'Remove flag' : 'Flag as important'}
-          disabled={locked || carried}
-          onClick={onToggleFlag}
-        >
-          <Icon name={task.flagged ? 'flag-filled' : 'flag'} size={17} />
-        </button>
-        <button
-          type="button"
           className={`task-note-btn ${task.note ? 'has-note' : ''}`.trim()}
           aria-label={task.note ? 'Edit note' : 'Add note'}
           title={locked ? OPEN_IN_PANEL_HINT : task.note ? 'Edit note' : 'Add note'}
           disabled={locked}
           onClick={onOpenNote}
         >
-          <Icon name={task.note ? 'note-filled' : 'note'} size={18} />
-        </button>
-        <button
-          type="button"
-          className="task-delete-btn"
-          aria-label="Delete task"
-          title={locked ? OPEN_IN_PANEL_HINT : 'Delete task'}
-          disabled={locked}
-          onClick={onDelete}
-        >
-          <Icon name="trash" size={17} />
+          <Icon name={task.note ? 'note-filled' : 'note'} size={NOTE_ICON} />
         </button>
         <RondelMenu
           onRondel={onRondel}
@@ -230,6 +222,16 @@ export function TaskRow({
           weekStartDay={weekStartDay}
           disabledReason={locked ? OPEN_IN_PANEL_HINT : rondelBlockedReason(task)}
           inBucketList={task.bucket !== null}
+          size={RONDEL_ICON}
+        />
+        <TaskMoreMenu
+          task={task}
+          disabledReason={locked ? OPEN_IN_PANEL_HINT : null}
+          onCopy={onCopy}
+          onPickCopyDate={onPickCopyDate}
+          onToggleFlag={onToggleFlag}
+          onOpenReminder={onOpenReminder}
+          onDelete={onDelete}
         />
       </div>
     </div>

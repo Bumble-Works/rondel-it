@@ -1,4 +1,4 @@
-import { canRondel, isCarriedForward, isLeftUndone, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
+import { canRemind, canRondel, isCarriedForward, isLeftUndone, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
 import type { Task } from './types'
 
 function task(fields: Partial<Task> = {}): Task {
@@ -27,6 +27,14 @@ function task(fields: Partial<Task> = {}): Task {
 }
 
 describe('rondel rules', () => {
+  it('allows a reminder only on a task with its own day', () => {
+    expect(canRemind(task())).toBe(true)
+    expect(canRemind(task({ status: 'done' }))).toBe(true) // finished tasks keep theirs; done ones don't fire
+    expect(canRemind(task({ dayDate: null, bucket: 'bucket-list' }))).toBe(false) // Bucket List
+    expect(canRemind(task({ rondeled: true }))).toBe(false) // waiting in a week/month container
+    expect(canRemind(task({ carriedToId: 'next' }))).toBe(false) // a history copy
+  })
+
   it('only allows rondeling unfinished tasks that are not history copies', () => {
     expect(canRondel(task())).toBe(true)
     expect(canRondel(task({ status: 'doing' }))).toBe(true)

@@ -5,6 +5,11 @@ export function isCarriedForward(task: Task): boolean {
   return task.carriedToId !== null
 }
 
+/** A reminder needs a day: not the Bucket List, a container, or a history copy. */
+export function canRemind(task: Task): boolean {
+  return task.dayDate !== null && !task.rondeled && !isCarriedForward(task)
+}
+
 export const CARRIED_FORWARD_HINT = 'Just a memory now. The real one rolled forward.'
 
 export const DONE_RONDEL_HINT = 'Done — nothing left to rondel'

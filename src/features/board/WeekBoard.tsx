@@ -45,6 +45,9 @@ interface WeekBoardProps {
   onOpenNote: (task: Task) => void
   onToggleFlag: (task: Task) => void
   onDelete: (task: Task) => void
+  onCopy: (task: Task, dayIso: string) => void
+  onPickCopyDate: (task: Task) => void
+  onOpenReminder: (task: Task) => void
   onQuickAdd: (target: BoardGroupAddTarget, title: string, tagIds: string[]) => void
   onCreateTag: (name: string) => Promise<Tag | null>
   onMove: (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => void
@@ -64,6 +67,9 @@ export function WeekBoard({
   onOpenNote,
   onToggleFlag,
   onDelete,
+  onCopy,
+  onPickCopyDate,
+  onOpenReminder,
   onQuickAdd,
   onCreateTag,
   onMove,
@@ -141,6 +147,9 @@ export function WeekBoard({
               onOpenNote={() => onOpenNote(task)}
               onToggleFlag={() => onToggleFlag(task)}
               onDelete={() => onDelete(task)}
+              onCopy={(dayIso) => onCopy(task, dayIso)}
+              onPickCopyDate={() => onPickCopyDate(task)}
+              onOpenReminder={() => onOpenReminder(task)}
               dragging={Boolean(draggingId)}
               isDragged={draggingId === task.id}
               onDragStartTask={() => setDraggingId(task.id)}

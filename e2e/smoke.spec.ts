@@ -22,7 +22,8 @@ test('adds a task, starts it, flags it, finishes it, and keeps it after reload',
   await task.getByRole('button', { name: 'Mark as doing' }).click()
   await expect(task.getByRole('button', { name: 'Mark as done' })).toBeVisible()
 
-  await task.getByRole('button', { name: 'Flag as important' }).click()
+  await task.getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Flag as important' }).click()
   await expect(task).toHaveClass(/is-flagged/)
 
   await task.getByRole('button', { name: 'Mark as done' }).click()
@@ -231,6 +232,83 @@ test('sets a reminder on a task; the row shows it and it survives a reload', asy
   await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
 })
 
+test('filters by a tag even when it is the only tag', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  await input.fill('Pay bills #home')
+  await page.getByRole('option', { name: 'Create #home' }).click()
+  await input.press('Enter')
+  await addTask(page, 'Untagged thing')
+
+  await page.locator('.sidebar-pill', { hasText: 'home' }).click()
+  await expect(page.locator('.sidebar-pill', { hasText: 'home' })).toHaveClass(/is-active/)
+  await expect(row(page, 'Pay bills')).toBeVisible()
+  await expect(row(page, 'Untagged thing')).toBeHidden()
+})
+
+test('copies a task to tomorrow as a fresh to-do, keeping the original', async ({ page }) => {
+  await addTask(page, 'Water plants')
+  const original = row(page, 'Water plants')
+  await original.getByRole('button', { name: 'Mark as doing' }).click()
+  await original.getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Copy to tomorrow' }).click()
+
+  // Today's stays as it was.
+  await expect(original.getByRole('button', { name: 'Mark as done' })).toBeVisible()
+  await page.getByRole('button', { name: 'Next day' }).click()
+  const copy = row(page, 'Water plants')
+  await expect(copy.getByRole('button', { name: 'Mark as doing' })).toBeVisible()
+})
+
+test('copies a task to a picked date', async ({ page }) => {
+  await addTask(page, 'Renew passport')
+  await row(page, 'Renew passport').getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Copy to a date…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Copy to a date' })
+  // It starts at tomorrow; pick the day after.
+  const input = dialog.getByLabel('Add a new to-do copy on')
+  const tomorrow = new Date(await input.inputValue() + 'T12:00')
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  await input.fill(`${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`)
+  await dialog.getByRole('button', { name: 'Copy it' }).click()
+  await expect(dialog).toBeHidden()
+
+  await page.getByRole('button', { name: 'Next day' }).click()
+  await expect(row(page, 'Renew passport')).toBeHidden()
+  await page.getByRole('button', { name: 'Next day' }).click()
+  await expect(row(page, 'Renew passport')).toBeVisible()
+})
+
+test('Add reminder in the ⋯ menu opens the task with its reminder ready', async ({ page }) => {
+  await addTask(page, 'Call mom')
+  await row(page, 'Call mom').getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Add reminder' }).click()
+  await expect(page.getByRole('complementary', { name: 'Task details' })).toBeVisible()
+  await expect(page.getByLabel('Reminder')).toBeFocused()
+})
+
+test('a copy of a recurring task starts new: not recurring, never rondeled', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  // Daily (the default): today's task is created right away.
+  await page.getByLabel('Title', { exact: true }).fill('Stretch')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await page.getByRole('button', { name: 'Back to tasks' }).click()
+
+  await expect(row(page, 'Stretch').getByRole('img', { name: 'Recurring task' })).toBeVisible()
+  await row(page, 'Stretch').getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Copy to tomorrow' }).click()
+
+  // Tomorrow has only the copy (the rule's next one waits for today's to be done).
+  await page.getByRole('button', { name: 'Next day' }).click()
+  const copy = row(page, 'Stretch')
+  await expect(copy).toHaveCount(1)
+  await expect(copy.getByRole('img', { name: 'Recurring task' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Open Stretch' }).click()
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  await expect(panel.locator('dl div', { hasText: 'Rondeled' }).locator('dd')).toHaveText('Never')
+  await expect(panel.locator('dl div', { hasText: 'Repeats' })).toHaveCount(0)
+})
+
 test('creates a custom repeat rule; the list describes it, the form resets, and it survives a reload', async ({ page }) => {
   await page.getByRole('button', { name: 'Recurring' }).click()
   await page.getByLabel('Title', { exact: true }).fill('Water the plants')
@@ -297,6 +375,40 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
   await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
 })
 
+test('tag filter: "Any selected" shows either tag, "All selected" only both', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  const add = async (title: string, tag?: string) => {
+    await input.fill(tag ? `${title} #${tag}` : title)
+    if (tag) {
+      const existing = page.getByRole('option', { name: new RegExp(`^#${tag}`) })
+      await ((await existing.count()) ? existing : page.getByRole('option', { name: `Create #${tag}` })).click()
+    }
+    await input.press('Enter')
+    await expect(row(page, title)).toBeVisible()
+  }
+  await add('Fix sink', 'home')
+  await add('Ship report', 'work')
+  await add('Plan offsite', 'work')
+  await add('Untagged')
+  // Both tags on one task.
+  await page.getByRole('button', { name: 'Open Plan offsite' }).click()
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  await panel.getByRole('button', { name: 'Tag' }).click()
+  await page.getByRole('menuitem', { name: 'home' }).click()
+  await panel.getByRole('button', { name: 'Close' }).click()
+
+  await page.locator('.sidebar-pill', { hasText: 'home' }).click()
+  await page.locator('.sidebar-pill', { hasText: 'work' }).click()
+  for (const title of ['Fix sink', 'Ship report', 'Plan offsite']) await expect(row(page, title)).toBeVisible()
+  await expect(row(page, 'Untagged')).toBeHidden()
+
+  await page.getByRole('button', { name: 'Any selected' }).click()
+  await page.getByRole('menuitem', { name: 'All selected' }).click()
+  await expect(row(page, 'Plan offsite')).toBeVisible()
+  await expect(row(page, 'Fix sink')).toBeHidden()
+  await expect(row(page, 'Ship report')).toBeHidden()
+})
+
 test('two quick #tag picks in the side panel title both stick', async ({ page }) => {
   await addTask(page, 'Plan trip')
   await page.getByRole('button', { name: 'Open Plan trip' }).click()
@@ -332,4 +444,3 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await expect(row(page, 'Morning stretch')).toBeVisible()
   await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
 })
-

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { isCarriedForward } from '../../domain/rondel'
+import { canRemind } from '../../domain/rondel'
 import type { Task } from '../../domain/types'
 import { ensureNotificationPermission } from '../../shared/notify'
 import { ChoiceModal } from '../../shared/ui/ChoiceModal'
@@ -17,7 +17,6 @@ export function ReminderField({ task, onChange }: ReminderFieldProps) {
   const [time, setTime] = useState(task.reminderTime ?? '')
   // A change waiting for the "only this one / all" answer.
   const [pending, setPending] = useState<{ value: string | null } | null>(null)
-  const canRemind = task.dayDate !== null && !task.rondeled && !isCarriedForward(task)
 
   const commit = (value: string | null) => {
     if (value === task.reminderTime) return
@@ -32,7 +31,7 @@ export function ReminderField({ task, onChange }: ReminderFieldProps) {
       <label className="detail-field-label" htmlFor="reminder-time">
         Reminder
       </label>
-      {canRemind ? (
+      {canRemind(task) ? (
         <div className="reminder-row">
           <input
             id="reminder-time"

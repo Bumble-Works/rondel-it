@@ -201,10 +201,10 @@
 }
 
 .task-actions {
-  /* Fixed columns (flag, note, delete, rondel) so actions line up on every row. */
+  /* Fixed columns (note, rondel, more) so actions line up on every row. */
   flex: none;
   display: grid;
-  grid-template-columns: 28px 28px 28px 32px;
+  grid-template-columns: 32px 32px 28px;
   align-items: center;
   justify-items: center;
   gap: 0.15rem;
@@ -228,27 +228,24 @@
   font-weight: 750;
 }
 
-.task-flag-btn,
 .task-note-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: var(--r-sm);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
   background: transparent;
   color: var(--muted);
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
-.task-flag-btn.is-on {
-  color: var(--accent-amber);
-}
-
-.task-flag-btn:hover,
-.task-note-btn:hover {
-  background: var(--surface-3);
+/* Same round hover as the rondel button beside it. */
+.task-note-btn:hover:not(:disabled) {
+  background: var(--brand-tint);
+  border-color: color-mix(in srgb, var(--brand) 25%, transparent);
   color: var(--ink);
 }
 
@@ -263,24 +260,7 @@
   pointer-events: auto;
 }
 
+/* Disabled (e.g. open in the side panel): no hover feedback, like rondel. */
 .task-actions button:disabled:hover {
   background: transparent;
-}
-
-.task-delete-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid color-mix(in srgb, var(--accent-red) 45%, transparent);
-  border-radius: var(--r-sm);
-  background: transparent;
-  color: var(--accent-red);
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
-}
-
-.task-delete-btn:hover {
-  background: color-mix(in srgb, var(--accent-red) 10%, transparent);
-  border-color: color-mix(in srgb, var(--accent-red) 75%, transparent);
 }
