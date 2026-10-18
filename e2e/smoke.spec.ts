@@ -284,3 +284,15 @@ test('a task from a recurring rule shows the repeat icon, and the side panel say
   await expect(panel.locator('dl div', { hasText: 'Repeats' }).locator('dd')).toHaveText('Every day')
 })
 
+
+test('#tags in the recurring form work like the task title: pick, strip, attach', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  const title = page.getByLabel('Title', { exact: true })
+  await title.fill('Gym #health')
+  await page.getByRole('option', { name: 'Create #health' }).click()
+  await expect(title).toHaveValue('Gym')
+  await title.press('Enter')
+
+  await expect(page.locator('.recurring-item-title')).toHaveText('Gym')
+  await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
+})
