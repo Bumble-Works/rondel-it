@@ -185,8 +185,16 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Recurring tasks are created once per day (and again when rules change), not
   on every action. While the app is open it catches the new day after
   midnight; otherwise on the next open.
-- "Start of week/month" rules keep only one unfinished task at a time. The
-  next one isn't created until the current one is done.
+- **One at a time, for every rule:** the next task isn't created until the
+  previous one is finished. To-do and doing both count as open (they're what
+  the nag lists); done or canceled lets the next one in.
+  - Days that come due while one is open are **skipped**, not created late.
+    Example: gym every Monday, last Monday's finished on Thursday → the next
+    one appears next Monday.
+  - "Start of week/month" tasks wait in the current week's/month's container,
+    so finishing last period's one brings in this period's (never a past one).
+  - If the app wasn't opened for a few days, only the latest due one is created.
+  - The Recurring page explains this under its title.
 - Rule titles save on blur or Enter.
 - In the new-rule form, selected tags show a colored border and ✓; unselected
   ones are plain outlines.

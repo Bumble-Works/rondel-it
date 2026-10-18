@@ -499,15 +499,15 @@ export const mockDataSource: DataSource = {
       if (occurrences.length === 0) continue
 
       // One open task per rule: the next isn't created until the previous one
-      // is finished. Todo and doing count as open, like in the nag. Ones
-      // missed meanwhile are skipped.
+      // is finished. Todo and doing count as open, like in the nag. Days that
+      // come due meanwhile are skipped; only the latest due one is created.
       const isOpen = (t: Task) =>
         t.recurringRuleId === rule.id && (t.status === 'todo' || t.status === 'doing') && !isCarriedForward(t)
       const latest = occurrences[occurrences.length - 1]
       let lastRunDate = latest.date
       if (tasks.some(isOpen)) {
-        // Hold on to today's (or this week's/month's), so finishing the open one now still brings it in.
-        if (latest.rondeled || latest.date === horizonDate) {
+        // This week's/month's container task waits, so finishing the open one brings it in.
+        if (latest.rondeled) {
           if (occurrences.length === 1) continue
           lastRunDate = occurrences[occurrences.length - 2].date
         }

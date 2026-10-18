@@ -61,6 +61,10 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
           Rules generate a fresh, standalone task each time they come due. Editing a rule only affects
           future tasks — ones already on your list stay put.
         </p>
+        <p className="recurring-lead">
+          <strong>One at a time:</strong> the next one is only created once the last one is done. Until then,
+          the open one keeps nagging you, and any days that come due meanwhile are skipped.
+        </p>
 
         <section className="recurring-card">
           <h2>New recurring task</h2>
