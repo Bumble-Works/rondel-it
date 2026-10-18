@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
+import { TaskLinks } from './TaskLinks'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
@@ -183,6 +184,8 @@ export function TaskDetailPanel({
           onChange={(e) => setNote(e.target.value)}
           onBlur={() => note !== task.note && onSaveNote(note)}
         />
+
+        <TaskLinks text={`${title}\n${note}`} />
 
         <dl className="detail-meta">
           <div>

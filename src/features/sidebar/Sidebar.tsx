@@ -180,7 +180,7 @@ export function Sidebar({
                 onClick={() => onToggleTag(tag.id)}
               >
                 <span className="sidebar-pill-dot" style={{ background: tag.color }} />
-                {tag.name}
+                <span className="sidebar-pill-label">{tag.name}</span>
               </button>
             )
           })}

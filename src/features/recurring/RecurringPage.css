@@ -151,6 +151,8 @@
 }
 
 .recurring-item-desc {
+  flex-wrap: wrap;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -160,6 +162,8 @@
 }
 
 .recurring-item-tags {
+  flex-wrap: wrap;
+  min-width: 0;
   display: inline-flex;
   gap: 0.3rem;
 }

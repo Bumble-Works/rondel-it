@@ -1,4 +1,6 @@
 .chip {
+  /* A long tag name is trimmed with "…" rather than pushing past its row. */
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -16,6 +18,12 @@
 .chip--sm {
   padding: 0.12rem 0.45rem;
   font-size: 0.7rem;
+}
+
+.chip-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chip-dot {

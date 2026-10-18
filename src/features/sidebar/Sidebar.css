@@ -152,6 +152,8 @@
 }
 
 .sidebar-pill {
+  min-width: 0;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -261,4 +263,12 @@
     box-shadow: var(--shadow-lg);
     transition: transform var(--dur) var(--ease);
   }
+}
+
+/* The ellipsis has to live on a child: a flex container can't show one. */
+.sidebar-pill-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

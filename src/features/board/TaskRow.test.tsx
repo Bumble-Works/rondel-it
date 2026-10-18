@@ -61,4 +61,34 @@ describe('TaskRow', () => {
       expect(screen.getByRole('button', { name })).toBeEnabled()
     }
   })
+
+  it('opens from a real button that sits next to (not around) links in the title', () => {
+    const onOpen = vi.fn()
+    render(
+      <TaskRow
+        task={{ ...task, title: 'Read https://example.com/doc' }}
+        tagsById={new Map()}
+        selected={false}
+        onOpen={onOpen}
+        onAdvance={() => {}}
+        onSetDone={() => {}}
+        onRondel={() => {}}
+        onPickDate={() => {}}
+        onOpenNote={() => {}}
+        onDelete={() => {}}
+        onToggleFlag={() => {}}
+        dragging={false}
+        isDragged={false}
+        onDragStartTask={() => {}}
+        onDragEndTask={() => {}}
+        onDropOnRow={() => {}}
+      />,
+    )
+    const open = screen.getByRole('button', { name: 'Open Read https://example.com/doc' })
+    const link = screen.getByRole('link', { name: 'example.com/doc' })
+    expect(open.contains(link)).toBe(false)
+    expect(link.closest('button, [role="button"]')).toBeNull()
+    open.click()
+    expect(onOpen).toHaveBeenCalledTimes(1)
+  })
 })

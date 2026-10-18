@@ -4,6 +4,7 @@ import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
+import { LinkifiedText } from '../../shared/ui/LinkifiedText'
 import { TagChip } from '../../shared/ui/TagChip'
 import { RondelMenu } from '../rondel/RondelMenu'
 import { OPEN_IN_PANEL_HINT } from '../task/hints'
@@ -133,12 +134,19 @@ export function TaskRow({
         disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
       />
 
-      <button
-        type="button"
-        className="task-main"
-        title={carried ? CARRIED_FORWARD_HINT : undefined}
-        onClick={onOpen}
-      >
+      {/*
+        The title and note can contain links, which can't go inside a button.
+        So an invisible "open" button covers the text area from behind, and the
+        links sit on top of it: siblings, not nested.
+      */}
+      <div className="task-main">
+        <button
+          type="button"
+          className="task-open"
+          aria-label={`Open ${task.title}`}
+          title={carried ? CARRIED_FORWARD_HINT : undefined}
+          onClick={onOpen}
+        />
         <span className="task-title">
           {task.flagged && (
             <span className="task-flag-mark" title="Important">
@@ -150,14 +158,16 @@ export function TaskRow({
               <Icon name="repeat" size={13} />
             </span>
           )}
-          {task.title}
+          <LinkifiedText text={task.title} />
         </span>
         {(tags.length > 0 || task.note) && (
           <span className="task-meta">
             {task.note && (
               <span className="task-note-preview">
                 <Icon name="note" size={13} />
-                {firstLine(task.note)}
+                <span className="task-note-text">
+                  <LinkifiedText text={firstLine(task.note)} />
+                </span>
               </span>
             )}
             {tags.map((tag) => (
@@ -165,7 +175,7 @@ export function TaskRow({
             ))}
           </span>
         )}
-      </button>
+      </div>
 
       <div className="task-actions">
         <button
@@ -211,7 +221,7 @@ export function TaskRow({
   )
 }
 
+/** The note's first line; CSS trims it to fit (never cutting a link's address). */
 function firstLine(note: string): string {
-  const line = note.split('\n')[0].trim()
-  return line.length > 60 ? `${line.slice(0, 60)}…` : line
+  return note.split('\n')[0].trim()
 }

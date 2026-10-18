@@ -93,8 +93,11 @@
 }
 
 .task-main {
+  position: relative;
   flex: 1;
   min-width: 0;
+  /* Safety net: nothing in the text area can draw over the buttons. */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -104,7 +107,35 @@
   text-align: left;
 }
 
+/* Covers the text area; clicks on text fall through to it. */
+.task-open {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.task-open:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+}
+
+/* Text sits above the open button but lets clicks through, except on links. */
+.task-main > :not(.task-open) {
+  position: relative;
+  pointer-events: none;
+}
+
+.task-main .linkified {
+  pointer-events: auto;
+}
+
 .task-title {
+  /* Long words (and links) wrap instead of running over the row's buttons. */
+  overflow-wrap: anywhere;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--ink);
@@ -140,10 +171,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
+  min-width: 0;
   max-width: 100%;
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 500;
+}
+
+.task-note-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-note-preview svg {
@@ -153,6 +192,7 @@
 
 .task-actions {
   /* Fixed columns (flag, note, delete, rondel) so actions line up on every row. */
+  flex: none;
   display: grid;
   grid-template-columns: 28px 28px 28px 32px;
   align-items: center;
