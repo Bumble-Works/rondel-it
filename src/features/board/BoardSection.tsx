@@ -15,6 +15,8 @@ interface BoardSectionProps {
   emptyLabel?: string
   onDropAtEnd?: () => void
   collapsible?: boolean
+  /** Hide the title when the page header already says it (Day, Bucket List views). */
+  hideTitle?: boolean
 }
 
 export function BoardSection({
@@ -30,12 +32,16 @@ export function BoardSection({
   emptyLabel = 'Nothing here',
   onDropAtEnd,
   collapsible = true,
+  hideTitle = false,
 }: BoardSectionProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
   const isCollapsed = collapsible && collapsed
 
   return (
-    <section className={`board-section board-section--${tone} ${highlight ? 'is-highlight' : ''}`.trim()}>
+    <section
+      className={`board-section board-section--${tone} ${highlight ? 'is-highlight' : ''} ${hideTitle ? 'is-untitled' : ''}`.trim()}
+      aria-label={hideTitle ? title : undefined}
+    >
       <header className="board-section-head">
         {collapsible ? (
           <button
@@ -55,11 +61,20 @@ export function BoardSection({
           </button>
         ) : (
           <div className="board-section-toggle board-section-toggle--static">
-            <span className="board-section-titles">
-              {eyebrow && <span className="board-section-eyebrow">{eyebrow}</span>}
-              <span className="board-section-title">{title}</span>
-            </span>
-            {typeof count === 'number' && <span className="board-section-count">{count}</span>}
+            {!hideTitle && (
+              <span className="board-section-titles">
+                {eyebrow && <span className="board-section-eyebrow">{eyebrow}</span>}
+                <span className="board-section-title">{title}</span>
+              </span>
+            )}
+            {typeof count === 'number' &&
+              (hideTitle ? (
+                <span className="board-section-tally">
+                  {count} {count === 1 ? 'task' : 'tasks'}
+                </span>
+              ) : (
+                <span className="board-section-count">{count}</span>
+              ))}
           </div>
         )}
         {headerRight && <div className="board-section-right">{headerRight}</div>}
