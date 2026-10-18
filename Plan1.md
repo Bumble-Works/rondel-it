@@ -12,7 +12,7 @@ is temporary. Plan-only notes:
   still needs renaming.
 - **Rails must implement the rondel rules** in `docs/FUNCTIONALITY.md`,
   including `origin_date` and `carried_to_id`, which aren't in the model below.
-- Live data must stay backward compatible (mock adapter, `rondel.v6.*` keys).
+- Live data must stay backward compatible (local adapter, `rondel.v6.*` keys).
 - Still needed: see "Next PRs" below.
 
 ## Architecture at a glance
@@ -77,7 +77,7 @@ is temporary. Plan-only notes:
 
 ## React data layer contract
 - `src/services/api/` — typed client, one function per endpoint.
-- `src/services/adapters/` — `DataSource` seam (per PRACTICES.md): mock adapter
+- `src/services/adapters/` — `DataSource` seam (per PRACTICES.md): local adapter
   + Rails adapter interchangeable via factory + `VITE_DATA_SOURCE` toggle.
 - `src/features/day/` — day view: list, task row, status toggle, empty state.
 - `src/features/task/` — detail panel + note editor.
@@ -96,7 +96,7 @@ Backend:
 
 Frontend:
 - [ ] design tokens (CSS vars) for color/spacing/radius/motion
-- [ ] `DataSource` seam + mock adapter + Rails adapter + factory
+- [ ] `DataSource` seam + local adapter + Rails adapter + factory
 - [ ] day view: list, StatusIcon ring, create task, toggle status
 - [ ] done-to-bottom ordering wired to API positions
 - [ ] task detail panel + note editor
@@ -112,7 +112,7 @@ Frontend:
   preserves source history, writes a `RondelEvent`.
 - Notes persist and are retrievable.
 - Full keyboard path: create → doing → done → rondel.
-- Runs against Rails API and (via seam) a mock adapter.
+- Runs against Rails API and (via seam) the local adapter.
 
 ## In progress: UX feedback (branch `feat/ux-feedback`)
 - [x] Day titles: "Today (Wednesday)" in day / week / month
