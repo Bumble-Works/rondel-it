@@ -1,5 +1,6 @@
 import { addDays, addMonths, fromIso, startOfMonth, startOfWeek, toIso } from './dates'
-import type { RecurrenceKind, RecurringRule, TaskBucket } from './types'
+import { describeRepeat, ordinal, repeatDatesBetween } from './repeat'
+import type { RecurringRule, RepeatSpec, TaskBucket } from './types'
 
 export interface Occurrence {
   /** The occurrence's anchor date (used for de-duplication / lastRun tracking). */
@@ -65,21 +66,41 @@ export function occurrencesBetween(
       out.push({ date: m, dayDate: m, rondeled: true, bucket: null })
       m = addMonths(m, 1)
     }
+  } else if (rule.kind === 'repeat' && rule.repeat) {
+    for (const d of repeatDatesBetween(rule.repeat, startIso, horizonIso, weekStartDay, CAP)) {
+      out.push({ date: d, dayDate: d, rondeled: false, bucket: null })
+    }
   }
 
   return out
 }
 
-const WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return n + (s[(v - 20) % 10] || s[v] || s[0])
+/**
+ * A rule's pattern as a repeat, for editing. Rules made before custom repeat
+ * ("every Monday", "every 15th") become the same pattern, starting when the
+ * rule was made. Start-of-week/month rules have none.
+ */
+export function repeatOf(rule: RecurringRule): RepeatSpec | null {
+  const startDate = toIso(new Date(rule.createdAt))
+  if (rule.kind === 'repeat') return rule.repeat
+  if (rule.kind === 'weekly-on') return { unit: 'week', every: 1, weekdays: [rule.weekday ?? 1], startDate, endDate: null }
+  if (rule.kind === 'monthly-on') {
+    return { unit: 'month', every: 1, monthly: { type: 'date', days: [rule.dayOfMonth ?? 1] }, startDate, endDate: null }
+  }
+  return null
 }
 
-export function describeRecurrence(kind: RecurrenceKind, weekday: number | null, dayOfMonth: number | null): string {
+const WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+export function describeRecurrence({
+  kind,
+  weekday,
+  dayOfMonth,
+  repeat,
+}: Pick<RecurringRule, 'kind' | 'weekday' | 'dayOfMonth' | 'repeat'>): string {
   switch (kind) {
+    case 'repeat':
+      return repeat ? describeRepeat(repeat) : ''
     case 'weekly-start':
       return 'Start of every week, rondeled into that week'
     case 'monthly-start':

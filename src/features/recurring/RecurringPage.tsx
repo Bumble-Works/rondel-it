@@ -1,65 +1,40 @@
 import { useState } from 'react'
-import { ensureNotificationPermission } from '../../shared/notify'
 import { describeRecurrence } from '../../domain/recurrence'
-import { formatClock, weekdayName } from '../../domain/dates'
-import type { RecurrenceKind, RecurringRule, Tag } from '../../domain/types'
+import { formatClock } from '../../domain/dates'
+import type { RecurringRule, Tag } from '../../domain/types'
 import type { RecurringRuleInput } from '../../services/adapters/DataSource'
-import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
-import { InlineEditInput } from '../../shared/ui/InlineEditInput'
 import { IconButton } from '../../shared/ui/IconButton'
 import { TagChip } from '../../shared/ui/TagChip'
+import { RecurringForm } from './RecurringForm'
 import './RecurringPage.css'
-
-function clampDayOfMonth(text: string): number {
-  const day = Math.round(Number(text))
-  return Number.isFinite(day) ? Math.min(31, Math.max(1, day)) : 1
-}
-
-const KIND_OPTIONS: Array<{ value: RecurrenceKind; label: string }> = [
-  { value: 'weekly-on', label: 'Every week on a weekday' },
-  { value: 'monthly-on', label: 'Every month on a date' },
-  { value: 'weekly-start', label: 'Start of every week, rondeled into that week' },
-  { value: 'monthly-start', label: 'Start of every month, rondeled into that month' },
-]
 
 interface RecurringPageProps {
   rules: RecurringRule[]
   tags: Tag[]
   onCreate: (input: RecurringRuleInput) => void
-  onUpdateTitle: (id: string, title: string) => void
+  onUpdate: (id: string, input: RecurringRuleInput) => void
   onDelete: (id: string) => void
+  onCreateTag: (name: string) => Promise<Tag | null>
   onBack: () => void
 }
 
-export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, onBack }: RecurringPageProps) {
-  const [title, setTitle] = useState('')
-  const [kind, setKind] = useState<RecurrenceKind>('weekly-on')
-  const [weekday, setWeekday] = useState(1)
-  // Kept as text so the field can be cleared while typing; clamped on blur/submit.
-  const [dayOfMonthText, setDayOfMonthText] = useState('1')
-  const dayOfMonth = clampDayOfMonth(dayOfMonthText)
-  const [tagIds, setTagIds] = useState<string[]>([])
-  const [reminderTime, setReminderTime] = useState('')
+export function RecurringPage({ rules, tags, onCreate, onUpdate, onDelete, onCreateTag, onBack }: RecurringPageProps) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  // Bumped after each save so the form starts over.
+  const [formKey, setFormKey] = useState(0)
 
   const tagsById = new Map(tags.map((t) => [t.id, t]))
+  const editing = rules.find((r) => r.id === editingId) ?? null
 
-  const toggleTag = (id: string) =>
-    setTagIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]))
-
-  const submit = () => {
-    if (!title.trim()) return
-    onCreate({
-      title: title.trim(),
-      kind,
-      weekday: kind === 'weekly-on' ? weekday : null,
-      dayOfMonth: kind === 'monthly-on' ? dayOfMonth : null,
-      tagIds,
-      reminderTime: reminderTime || null,
-    })
-    setTitle('')
-    setTagIds([])
-    setReminderTime('')
+  const startOver = () => {
+    setEditingId(null)
+    setFormKey((k) => k + 1)
+  }
+  const save = (input: RecurringRuleInput) => {
+    if (editing) onUpdate(editing.id, input)
+    else onCreate(input)
+    startOver()
   }
 
   return (
@@ -72,106 +47,18 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
           <Icon name="repeat" size={24} /> Recurring
         </h1>
         <p className="recurring-lead">
-          Rules generate a fresh, standalone task each time they come due. Editing a rule only affects
-          future tasks — ones already on your list stay put.
+          <strong>One task at a time:</strong> the first appears right away, and each next one only once the last is
+          done (days missed meanwhile are skipped). Edits only change tasks still to come.
         </p>
 
-        <section className="recurring-card">
-          <h2>New recurring task</h2>
-
-          <input
-            className="field recurring-input"
-            placeholder="Task title (e.g. Weekly review)"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && submit()}
-          />
-
-          <div className="recurring-row">
-            <label htmlFor="recur-kind">Repeats</label>
-            <select
-              id="recur-kind"
-              className="field recurring-control"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as RecurrenceKind)}
-            >
-              {KIND_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {kind === 'weekly-on' && (
-            <div className="recurring-row">
-              <label htmlFor="recur-weekday">On</label>
-              <select
-                id="recur-weekday"
-                className="field recurring-control"
-                value={weekday}
-                onChange={(e) => setWeekday(Number(e.target.value))}
-              >
-                {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-                  <option key={d} value={d}>
-                    {weekdayName(d)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {kind === 'monthly-on' && (
-            <div className="recurring-row">
-              <label htmlFor="recur-dom">On day</label>
-              <input
-                id="recur-dom"
-                type="number"
-                min={1}
-                max={31}
-                className="field recurring-control"
-                value={dayOfMonthText}
-                onChange={(e) => setDayOfMonthText(e.target.value)}
-                onBlur={() => setDayOfMonthText(String(dayOfMonth))}
-              />
-            </div>
-          )}
-
-          <div className="recurring-row">
-            <label htmlFor="recur-reminder">Reminder</label>
-            <input
-              id="recur-reminder"
-              type="time"
-              className="field recurring-control"
-              value={reminderTime}
-              onChange={(e) => {
-                setReminderTime(e.target.value)
-                if (e.target.value) void ensureNotificationPermission()
-              }}
-            />
-          </div>
-
-          {tags.length > 0 && (
-            <div className="recurring-tags">
-              {tags.map((tag) => (
-                <TagChip
-                  key={tag.id}
-                  name={tag.name}
-                  color={tag.color}
-                  size="sm"
-                  active={tagIds.includes(tag.id)}
-                  onClick={() => toggleTag(tag.id)}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="recurring-actions">
-            <Button variant="primary" disabled={!title.trim()} onClick={submit}>
-              Add recurring task
-            </Button>
-          </div>
-        </section>
+        <RecurringForm
+          key={editing ? `edit-${editing.id}` : `new-${formKey}`}
+          tags={tags}
+          rule={editing}
+          onSubmit={save}
+          onCancel={startOver}
+          onCreateTag={onCreateTag}
+        />
 
         <section className="recurring-card">
           <h2>Your recurring tasks</h2>
@@ -180,19 +67,17 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
           ) : (
             <ul className="recurring-list">
               {rules.map((rule) => (
-                <li key={rule.id} className="recurring-item">
+                <li key={rule.id} className={`recurring-item ${rule.id === editingId ? 'is-editing' : ''}`.trim()}>
                   <span className="recurring-item-icon">
                     <Icon name="repeat" size={18} />
                   </span>
                   <div className="recurring-item-body">
-                    <InlineEditInput
-                      className="recurring-item-title"
-                      aria-label="Recurring task title"
-                      value={rule.title}
-                      onCommit={(title) => onUpdateTitle(rule.id, title)}
-                    />
+                    <span className="recurring-item-title">
+                      {rule.flagged && <Icon name="flag-filled" size={14} />}
+                      {rule.title}
+                    </span>
                     <span className="recurring-item-desc">
-                      {describeRecurrence(rule.kind, rule.weekday, rule.dayOfMonth)}
+                      {describeRecurrence(rule)}
                       {rule.reminderTime && <span> · 🔔 {formatClock(rule.reminderTime)}</span>}
                       {rule.tagIds.length > 0 && (
                         <span className="recurring-item-tags">
@@ -206,7 +91,22 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
                       )}
                     </span>
                   </div>
-                  <IconButton icon="trash" label={`Delete ${rule.title}`} onClick={() => onDelete(rule.id)} />
+                  <IconButton
+                    icon="pencil"
+                    label={`Edit ${rule.title}`}
+                    onClick={() => {
+                      setEditingId(rule.id)
+                      document.querySelector('.recurring')?.scrollTo?.({ top: 0, behavior: 'smooth' })
+                    }}
+                  />
+                  <IconButton
+                    icon="trash"
+                    label={`Delete ${rule.title}`}
+                    onClick={() => {
+                      if (rule.id === editingId) startOver()
+                      onDelete(rule.id)
+                    }}
+                  />
                 </li>
               ))}
             </ul>

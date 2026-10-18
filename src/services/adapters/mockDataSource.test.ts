@@ -425,4 +425,110 @@ describe('mockDataSource recurring', () => {
     expect(new Date(done.completedAt!).getDate()).toBe(12) // completed that day, local time
     expect((await mockDataSource.listLeftUndone('2026-10-19')).map((t) => t.title)).toEqual(['Still doing'])
   })
+
+  it('creates the next repeat only once the previous one is done, skipping missed ones', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({
+      title: 'Gym',
+      kind: 'repeat',
+      repeat: { unit: 'week', every: 1, weekdays: [1, 3, 5], startDate: '2026-10-19', endDate: null },
+    })
+    const gymDays = async () =>
+      (await mockDataSource.listTasksInRange('2026-10-19', '2026-11-01'))
+        .filter((t) => t.recurringRuleId === rule.id)
+        .map((t) => t.dayDate)
+        .sort()
+
+    await mockDataSource.syncRecurring('2026-10-19')
+    expect(await gymDays()).toEqual(['2026-10-19'])
+
+    // Monday's is still open (doing counts), so Wednesday's isn't created.
+    const [monday] = await mockDataSource.listTasksInRange('2026-10-19', '2026-10-19')
+    await mockDataSource.setTaskStatus(monday.id, 'doing')
+    await mockDataSource.syncRecurring('2026-10-21')
+    expect(await gymDays()).toEqual(['2026-10-19'])
+
+    // Finished on Thursday: Wednesday's is skipped; the next one is Friday's.
+    await mockDataSource.setTaskStatus(monday.id, 'done')
+    await mockDataSource.syncRecurring('2026-10-22')
+    expect(await gymDays()).toEqual(['2026-10-19'])
+    await mockDataSource.syncRecurring('2026-10-23')
+    expect(await gymDays()).toEqual(['2026-10-19', '2026-10-23'])
+  })
+
+  it('skips a day that came due while the previous one was open', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({
+      title: 'Stretch',
+      kind: 'repeat',
+      repeat: { unit: 'day', every: 1, startDate: '2026-10-19', endDate: null },
+    })
+    await mockDataSource.syncRecurring('2026-10-19')
+    await mockDataSource.syncRecurring('2026-10-20') // Monday's still open: Tuesday's is skipped
+    const [monday] = await mockDataSource.listTasksInRange('2026-10-19', '2026-10-19')
+    await mockDataSource.setTaskStatus(monday.id, 'done')
+    await mockDataSource.syncRecurring('2026-10-20')
+    await mockDataSource.syncRecurring('2026-10-21')
+    const days = (await mockDataSource.listTasksInRange('2026-10-19', '2026-10-25'))
+      .filter((t) => t.recurringRuleId === rule.id)
+      .map((t) => t.dayDate)
+      .sort()
+    expect(days).toEqual(['2026-10-19', '2026-10-21'])
+  })
+
+  it('creates only the latest due repeat after days without opening the app', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({
+      title: 'Stretch',
+      kind: 'repeat',
+      repeat: { unit: 'day', every: 1, startDate: '2026-10-19', endDate: null },
+    })
+    await mockDataSource.syncRecurring('2026-10-22')
+    const days = (await mockDataSource.listTasksInRange('2026-10-19', '2026-10-25')).filter((t) => t.recurringRuleId === rule.id)
+    expect(days.map((t) => t.dayDate)).toEqual(['2026-10-22'])
+  })
+
+  it('a canceled task doesn’t hold back the next one', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({ title: 'Standup', kind: 'weekly-on', weekday: 1 })
+    await mockDataSource.syncRecurring('2026-10-19')
+    const [monday] = await mockDataSource.listTasksInRange('2026-10-19', '2026-10-19')
+    await mockDataSource.setTaskStatus(monday.id, 'canceled')
+    await mockDataSource.syncRecurring('2026-10-26')
+    const [next] = await mockDataSource.listTasksInRange('2026-10-26', '2026-10-26')
+    expect(next).toMatchObject({ recurringRuleId: rule.id, status: 'todo' })
+  })
+
+  it('always creates a new rule’s first task, even when it’s days ahead', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({
+      title: 'Pay rent',
+      kind: 'repeat',
+      repeat: { unit: 'month', every: 1, monthly: { type: 'date', days: [1] }, startDate: '2026-10-19', endDate: null },
+      flagged: true,
+    })
+    await mockDataSource.syncRecurring('2026-10-19')
+    await mockDataSource.syncRecurring('2026-10-20')
+    const created = (await mockDataSource.listTasksInRange('2026-10-01', '2026-12-31')).filter((t) => t.recurringRuleId === rule.id)
+    expect(created.map((t) => [t.dayDate, t.flagged])).toEqual([['2026-11-01', true]])
+
+    // Done early: the next waits for its own day (Dec 1), never ahead of time.
+    await mockDataSource.setTaskStatus(created[0].id, 'done')
+    await mockDataSource.syncRecurring('2026-10-21')
+    const later = (await mockDataSource.listTasksInRange('2026-10-01', '2026-12-31')).filter((t) => t.recurringRuleId === rule.id)
+    expect(later).toHaveLength(1)
+  })
+
+  it('edits a rule’s pattern, flag and note', async () => {
+    const rule = await mockDataSource.createRecurringRule({ title: 'Standup', kind: 'weekly-on', weekday: 1 })
+    const repeat = { unit: 'day' as const, every: 1, startDate: '2026-10-19', endDate: null }
+    const updated = await mockDataSource.updateRecurringRule(rule.id, { kind: 'repeat', repeat, flagged: true, note: 'Zoom link' })
+    expect(updated).toMatchObject({ kind: 'repeat', repeat, flagged: true, note: 'Zoom link', title: 'Standup' })
+  })
 })
+

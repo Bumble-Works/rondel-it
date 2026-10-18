@@ -33,7 +33,24 @@ export interface Task {
   recurringRuleId: string | null
 }
 
-export type RecurrenceKind = 'weekly-start' | 'monthly-start' | 'weekly-on' | 'monthly-on'
+export type RecurrenceKind = 'weekly-start' | 'monthly-start' | 'weekly-on' | 'monthly-on' | 'repeat'
+
+/** "On the 15th" or "on the first Monday" (nth: 1–4, or -1 for the last). */
+export type MonthlyRepeat = { type: 'date'; days: number[] } | { type: 'weekday'; nth: 1 | 2 | 3 | 4 | -1; weekday: number }
+
+/** A repeat pattern like Apple Reminders': every N days/weeks/months/years. */
+export interface RepeatSpec {
+  unit: 'day' | 'week' | 'month' | 'year'
+  every: number
+  /** 'week' only: which weekdays (0=Sun..6=Sat). */
+  weekdays?: number[]
+  /** 'month' only. */
+  monthly?: MonthlyRepeat
+  /** The first possible occurrence; anchors "every 2 weeks", the yearly date, etc. */
+  startDate: string
+  /** Last possible occurrence (inclusive); null repeats forever. */
+  endDate: string | null
+}
 
 export interface RecurringRule {
   id: string
@@ -41,8 +58,12 @@ export interface RecurringRule {
   tagIds: string[]
   note: string
   kind: RecurrenceKind
+  /** For kind 'repeat'. */
+  repeat: RepeatSpec | null
   /** Reminder time copied onto each task the rule creates, 'HH:mm'. */
   reminderTime: string | null
+  /** Each task the rule creates is flagged. */
+  flagged: boolean
   /** 0=Sun..6=Sat, for 'weekly-on'. */
   weekday: number | null
   /** 1..31, for 'monthly-on'. */

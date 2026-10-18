@@ -66,7 +66,7 @@ function readSettings(): UserSetting {
 
 /** Fill fields added to rules later, so existing rules keep working. */
 function normalizeRule(rule: RecurringRule): RecurringRule {
-  return { ...rule, reminderTime: rule.reminderTime ?? null }
+  return { ...rule, reminderTime: rule.reminderTime ?? null, repeat: rule.repeat ?? null, flagged: rule.flagged ?? false }
 }
 
 function readRules(): RecurringRule[] {
@@ -194,8 +194,12 @@ function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): T
     note: rule.note,
     recurringRuleId: rule.id,
     reminderTime: rule.reminderTime ?? null,
+    flagged: rule.flagged,
   })
 }
+
+/** How far ahead a new rule's first task can be (yearly rules, far start dates). */
+const FIRST_LOOKAHEAD_DAYS = 3660
 
 /* ---------- adapter ---------- */
 
@@ -429,6 +433,8 @@ export const mockDataSource: DataSource = {
       weekday: input.weekday ?? null,
       dayOfMonth: input.dayOfMonth ?? null,
       reminderTime: input.reminderTime ?? null,
+      flagged: input.flagged ?? false,
+      repeat: input.repeat ?? null,
       createdAt: nowIso(),
       lastRunDate: null,
     }
@@ -455,6 +461,8 @@ export const mockDataSource: DataSource = {
       weekday: input.weekday !== undefined ? input.weekday : rules[index].weekday,
       dayOfMonth: input.dayOfMonth !== undefined ? input.dayOfMonth : rules[index].dayOfMonth,
       reminderTime: input.reminderTime !== undefined ? input.reminderTime : rules[index].reminderTime,
+      repeat: input.repeat !== undefined ? input.repeat : rules[index].repeat,
+      flagged: input.flagged ?? rules[index].flagged,
     }
     writeRules(rules)
     return rules[index]
@@ -493,38 +501,33 @@ export const mockDataSource: DataSource = {
 
     for (const [index, rule] of rules.entries()) {
       const start = rule.lastRunDate ? addDays(rule.lastRunDate, 1) : rule.createdAt.slice(0, 10)
-      const occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
+      let occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
+      // A new rule always shows its first task right away, even if that day is
+      // still ahead, so it's clear the rule worked.
+      if (occurrences.length === 0 && !rule.lastRunDate) {
+        occurrences = occurrencesBetween(rule, start, addDays(horizonDate, FIRST_LOOKAHEAD_DAYS), weekStartDay).slice(0, 1)
+      }
       if (occurrences.length === 0) continue
 
-      // Start-rules keep at most one outstanding (not-done) task. Don't spawn
-      // the next until the current one is completed — no duplicates.
-      if (isStartRule(rule.kind)) {
-        const hasPending = tasks.some(
-          (t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t),
-        )
-        if (hasPending) continue
-
-        const occ = occurrences[0]
-        tasks.push(taskFromRule(rule, occ, tasks.length))
-        changedTasks = true
-        if (!rule.lastRunDate || occ.date > rule.lastRunDate) {
-          rules[index] = { ...rule, lastRunDate: occ.date }
-          changedRules = true
+      // One open task per rule: the next isn't created until the previous one
+      // is finished. Todo and doing count as open, like in the nag. Days that
+      // come due meanwhile are skipped; only the latest due one is created.
+      const isOpen = (t: Task) =>
+        t.recurringRuleId === rule.id && (t.status === 'todo' || t.status === 'doing') && !isCarriedForward(t)
+      const latest = occurrences[occurrences.length - 1]
+      let lastRunDate = latest.date
+      if (tasks.some(isOpen)) {
+        // This week's/month's container task waits, so finishing the open one brings it in.
+        if (latest.rondeled) {
+          if (occurrences.length === 1) continue
+          lastRunDate = occurrences[occurrences.length - 2].date
         }
-        continue
-      }
-
-      let last = rule.lastRunDate
-      for (const occ of occurrences) {
-        tasks.push(taskFromRule(rule, occ, tasks.length))
+      } else {
+        tasks.push(taskFromRule(rule, latest, tasks.length))
         changedTasks = true
-        if (!last || occ.date > last) last = occ.date
       }
-
-      if (last !== rule.lastRunDate) {
-        rules[index] = { ...rule, lastRunDate: last }
-        changedRules = true
-      }
+      rules[index] = { ...rule, lastRunDate }
+      changedRules = true
     }
 
     if (changedTasks) writeTasks(tasks)

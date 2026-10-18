@@ -34,6 +34,7 @@ import { IconButton } from './shared/ui/IconButton'
 import { Menu } from './shared/ui/Menu'
 import { TagChip } from './shared/ui/TagChip'
 import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
+import { describeRecurrence } from './domain/recurrence'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 import { useSync } from './features/sync/useSync'
@@ -131,6 +132,8 @@ function App() {
   const todayInRange = today >= rangeStart && today <= rangeEnd
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
+  // "Every day", "Every month on the 1st"… per rule, for recurring tasks' icon and side panel.
+  const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
   const naggedRef = useRef<Set<string>>(new Set())
   // The day recurring tasks were last created for. Browsing (which reloads the
   // board a lot) reuses it; any change resets it, since finishing a "start of
@@ -450,10 +453,11 @@ function App() {
       await refreshRules()
       await loadBoard()
     })
-  const updateRuleTitle = (id: string, title: string) =>
+  const updateRule = (id: string, input: RecurringRuleInput) =>
     void attempt('Unable to update recurring task', async () => {
-      await dataSource.updateRecurringRule(id, { title })
+      await dataSource.updateRecurringRule(id, input)
       await refreshRules()
+      await loadBoard()
     })
   const deleteRule = (id: string) =>
     void attempt('Unable to delete recurring task', async () => {
@@ -600,8 +604,9 @@ function App() {
           rules={rules}
           tags={tags}
           onCreate={createRule}
-          onUpdateTitle={updateRuleTitle}
+          onUpdate={updateRule}
           onDelete={deleteRule}
+          onCreateTag={createTagNamed}
           onBack={() => setPage('board')}
         />
       </div>
@@ -768,6 +773,7 @@ function App() {
           <WeekBoard
             groups={groups}
             tagsById={tagsById}
+            repeatLabels={repeatLabels}
             selectedTaskId={selectedTaskId}
             onOpen={(task) => setSelectedTaskId(task.id)}
             onAdvance={advance}
@@ -789,8 +795,8 @@ function App() {
         <TaskDetailPanel
           key={selectedTask.id}
           task={selectedTask}
-          tagsById={tagsById}
           allTags={tags}
+          repeatLabel={selectedTask.recurringRuleId ? (repeatLabels.get(selectedTask.recurringRuleId) ?? null) : undefined}
           onClose={() => setSelectedTaskId(null)}
           onChangeTitle={(title) => changeTitle(selectedTask.id, title)}
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}

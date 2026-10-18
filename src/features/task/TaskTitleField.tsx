@@ -1,5 +1,5 @@
 import type { Tag, Task } from '../../domain/types'
-import { HashTagMenu } from '../tags/HashTagMenu'
+import { HashTagTextField } from '../tags/HashTagTextField'
 import { useHashTagInput } from '../tags/useHashTagInput'
 
 interface TaskTitleFieldProps {
@@ -25,32 +25,18 @@ export function TaskTitleField({ task, allTags, onChangeTitle, onAddTag, createT
   })
 
   const commit = () => {
-    // The suggestions float over the page, so they must close when focus leaves.
-    input.dismiss()
     const next = input.text.trim()
     if (next && next !== task.title) onChangeTitle(next)
     else if (!next) input.reset(task.title)
   }
 
   return (
-    <>
-      <textarea
-        {...input.inputProps}
-        className="detail-title"
-        aria-label="Title"
-        rows={2}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (input.handleKey(e)) return
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            e.currentTarget.blur()
-          }
-        }}
-      />
-      {input.open && (
-        <HashTagMenu anchorRef={input.inputRef} options={input.options} highlight={input.highlight} onPick={input.pick} />
-      )}
-    </>
+    <HashTagTextField
+      input={input}
+      className="detail-title"
+      aria-label="Title"
+      onBlur={commit}
+      onEnter={() => input.inputRef.current?.blur()}
+    />
   )
 }
