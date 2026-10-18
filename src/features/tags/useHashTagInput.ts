@@ -123,3 +123,6 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
     },
   }
 }
+
+/** A title textarea's hook result, for `HashTagTextField`. */
+export type HashTagTextarea = ReturnType<typeof useHashTagInput<HTMLTextAreaElement>>

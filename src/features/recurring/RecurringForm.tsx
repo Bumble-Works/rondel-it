@@ -7,7 +7,7 @@ import type { RecurringRule, Tag } from '../../domain/types'
 import type { RecurringRuleInput } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
-import { HashTagMenu } from '../tags/HashTagMenu'
+import { HashTagTextField } from '../tags/HashTagTextField'
 import { TagPicker } from '../tags/TagPicker'
 import { useHashTagInput } from '../tags/useHashTagInput'
 import { TaskLinks } from '../task/TaskLinks'
@@ -30,7 +30,7 @@ function choiceOf(rule: RecurringRule | null): RepeatChoice {
 
 /** New or edit recurring rule, with the task side panel's title, tags, flag and note. Remount (`key`) to start over. */
 export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: RecurringFormProps) {
-  const titleInput = useHashTagInput({ tags, onCreateTag, initialText: rule?.title, initialTagIds: rule?.tagIds })
+  const titleInput = useHashTagInput<HTMLTextAreaElement>({ tags, onCreateTag, initialText: rule?.title, initialTagIds: rule?.tagIds })
   const [initialRepeat] = useState(() => choiceOf(rule))
   const [repeat, setRepeat] = useState<RepeatChoice>(initialRepeat)
   const [note, setNote] = useState(rule?.note ?? '')
@@ -63,19 +63,14 @@ export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: R
         />
       </div>
 
-      <div className="recurring-title-field">
-        <input
-          {...titleInput.inputProps}
-          className="field recurring-input"
-          aria-label="Title"
-          placeholder="Task title (e.g. Weekly review #home)"
-          onKeyDown={(e) => {
-            if (titleInput.handleKey(e)) return
-            if (e.key === 'Enter') submit()
-          }}
-        />
-        {titleInput.open && <HashTagMenu options={titleInput.options} highlight={titleInput.highlight} onPick={titleInput.pick} />}
-      </div>
+      {/* The same title box as the side panel: #tags and long links behave alike. */}
+      <HashTagTextField
+        input={titleInput}
+        className="field recurring-input"
+        aria-label="Title"
+        placeholder="Task title (e.g. Weekly review #home)"
+        onEnter={submit}
+      />
 
       <TagPicker
         className="recurring-tags"

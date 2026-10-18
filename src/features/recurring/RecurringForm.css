@@ -52,14 +52,6 @@
   color: var(--accent-amber);
 }
 
-.recurring-title-field {
-  position: relative;
-}
-
-.recurring-title-field .hashtag-menu {
-  left: 0;
-}
-
 .recurring-label {
   display: block;
   margin: 0.6rem 0 0.35rem;
