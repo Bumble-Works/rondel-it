@@ -405,6 +405,8 @@ function App() {
     tagQueue.current = job.catch(() => {})
     return job
   }
+  const addTag = (task: Task, tagId: string) =>
+    run(() => changeTags(task.id, (ids) => (ids.includes(tagId) ? ids : [...ids, tagId])))
   const toggleTag = (task: Task, tagId: string) =>
     run(() => changeTags(task.id, (ids) => (ids.includes(tagId) ? ids.filter((id) => id !== tagId) : [...ids, tagId])))
 
@@ -808,6 +810,7 @@ function App() {
           onClose={() => setSelectedTaskId(null)}
           onChangeTitle={(title) => changeTitle(selectedTask.id, title)}
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}
+          onAddTag={(tagId) => addTag(selectedTask, tagId)}
           onSaveNote={(note) => saveNote(selectedTask.id, note)}
           onToggleFlag={() => toggleFlag(selectedTask)}
           onChangeReminder={(time, scope) => changeReminder(selectedTask, time, scope)}
