@@ -50,6 +50,22 @@
   background: transparent;
 }
 
+/* No title (Day / Bucket List views): a slim row with the tally and actions. */
+.board-section.is-untitled .board-section-head {
+  padding-top: 0.25rem;
+  padding-bottom: 0;
+}
+
+.board-section.is-untitled .board-section-toggle--static {
+  padding-left: 0.55rem;
+}
+
+.board-section-tally {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .board-section--bucket .board-section-toggle:hover {
   background: var(--surface-3);
 }
