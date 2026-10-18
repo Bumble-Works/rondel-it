@@ -1,15 +1,14 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { StartAtLoginSetting } from './StartAtLoginSetting'
 
-const autostart = vi.hoisted(() => {
+const login = vi.hoisted(() => {
   let on = false
   return {
-    isEnabled: vi.fn(async () => on),
-    enable: vi.fn(async () => void (on = true)),
-    disable: vi.fn(async () => void (on = false)),
+    isStartAtLoginOn: vi.fn(async () => on),
+    setStartAtLogin: vi.fn(async (next: boolean) => (on = next)),
   }
 })
-vi.mock('@tauri-apps/plugin-autostart', () => autostart)
+vi.mock('../../shared/startAtLogin', () => login)
 
 describe('StartAtLoginSetting', () => {
   afterEach(() => {
@@ -21,7 +20,7 @@ describe('StartAtLoginSetting', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('is off by default in the Mac app and turns the login item on', async () => {
+  it('is off by default in the Mac app and turns it on', async () => {
     ;(window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {}
     render(<StartAtLoginSetting reportError={() => {}} />)
     const box = screen.getByRole('checkbox', { name: /Start Rondel It at login/ })
@@ -30,6 +29,6 @@ describe('StartAtLoginSetting', () => {
 
     fireEvent.click(box)
     await waitFor(() => expect(box).toBeChecked())
-    expect(autostart.enable).toHaveBeenCalled()
+    expect(login.setStartAtLogin).toHaveBeenCalledWith(true)
   })
 })

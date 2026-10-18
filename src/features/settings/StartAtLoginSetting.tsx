@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { isDesktopApp } from '../../services/sync/folder'
+import { isStartAtLoginOn, setStartAtLogin } from '../../shared/startAtLogin'
 import './StartAtLoginSetting.css'
 
 interface StartAtLoginSettingProps {
@@ -15,8 +16,7 @@ export function StartAtLoginSetting({ reportError }: StartAtLoginSettingProps) {
 
   useEffect(() => {
     if (!isDesktopApp()) return
-    import('@tauri-apps/plugin-autostart')
-      .then(({ isEnabled }) => isEnabled())
+    isStartAtLoginOn()
       .then(setEnabled)
       .catch((e) => reportError('Couldn’t read the start-at-login setting', e))
   }, [reportError])
@@ -25,9 +25,7 @@ export function StartAtLoginSetting({ reportError }: StartAtLoginSettingProps) {
 
   const toggle = async (on: boolean) => {
     try {
-      const autostart = await import('@tauri-apps/plugin-autostart')
-      await (on ? autostart.enable() : autostart.disable())
-      setEnabled(await autostart.isEnabled())
+      setEnabled(await setStartAtLogin(on))
     } catch (e) {
       reportError('Couldn’t change the start-at-login setting', e)
     }
@@ -43,7 +41,10 @@ export function StartAtLoginSetting({ reportError }: StartAtLoginSettingProps) {
       />
       <span>
         <strong>Start Rondel It at login</strong>
-        <small>Opens quietly in the background, so reminders and reviews arrive on time.</small>
+        <small>
+          Opens quietly in the background, so reminders and reviews arrive on time. A menu-bar icon shows
+          it’s running (Open / Quit).
+        </small>
       </span>
     </label>
   )
