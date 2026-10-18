@@ -88,8 +88,13 @@ export const railsDataSource: DataSource = {
     return response.tasks.map(mapTask)
   },
 
+<<<<<<< HEAD
   async listUpcomingReminders(fromDate) {
     const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?reminders_from=${fromDate}`)
+=======
+  async listLeftUndone(date) {
+    const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?undone_before=${date}`)
+>>>>>>> origin/main
     return response.tasks.map(mapTask)
   },
 
@@ -132,10 +137,10 @@ export const railsDataSource: DataSource = {
     return mapTask(response.task)
   },
 
-  async setTaskStatus(id, status) {
+  async setTaskStatus(id, status, options) {
     const response = await request<{ task: Record<string, unknown> }>(`/tasks/${id}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, on_its_day: options?.onItsDay ?? false }),
     })
     return mapTask(response.task)
   },

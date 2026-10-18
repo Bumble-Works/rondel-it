@@ -1,6 +1,6 @@
-import { addDays, toIso, todayIso } from '../../domain/dates'
+import { addDays, fromIso, toIso, todayIso } from '../../domain/dates'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
-import { canRondel, isCarriedForward, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
+import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
 import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
@@ -146,9 +146,19 @@ function inSameGroup(task: Task, place: Placement): boolean {
     : task.dayDate === place.dayDate && task.rondeled === place.rondeled
 }
 
-function changeStatus(tasks: Task[], index: number, status: TaskStatus): Task {
+/** The end of a (local) day, as an instant: "done that day". */
+function endOfDayIso(iso: string): string {
+  const day = fromIso(iso)
+  day.setHours(23, 59, 59, 0)
+  return day.toISOString()
+}
+
+function changeStatus(tasks: Task[], index: number, status: TaskStatus, onItsDay = false): Task {
   const before = tasks[index]
   let next = withStatus(before, status)
+  if (onItsDay && status === 'done' && before.dayDate && !before.rondeled) {
+    next = { ...next, dayDate: before.dayDate, completedAt: endOfDayIso(before.dayDate) }
+  }
   // Reopened work goes back to the top of its group, not under everything else.
   if (status === 'todo' && before.status !== 'todo') {
     const positions = tasks.filter((t) => t.id !== next.id && inSameGroup(t, next)).map((t) => t.position)
@@ -207,6 +217,7 @@ export const mockDataSource: DataSource = {
     return ordered(tasks)
   },
 
+<<<<<<< HEAD
   async listUpcomingReminders(fromDate) {
     return readTasks().filter(
       (t) =>
@@ -217,6 +228,12 @@ export const mockDataSource: DataSource = {
         !t.rondeled &&
         !isCarriedForward(t),
     )
+=======
+  async listLeftUndone(date) {
+    return readTasks()
+      .filter((t) => isLeftUndone(t, date))
+      .sort((a, b) => (a.dayDate ?? '').localeCompare(b.dayDate ?? '') || a.position - b.position)
+>>>>>>> origin/main
   },
 
   async createTask(input: CreateTaskInput) {
@@ -271,10 +288,10 @@ export const mockDataSource: DataSource = {
     return task
   },
 
-  async setTaskStatus(id, status) {
+  async setTaskStatus(id, status, options) {
     const tasks = readTasks()
     const index = findIndexOrThrow(tasks, id)
-    const task = changeStatus(tasks, index, status)
+    const task = changeStatus(tasks, index, status, options?.onItsDay)
     writeTasks(tasks)
     return task
   },

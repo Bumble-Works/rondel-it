@@ -78,3 +78,19 @@ test('prints one day as a clean sheet', async ({ page }) => {
   await expect(page.locator('.print-sheet')).toContainText('Prep slides — To do')
   await expect(page.locator('.app')).toBeHidden()
 })
+
+test('a task left undone on a past day nags, and Done marks it done on that day', async ({ page }) => {
+  await page.getByRole('button', { name: 'Previous day' }).click()
+  await addTask(page, 'Forgot to check off')
+  await page.reload()
+
+  const nag = page.getByRole('dialog')
+  const section = nag.getByRole('region', { name: 'Left undone on past days' })
+  await expect(section).toContainText('Forgot to check off')
+  await section.getByRole('button', { name: 'Mark done' }).click()
+  await expect(nag).toBeHidden()
+
+  await page.getByRole('button', { name: 'Previous day' }).click()
+  await expect(row(page, 'Forgot to check off')).toHaveClass(/is-done/)
+})
+
