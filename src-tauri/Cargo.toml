@@ -23,3 +23,15 @@ serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
 tauri = { version = "2.12.4" }
 tauri-plugin-log = "2"
+tauri-plugin-fs = "2.7"
+tauri-plugin-dialog = "2.8"
+tauri-plugin-opener = "2.7"
+tauri-plugin-persisted-scope = "2.4"
+
+# Smaller app binary (Tauri's recommended release settings).
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

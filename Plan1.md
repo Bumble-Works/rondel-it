@@ -142,11 +142,44 @@ Frontend:
 - Test drag and drop in the app (WebKit; Tauri file-drop can interfere).
 
 ### Storage: local file + optional sync folder
-- Export/Import backup (JSON) first, as a stopgap.
-- Then: SQLite in the app's data folder; optional sync folder (Drive, OneDrive,
-  Box, Dropbox) with a per-device change log, never the database file itself.
+- [x] Folder sync (branch `feat/sync`): per-device snapshot files, latest edit
+  wins per record, explicit deletion markers, folder rebuilt if deleted
+- [x] Review fixes: deterministic recurring ids, monotonic stamps + reject
+  future-dated files, per-record validation, no local stand-in when the drive is
+  gone, access limited to the picked folder, cloned-Mac detection, follow-up
+  pass, skip unchanged writes
+- [ ] Test on two real Macs with Google Drive for desktop
+- [ ] Later: prune old deletion markers / change history (localStorage ~5 MB)
+- [ ] Later: settings merge per field (today the whole settings object wins)
+- [ ] Later: first sync of two Macs that both have data can duplicate
+  same-named tags (different ids): offer to merge them
+- [ ] Later: a recurring task deleted on one Mac can come back if another Mac
+  creates it before it syncs (rare; same id makes it fixable)
+- [ ] When choosing a folder that already has other devices, confirm: "This
+  folder already syncs N other device(s). Joining merges their tasks with
+  yours." (Guards against two people accidentally sharing one folder; sync stays anonymous.)
+- [ ] iPhone: same sync folder through the Files app (Tauri iOS)
+- [ ] Export/Import backup (JSON)
+- Later, if there's a web app: it can join the same sync as one more
+  "device" (same `devices/*.json` format). Browsers can't read the Drive
+  folder, so it would use the Google Drive API (reading files the Mac wrote
+  needs a Google "restricted" scope: a yearly paid security review before
+  public use; separate work per provider), or a small server (back to
+  hosting). Decide only if a web app becomes real.
+- [ ] Later: move local data from web storage to a file (SQLite) in the app's
+  data folder
 - Rails on hold (PR #3 is to be closed and rebuilt later against
   `docs/FUNCTIONALITY.md` if a server is ever needed).
+
+### Keep the Mac app lean (branch `feat/lean`)
+- [x] Recurring sync runs once a day / on rule changes, not on every action
+- [x] Parsed data cached in memory (frozen, so in-place edits fail loudly)
+- [x] Timers (review-time check, sync) pause while the window is hidden
+- [x] Smaller release binary (Rust size settings)
+- [ ] Measure real memory after a week of use; set a budget (~100 MB)
+- [ ] Optimistic updates instead of reloading the board after each action
+  (with the App.tsx split)
+- [ ] Only render visible days in Month view, if it gets heavy
 
 ### End-of-day rondel flow
 - At `endOfDayTime`, open a review of **today's** unfinished tasks (todo + doing).

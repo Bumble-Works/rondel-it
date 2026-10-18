@@ -146,7 +146,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   month's last day), or "start of each week/month" (waits in that period's rondel container).
 - A task is created **on its own day, never ahead of time**: the sync only
   goes up to today in your time zone. Browsing forward creates nothing.
-- While the app is open, it syncs after midnight. Otherwise it syncs on the next open.
+- Recurring tasks are created once per day (and again when rules change), not
+  on every action. While the app is open it catches the new day after
+  midnight; otherwise on the next open.
 - "Start of week/month" rules keep only one unfinished task at a time. The
   next one isn't created until the current one is done.
 - Rule titles save on blur or Enter.
@@ -157,6 +159,47 @@ Today, Next week, Next month, Pick a date, Mark done.
 - The nag opens once when the app opens, and again at each review time, if
   any rondeled items are waiting for a decision. It closes when nothing is left.
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
+
+## Sync (Mac app)
+
+- **Off by default.** Settings → Sync → *Choose folder…* picks a folder in a
+  cloud drive's desktop folder (Google Drive, OneDrive, Box, Dropbox). Rondel
+  It creates `Rondel It/` there with a `README.txt` and a `devices/` folder.
+  Picking a folder that's already named "Rondel It" uses it as-is.
+- Settings shows where it is (e.g. "Google Drive › My Drive › Rondel It"),
+  when it last synced, and *Sync now*, *Show in Finder*, *Change folder…*,
+  *Turn off*. In the browser version it says sync needs the Mac app.
+- **When:** on open, when the window regains focus, ~2 seconds after any
+  change, and every 2 minutes while the window is visible (paused while hidden).
+- **How:** each device writes its full data to `devices/<device-id>.json` and
+  reads the others. Per task / tag / recurring rule, **the most recent edit
+  wins**; settings too. Data saved before sync existed counts as oldest.
+- **Access:** the app can only read and write inside the folder you picked
+  (macOS grants it when you choose the folder; it's remembered across restarts).
+- **Cloud drive not running:** if the picked folder is gone (drive signed out
+  or not running), sync stops with a message once, and Settings shows it. It
+  never creates a local stand-in folder.
+- **Clocks:** each edit is stamped later than anything this device has seen,
+  so a slightly-behind clock can't lose your edit. A device file stamped more
+  than a day in the future is ignored entirely (wrong clock or tampering).
+- **Recurring tasks** get the same id on every device (rule + day), so two
+  Macs opening on the same day produce one task, not two.
+- **Copied Macs** (e.g. Migration Assistant) are detected and get their own
+  device id, so both keep syncing.
+- It only rewrites its own file when something changed. An edit made while a
+  sync is running goes out in a follow-up pass right after.
+- **Never loses data:**
+  - Each device keeps its own full copy; the folder is just a mailbox.
+  - Something is only deleted by an explicit deletion marker (made when you
+    delete it), never because it's missing from a file.
+  - A deletion only wins over edits made before it.
+  - If the folder disappears, it's rebuilt from this device's data, with a warning.
+  - Files that can't be read (half-downloaded, hand-edited) are ignored and
+    reported, never applied. Malformed items inside a file are skipped and
+    reported; the rest of that file is used. Settings from another device are
+    used only if every field is valid (week start 0–6, times as HH:mm, a real
+    time zone).
+- The sync folder choice and device id are per device and never synced.
 
 ## Errors
 

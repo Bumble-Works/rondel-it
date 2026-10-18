@@ -35,6 +35,8 @@ import { TagChip } from './shared/ui/TagChip'
 import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
+import { useSync } from './features/sync/useSync'
+import { startVisibleInterval } from './shared/visibleInterval'
 
 const dataSource = createDataSource()
 
@@ -119,6 +121,10 @@ function App() {
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const naggedRef = useRef<Set<string>>(new Set())
   const lastSeenDateRef = useRef<string | null>(null)
+  // The day recurring tasks were last created for. Browsing (which reloads the
+  // board a lot) reuses it; any change resets it, since finishing a "start of
+  // week/month" task is what lets the next one be created.
+  const recurringSyncedFor = useRef<string | null>(null)
 
   const reportError = useCallback((context: string, e: unknown) => {
     console.error(`[rondel] ${context}`, e)
@@ -129,7 +135,11 @@ function App() {
     try {
       // Recurring tasks appear on their own day, never ahead of time — browsing
       // forward must not pre-create them.
-      await dataSource.syncRecurring(nowInZone(timezone).date)
+      const recurringDay = nowInZone(timezone).date
+      if (recurringSyncedFor.current !== recurringDay) {
+        await dataSource.syncRecurring(recurringDay)
+        recurringSyncedFor.current = recurringDay
+      }
       const [range, bl, rondelItems] = await Promise.all([
         dataSource.listTasksInRange(rangeStart, rangeEnd),
         dataSource.listBucketTasks('bucket-list'),
@@ -161,22 +171,36 @@ function App() {
     }
   }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
-  useEffect(() => {
-    void (async () => {
-      try {
-        const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
-          dataSource.listTags(),
-          dataSource.getSettings(),
-          dataSource.listRecurringRules(),
-        ])
-        setTags(loadedTags)
-        setSettings(loadedSettings)
-        setRules(loadedRules)
-      } catch (e) {
-        reportError('Unable to load app data', e)
-      }
-    })()
+  /** Tags, settings and rules; the board reloads itself when settings change. */
+  const loadAppData = useCallback(async () => {
+    try {
+      const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
+        dataSource.listTags(),
+        dataSource.getSettings(),
+        dataSource.listRecurringRules(),
+      ])
+      setTags(loadedTags)
+      setSettings(loadedSettings)
+      setRules(loadedRules)
+    } catch (e) {
+      reportError('Unable to load app data', e)
+    }
   }, [reportError])
+
+  useEffect(() => {
+    // Sets state only after awaiting the data source (same as loadBoard below).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadAppData()
+  }, [loadAppData])
+
+  const sync = useSync({
+    onRemoteChange: useCallback(() => {
+      recurringSyncedFor.current = null // another device may have changed rules
+      void loadAppData().then(() => loadBoard())
+    }, [loadAppData, loadBoard]),
+    reportError,
+  })
+  const { scheduleSync } = sync
 
   useEffect(() => {
     // loadBoard only sets state after awaiting the data source; the rule can't
@@ -230,8 +254,7 @@ function App() {
         }
       }
     }
-    const iv = window.setInterval(check, 30000)
-    return () => window.clearInterval(iv)
+    return startVisibleInterval(check, 30000)
   }, [settings, loadBoard])
 
   const allTasks = useMemo(
@@ -246,12 +269,14 @@ function App() {
   const attempt = useCallback(
     async (context: string, fn: () => Promise<unknown>) => {
       try {
+        recurringSyncedFor.current = null
         await fn()
+        scheduleSync()
       } catch (e) {
         reportError(context, e)
       }
     },
-    [reportError],
+    [reportError, scheduleSync],
   )
 
   const run = useCallback(
@@ -526,6 +551,7 @@ function App() {
           onCreateTag={createTag}
           onUpdateTag={updateTag}
           onDeleteTag={deleteTag}
+          sync={sync}
           onBack={() => setPage('board')}
         />
       </div>

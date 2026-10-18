@@ -2,12 +2,8 @@ import { addDays, toIso, todayIso } from '../../domain/dates'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { canRondel, isCarriedForward, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
+import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
-
-const TASKS_KEY = 'rondel.v6.tasks'
-const TAGS_KEY = 'rondel.v6.tags'
-const SETTINGS_KEY = 'rondel.v6.settings'
-const RULES_KEY = 'rondel.v6.rules'
 
 const defaultSettings: UserSetting = {
   weekStartDay: 1, // Monday
@@ -24,21 +20,7 @@ function nowIso() {
   return new Date().toISOString()
 }
 
-/* ---------- seed ---------- */
-
-// The app starts empty — a clean slate for the user's own tasks.
-function buildSeed(): { tasks: Task[]; tags: Tag[] } {
-  return { tasks: [], tags: [] }
-}
-
-/* ---------- storage ---------- */
-
-function seedIfEmpty() {
-  if (localStorage.getItem(TASKS_KEY) && localStorage.getItem(TAGS_KEY)) return
-  const seed = buildSeed()
-  localStorage.setItem(TASKS_KEY, JSON.stringify(seed.tasks))
-  localStorage.setItem(TAGS_KEY, JSON.stringify(seed.tags))
-}
+/* ---------- storage (see services/storage/localStore) ---------- */
 
 /** Fill fields added after v6 data was first saved, so existing tasks keep working. */
 function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
@@ -60,53 +42,33 @@ function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
 }
 
 function readTasks(): Task[] {
-  seedIfEmpty()
-  return (JSON.parse(localStorage.getItem(TASKS_KEY) || '[]') as Task[]).map(normalizeTask)
+  return readRaw<Task>('tasks').map(normalizeTask)
 }
 
 function writeTasks(tasks: Task[]) {
-  localStorage.setItem(TASKS_KEY, JSON.stringify(tasks))
+  writeCollection('tasks', tasks, normalizeTask)
 }
 
 function readTags(): Tag[] {
-  seedIfEmpty()
-  return JSON.parse(localStorage.getItem(TAGS_KEY) || '[]') as Tag[]
+  return readRaw<Tag>('tags')
 }
 
 function writeTags(tags: Tag[]) {
-  localStorage.setItem(TAGS_KEY, JSON.stringify(tags))
+  writeCollection('tags', tags)
 }
 
+// Defaults aren't saved until the user changes something, so a fresh device
+// never "edits" settings and overrides another device's real ones on sync.
 function readSettings(): UserSetting {
-  const raw = localStorage.getItem(SETTINGS_KEY)
-  if (!raw) {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings))
-    return defaultSettings
-  }
-  return { ...defaultSettings, ...(JSON.parse(raw) as Partial<UserSetting>) }
-}
-
-function writeSettings(settings: UserSetting) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  return { ...defaultSettings, ...(readSettingsRaw() ?? {}) }
 }
 
 function readRules(): RecurringRule[] {
-  const raw = localStorage.getItem(RULES_KEY)
-  if (!raw) {
-    const seeded = buildSeedRules()
-    localStorage.setItem(RULES_KEY, JSON.stringify(seeded))
-    return seeded
-  }
-  return JSON.parse(raw) as RecurringRule[]
+  return readRaw<RecurringRule>('rules')
 }
 
 function writeRules(rules: RecurringRule[]) {
-  localStorage.setItem(RULES_KEY, JSON.stringify(rules))
-}
-
-function buildSeedRules(): RecurringRule[] {
-  // Start with no recurring rules — the user creates their own.
-  return []
+  writeCollection('rules', rules)
 }
 
 /* ---------- helpers ---------- */
@@ -195,8 +157,17 @@ function findIndexOrThrow(tasks: Task[], id: string): number {
   return index
 }
 
+/**
+ * The id is derived from the rule and the day, so every device creating the
+ * same occurrence produces the same record and sync merges them into one.
+ */
+export function occurrenceId(ruleId: string, date: string): string {
+  return `rec:${ruleId}:${date}`
+}
+
 function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): Task {
   return newTask({
+    id: occurrenceId(rule.id, occ.date),
     title: rule.title,
     dayDate: occ.dayDate,
     rondeled: occ.rondeled,
@@ -459,12 +430,13 @@ export const mockDataSource: DataSource = {
       kind === 'weekly-start' || kind === 'monthly-start'
 
     // Keep only one outstanding (not-done) task per start-rule: clean up any
-    // duplicates from earlier over-generation, keeping the earliest.
+    // duplicates (from older versions, or two devices before sync), keeping the
+    // earliest. Ordered by creation then id, so every device keeps the same one.
     for (const rule of rules) {
       if (!isStartRule(rule.kind)) continue
       const pending = tasks
         .filter((t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t))
-        .sort((a, b) => a.position - b.position)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
       if (pending.length > 1) {
         const removeIds = new Set(pending.slice(1).map((t) => t.id))
         for (let i = tasks.length - 1; i >= 0; i--) {
@@ -474,7 +446,7 @@ export const mockDataSource: DataSource = {
       }
     }
 
-    for (const rule of rules) {
+    for (const [index, rule] of rules.entries()) {
       const start = rule.lastRunDate ? addDays(rule.lastRunDate, 1) : rule.createdAt.slice(0, 10)
       const occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
       if (occurrences.length === 0) continue
@@ -491,7 +463,7 @@ export const mockDataSource: DataSource = {
         tasks.push(taskFromRule(rule, occ, tasks.length))
         changedTasks = true
         if (!rule.lastRunDate || occ.date > rule.lastRunDate) {
-          rule.lastRunDate = occ.date
+          rules[index] = { ...rule, lastRunDate: occ.date }
           changedRules = true
         }
         continue
@@ -505,7 +477,7 @@ export const mockDataSource: DataSource = {
       }
 
       if (last !== rule.lastRunDate) {
-        rule.lastRunDate = last
+        rules[index] = { ...rule, lastRunDate: last }
         changedRules = true
       }
     }

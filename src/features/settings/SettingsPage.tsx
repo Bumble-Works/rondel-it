@@ -4,6 +4,8 @@ import type { Tag, UserSetting } from '../../domain/types'
 import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
 import { InlineEditInput } from '../../shared/ui/InlineEditInput'
+import type { useSync } from '../sync/useSync'
+import { SyncSettings } from './SyncSettings'
 import { TagColorInput } from './TagColorInput'
 import './SettingsPage.css'
 
@@ -25,6 +27,7 @@ interface SettingsPageProps {
   onCreateTag: (name: string, color: string) => void
   onUpdateTag: (id: string, patch: { name?: string; color?: string }) => void
   onDeleteTag: (id: string) => void
+  sync: ReturnType<typeof useSync>
   onBack: () => void
 }
 
@@ -35,6 +38,7 @@ export function SettingsPage({
   onCreateTag,
   onUpdateTag,
   onDeleteTag,
+  sync,
   onBack,
 }: SettingsPageProps) {
   const [newTag, setNewTag] = useState('')
@@ -155,6 +159,8 @@ export function SettingsPage({
             </Button>
           </div>
         </section>
+
+        <SyncSettings sync={sync} />
       </div>
     </div>
   )
