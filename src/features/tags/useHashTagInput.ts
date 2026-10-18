@@ -108,6 +108,8 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
       },
       onSelect: (e: SyntheticEvent<E>) => setCaret(e.currentTarget.selectionStart ?? 0),
     },
+    /** Hides the suggestions (e.g. when the field loses focus); typing again shows them. */
+    dismiss: () => setDismissed(true),
     /** Clears the input (or sets it back to `to`) and any picked tags. */
     reset: (to = '') => {
       setText(to)

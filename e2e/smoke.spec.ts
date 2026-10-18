@@ -117,3 +117,15 @@ test('#tag suggestions in "Add a task" are not cut off by the day section', asyn
   const onTop = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.textContent?.trim(), [box.x + box.width / 2, box.y + box.height / 2])
   expect(onTop).toBe('Create #err')
 })
+
+test('#tag suggestions in the side panel title close when you click away', async ({ page }) => {
+  await addTask(page, 'Plan offsite')
+  await page.getByRole('button', { name: /^Open Plan offsite/ }).click()
+  const title = page.getByLabel('Title')
+  await title.click()
+  await title.press('End')
+  await title.pressSequentially(' #team')
+  await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeVisible()
+  await page.locator('#detail-note').click()
+  await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeHidden()
+})

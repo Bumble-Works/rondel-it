@@ -25,6 +25,8 @@ export function TaskTitleField({ task, allTags, onChangeTitle, onAddTag, createT
   })
 
   const commit = () => {
+    // The suggestions float over the page, so they must close when focus leaves.
+    input.dismiss()
     const next = input.text.trim()
     if (next && next !== task.title) onChangeTitle(next)
     else if (!next) input.reset(task.title)

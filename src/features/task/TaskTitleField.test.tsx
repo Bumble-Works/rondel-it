@@ -41,4 +41,16 @@ describe('TaskTitleField', () => {
     await userEvent.type(title, '!{Enter}')
     expect(onChangeTitle).toHaveBeenCalledWith('Plan offsite!')
   })
+
+  it('closes the suggestions when the title loses focus, and reopens them on typing', async () => {
+    const { title } = setup()
+    await userEvent.type(title, ' #wo')
+    expect(screen.getByRole('listbox', { name: 'Tag suggestions' })).toBeInTheDocument()
+
+    fireEvent.blur(title)
+    expect(screen.queryByRole('listbox', { name: 'Tag suggestions' })).not.toBeInTheDocument()
+
+    await userEvent.type(title, 'r')
+    expect(screen.getByRole('option', { name: '#work' })).toBeInTheDocument()
+  })
 })
