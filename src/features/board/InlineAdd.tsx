@@ -38,6 +38,7 @@ export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task'
           if (e.key === 'Escape') input.reset()
         }}
         onBlur={(e) => {
+          input.dismiss()
           // Focus moving to a chip's remove button stays inside the widget.
           if (e.currentTarget.parentElement?.contains(e.relatedTarget)) return
           submit()
@@ -55,7 +56,7 @@ export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task'
           }}
         />
       ))}
-      {input.open && <HashTagMenu options={input.options} highlight={input.highlight} onPick={input.pick} />}
+      {input.open && <HashTagMenu anchorRef={input.inputRef} options={input.options} highlight={input.highlight} onPick={input.pick} />}
     </div>
   )
 }
