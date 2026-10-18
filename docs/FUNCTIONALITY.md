@@ -268,11 +268,16 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Printing
 
-- **One 🖨 in the top bar, on every view.** It prints the view as shown:
+- **🖨 in the top bar, on every view.** Its tooltip says what it prints
+  ("Print Week of Oct 12 – Oct 18, every day with tasks"). It prints the view
+  as shown:
   - **Day:** that day ("Monday, October 19").
   - **Week / Month:** the whole period ("Week of Oct 12 – Oct 18",
     "October 2026"), one heading per day in calendar order.
   - **Bucket List:** the list, titled "Bucket List".
+- **One day from Week or Month:** each day's header has its own 🖨 (it shows
+  when you hover the day; tooltip "Print Monday, October 19"), for preparing
+  tomorrow or next Monday without switching views. Day view uses the top bar.
 - **Rondeled items** waiting in the week's/month's container are not printed.
 - Empty sections are left out; if nothing is left, the page says "Nothing to
   print."
