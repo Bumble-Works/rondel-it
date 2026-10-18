@@ -1,4 +1,4 @@
-import { findTagByName, hashQueryAt, matchTags, removeHashToken } from './hashTags'
+import { findTagByName, hashQueryAt, matchTags, nextTagColor, removeHashToken, TAG_COLORS } from './hashTags'
 import type { Tag } from './types'
 
 const tags: Tag[] = [
@@ -27,3 +27,22 @@ describe('hash tags', () => {
     expect(removeHashToken('Call #fam mom', 5, 9)).toEqual({ text: 'Call mom', caret: 5 })
   })
 })
+
+describe('nextTagColor', () => {
+  const tag = (color: string) => ({ id: color, name: color, color })
+  it('cycles through the palette as tags are added', () => {
+    const tags = []
+    for (const expected of TAG_COLORS) {
+      const color = nextTagColor(tags)
+      expect(color).toBe(expected)
+      tags.push(tag(color))
+    }
+    expect(nextTagColor(tags)).toBe(TAG_COLORS[0]) // all used once: start over
+  })
+
+  it('fills in the least-used color, e.g. after a tag is deleted or recolored', () => {
+    const tags = TAG_COLORS.map(tag).filter((t) => t.color !== TAG_COLORS[3])
+    expect(nextTagColor(tags)).toBe(TAG_COLORS[3])
+  })
+})
+

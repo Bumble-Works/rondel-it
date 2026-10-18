@@ -3,6 +3,9 @@ import { findTagByName, hashQueryAt, matchTags, removeHashToken } from '../../do
 import type { Tag } from '../../domain/types'
 
 /** 'added': the tag is already on it; shown so you can see that, and picking just clears the #word. */
+/** Typing just "#" lists every tag; each letter narrows it down. */
+const ALL_TAGS = Number.POSITIVE_INFINITY
+
 export type HashTagOption = { kind: 'tag' | 'added'; tag: Tag } | { kind: 'create'; name: string }
 
 interface Options {
@@ -47,7 +50,7 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
   const isAdded = (t: Tag) => tagIds.includes(t.id) || excludeTagIds.includes(t.id)
   const options: HashTagOption[] = query
     ? [
-        ...matchTags(tags, query.query).map((tag) => ({ kind: isAdded(tag) ? ('added' as const) : ('tag' as const), tag })),
+        ...matchTags(tags, query.query, ALL_TAGS).map((tag) => ({ kind: isAdded(tag) ? ('added' as const) : ('tag' as const), tag })),
         ...(query.query && !findTagByName(tags, query.query) ? [{ kind: 'create' as const, name: query.query }] : []),
       ]
     : []

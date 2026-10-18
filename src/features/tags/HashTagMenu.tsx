@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import type { HashTagOption } from './useHashTagInput'
 import './HashTagMenu.css'
@@ -51,7 +51,15 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
           key={option.kind === 'create' ? `create:${option.name}` : option.tag.id}
           role="option"
           aria-selected={index === highlight}
-          className={`hashtag-option ${index === highlight ? 'is-active' : ''}`.trim()}
+          className={[
+            'hashtag-option',
+            option.kind === 'create' ? 'hashtag-option--create' : '',
+            option.kind === 'added' ? 'is-added' : '',
+            index === highlight ? 'is-active' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          style={option.kind === 'create' ? undefined : ({ '--tag': option.tag.color } as CSSProperties)}
           // mousedown, not click: keep focus in the input so it doesn't blur-submit.
           onMouseDown={(e) => {
             e.preventDefault()
@@ -59,10 +67,10 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
           }}
         >
           {option.kind === 'create' ? (
-            <span className="hashtag-create">Create #{option.name}</span>
+            <>Create #{option.name}</>
           ) : (
             <>
-              <span className="hashtag-dot" style={{ background: option.tag.color }} />#{option.tag.name}
+              <span className="hashtag-dot" />#{option.tag.name}
               {option.kind === 'added' && <span className="hashtag-added">✓ Added</span>}
             </>
           )}
