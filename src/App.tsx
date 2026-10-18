@@ -579,6 +579,7 @@ function App() {
           onUpdateTag={updateTag}
           onDeleteTag={deleteTag}
           sync={sync}
+          reportError={reportError}
           onBack={() => setPage('board')}
         />
       </div>

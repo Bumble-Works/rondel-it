@@ -1,0 +1,23 @@
+.start-at-login {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+  cursor: pointer;
+}
+
+.start-at-login input {
+  margin-top: 0.2rem;
+}
+
+.start-at-login span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.9rem;
+}
+
+.start-at-login small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
