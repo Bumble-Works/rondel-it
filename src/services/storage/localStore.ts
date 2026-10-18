@@ -32,11 +32,28 @@ function nextStamp(meta: SyncMeta): string {
   return new Date(Number.isNaN(seen) ? now : Math.max(now, seen + 1)).toISOString()
 }
 
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value)
+    for (const child of Object.values(value)) deepFreeze(child)
+  }
+  return value
+}
+
+// Parsed data is kept until the stored text changes, so reads don't re-parse
+// everything. It's frozen: code must copy records to change them, never edit
+// the cached ones in place.
+const parsed = new Map<string, { raw: string; value: unknown }>()
+
 function readJson<T>(key: string, fallback: T): T {
   const raw = localStorage.getItem(key)
   if (!raw) return fallback
+  const cached = parsed.get(key)
+  if (cached?.raw === raw) return cached.value as T
   try {
-    return JSON.parse(raw) as T
+    const value = deepFreeze(JSON.parse(raw) as T)
+    parsed.set(key, { raw, value })
+    return value
   } catch (e) {
     // Don't silently wipe data: surface it, and leave the stored value untouched.
     throw new Error(`Saved data for "${key}" is unreadable`, { cause: e })
@@ -56,8 +73,9 @@ function writeMeta(meta: SyncMeta) {
   localStorage.setItem(KEYS.meta, JSON.stringify(meta))
 }
 
+/** A fresh array (safe to push/splice) of frozen records. */
 export function readRaw<T>(collection: Collection): T[] {
-  return readJson<T[]>(KEYS[collection], [])
+  return [...readJson<T[]>(KEYS[collection], [])]
 }
 
 /**

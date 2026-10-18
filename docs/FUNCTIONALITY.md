@@ -146,7 +146,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   month's last day), or "start of each week/month" (waits in that period's rondel container).
 - A task is created **on its own day, never ahead of time**: the sync only
   goes up to today in your time zone. Browsing forward creates nothing.
-- While the app is open, it syncs after midnight. Otherwise it syncs on the next open.
+- Recurring tasks are created once per day (and again when rules change), not
+  on every action. While the app is open it catches the new day after
+  midnight; otherwise on the next open.
 - "Start of week/month" rules keep only one unfinished task at a time. The
   next one isn't created until the current one is done.
 - Rule titles save on blur or Enter.
@@ -168,7 +170,7 @@ Today, Next week, Next month, Pick a date, Mark done.
   when it last synced, and *Sync now*, *Show in Finder*, *Change folder…*,
   *Turn off*. In the browser version it says sync needs the Mac app.
 - **When:** on open, when the window regains focus, ~2 seconds after any
-  change, and every 2 minutes while open.
+  change, and every 2 minutes while the window is visible (paused while hidden).
 - **How:** each device writes its full data to `devices/<device-id>.json` and
   reads the others. Per task / tag / recurring rule, **the most recent edit
   wins**; settings too. Data saved before sync existed counts as oldest.
