@@ -134,8 +134,10 @@ Today, Next week, Next month, Pick a date, Mark done.
   ~32 characters with "…". The tooltip and the link itself use the full URL.
 - In the side panel, the title and note are text boxes, so their links are
   listed (clickable) under the note.
-- Long words and links wrap; they never run over the row's buttons, even in a
-  narrow window.
+- **Long text never runs over the buttons on the right**, at any width: long
+  titles, words and links wrap; the note preview and long tag names are
+  trimmed with "…". The same holds in the nag list, recurring rules and
+  sidebar tag filters.
 
 ## Tags and filters
 
