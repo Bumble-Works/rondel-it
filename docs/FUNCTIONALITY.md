@@ -48,7 +48,8 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   "Tomorrow (Thursday)", "Yesterday (Tuesday)"; other days show just the
   weekday. The Day view's page title stays short ("Today") because its
   subtitle already says "Wednesday, October 15".
-- Month view scrolls to today when it opens on the current month.
+- **Week and Month** views scroll to today when they open on the period that
+  contains today (they list the newest day first).
 - In **Day** and **Bucket List** views the section doesn't repeat the page
   title: it shows a slim row with the task count ("3 tasks") and 🖨 print.
   Week and Month keep each day's title, since there are many days.

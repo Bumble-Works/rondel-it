@@ -22,6 +22,7 @@ import {
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from './domain/types'
 import type { BoardGroup, BoardGroupAddTarget } from './features/board/WeekBoard'
 import { WeekBoard } from './features/board/WeekBoard'
+import { useScrollToToday } from './features/board/useScrollToToday'
 import { DatePickModal } from './features/rondel/DatePickModal'
 import { RecurringPage } from './features/recurring/RecurringPage'
 import { SettingsPage } from './features/settings/SettingsPage'
@@ -214,15 +215,7 @@ function App() {
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
-  // Month view lists the newest day first, so today can be far down: bring it
-  // into view whenever the month containing today is shown.
-  useEffect(() => {
-    if (view !== 'month' || !sameMonth(monthStart, today)) return
-    const frame = requestAnimationFrame(() =>
-      document.querySelector('.board-section.is-highlight')?.scrollIntoView({ block: 'start' }),
-    )
-    return () => cancelAnimationFrame(frame)
-  }, [view, monthStart, today])
+  useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
   // Print once the sheet for the requested day has rendered.
   useEffect(() => {
