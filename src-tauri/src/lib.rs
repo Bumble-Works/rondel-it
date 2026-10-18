@@ -1,8 +1,20 @@
+use tauri::Manager;
+
+/// Passed when macOS starts the app at login, so it starts quietly in the background.
+const LAUNCHED_AT_LOGIN: &str = "--at-login";
+
 /// Opens the print dialog for the page (with "Save as PDF"). The Mac web view
 /// ignores window.print(), so the page asks for it here.
 #[tauri::command]
 fn print_page(window: tauri::WebviewWindow) -> Result<(), String> {
   window.print().map_err(|e| e.to_string())
+}
+
+fn show_main_window(app: &tauri::AppHandle) {
+  if let Some(window) = app.get_webview_window("main") {
+    let _ = window.show();
+    let _ = window.set_focus();
+  }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -16,6 +28,11 @@ pub fn run() {
     .plugin(tauri_plugin_opener::init())
     // Reminders and review times show in Notification Center, even when hidden.
     .plugin(tauri_plugin_notification::init())
+    // "Start Rondel It at login" (off unless the user turns it on in Settings).
+    .plugin(tauri_plugin_autostart::init(
+      tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+      Some(vec![LAUNCHED_AT_LOGIN]),
+    ))
     .invoke_handler(tauri::generate_handler![print_page])
     .setup(|app| {
       if cfg!(debug_assertions) {
@@ -25,8 +42,22 @@ pub fn run() {
             .build(),
         )?;
       }
+      // Started at login: stay hidden (reminders still run) until opened from the Dock.
+      if std::env::args().any(|arg| arg == LAUNCHED_AT_LOGIN) {
+        if let Some(window) = app.get_webview_window("main") {
+          let _ = window.hide();
+        }
+      }
       Ok(())
     })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    .build(tauri::generate_context!())
+    .expect("error while building tauri application")
+    .run(|app, event| {
+      // Clicking the Dock icon shows the window again if it was hidden.
+      #[cfg(target_os = "macos")]
+      if let tauri::RunEvent::Reopen { .. } = event {
+        show_main_window(app);
+      }
+      let _ = (app, event);
+    });
 }

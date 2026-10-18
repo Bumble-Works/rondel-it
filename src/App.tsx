@@ -36,6 +36,7 @@ import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 import { useSync } from './features/sync/useSync'
+import { restoreMenuBarIcon } from './shared/startAtLogin'
 import { PrintSheet } from './features/print/PrintSheet'
 import { printPage } from './features/print/printPage'
 import { useSchedule } from './features/reminders/useSchedule'
@@ -205,6 +206,11 @@ function App() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAppData()
   }, [loadAppData])
+
+  // The menu-bar icon shows while "Start at login" is on.
+  useEffect(() => {
+    restoreMenuBarIcon().catch((e) => reportError('Couldn’t show the menu-bar icon', e))
+  }, [reportError])
 
   const sync = useSync({
     onRemoteChange: useCallback(() => {
@@ -574,6 +580,7 @@ function App() {
           onUpdateTag={updateTag}
           onDeleteTag={deleteTag}
           sync={sync}
+          reportError={reportError}
           onBack={() => setPage('board')}
         />
       </div>

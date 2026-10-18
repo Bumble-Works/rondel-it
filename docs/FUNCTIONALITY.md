@@ -214,6 +214,17 @@ Today, Next week, Next month, Pick a date, Mark done.
   completed that day. (Done on a rondeled item moves it to today, as before.)
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
+## Start at login (Mac app)
+
+- Settings → Week & day rhythm → **Start Rondel It at login**. **Off by
+  default.** It's this Mac's login item, so it's per device and never synced
+  (the browser version doesn't show it).
+- Started at login, the app opens **hidden** in the background, so reminders
+  and review times still arrive; clicking it in the Dock shows the window.
+- While it's on, a **menu-bar icon** (one-color logo, tinted for light/dark
+  menu bars) shows the app is running, with **Open Rondel It** and **Quit
+  Rondel It**. Turning the setting off removes the icon.
+
 ## Sync (Mac app)
 
 - **Off by default.** Settings → Sync → *Choose folder…* picks a folder in a
