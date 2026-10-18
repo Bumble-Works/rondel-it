@@ -174,7 +174,8 @@ Frontend:
 ### Keep the Mac app lean (branch `feat/lean`)
 - [x] Recurring sync runs once a day / on rule changes, not on every action
 - [x] Parsed data cached in memory (frozen, so in-place edits fail loudly)
-- [x] Timers (review-time check, sync) pause while the window is hidden
+- [x] Sync timer pauses while the window is hidden; review times, reminders
+  and midnight use one timer set for the next event instead of polling
 - [x] Smaller release binary (Rust size settings)
 - [ ] Measure real memory after a week of use; set a budget (~100 MB)
 - [ ] Optimistic updates instead of reloading the board after each action
