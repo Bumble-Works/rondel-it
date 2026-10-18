@@ -32,13 +32,13 @@ describe('PrintSheet', () => {
   it('prints the day with each task’s status, flag, tags and full note', () => {
     render(
       <PrintSheet
-        dayIso="2026-10-19"
-        tasks={[
+        title="Monday, October 19"
+        days={[{ dayIso: '2026-10-19', tasks: [
           task({ title: 'Ship release', status: 'done' }),
           task({ title: 'Review PR', status: 'doing', flagged: true, tagIds: ['w'], note: 'Ask about tests\nand docs' }),
           task({ title: 'Started, moved on', status: 'doing', carriedToId: 'next' }),
           task({ title: 'Email Sam' }),
-        ]}
+        ] }]}
         tagsById={new Map([['w', work]])}
         filterSummary="Tags: #work"
       />,
@@ -46,16 +46,43 @@ describe('PrintSheet', () => {
     const sheet = document.querySelector('.print-sheet')!
     expect(sheet.querySelector('h1')).toHaveTextContent('Monday, October 19')
     expect(sheet).toHaveTextContent('4 tasks · Filtered: Tags: #work')
-    expect(sheet).toHaveTextContent('☑Ship release — Done')
+    expect(sheet).toHaveTextContent('●Ship release — Done')
     expect(sheet).toHaveTextContent('◐⚑ Review PR — Doing')
     expect(sheet).toHaveTextContent('#work')
     expect(sheet.querySelector('.print-note')?.textContent).toBe('Ask about tests\nand docs')
     expect(sheet).toHaveTextContent('Started, moved on — Worked on, carried forward')
-    expect(sheet).toHaveTextContent('☐Email Sam — To do')
+    expect(sheet).toHaveTextContent('○Email Sam — To do')
+    expect(sheet.querySelector('h2')).toBeNull() // one day: no day headings
   })
 
   it('says so when the (filtered) day is empty', () => {
-    render(<PrintSheet dayIso="2026-10-19" tasks={[]} tagsById={new Map()} filterSummary={null} />)
+    render(<PrintSheet title="Monday, October 19" days={[{ dayIso: '2026-10-19', tasks: [] }]} tagsById={new Map()} filterSummary={null} />)
     expect(document.querySelector('.print-sheet')).toHaveTextContent('0 tasksNothing on this day.')
+  })
+
+  it('prints a week as one sheet with a heading per day, in calendar order', () => {
+    render(
+      <PrintSheet
+        title="Week of Oct 19 – Oct 25"
+        byDay
+        days={[
+          { dayIso: '2026-10-19', tasks: [task({ title: 'Monday thing' })] },
+          { dayIso: '2026-10-21', tasks: [task({ title: 'Wednesday thing', status: 'done' })] },
+        ]}
+        tagsById={new Map()}
+        filterSummary={null}
+      />,
+    )
+    const sheet = document.querySelector('.print-sheet')!
+    expect(sheet.querySelector('h1')).toHaveTextContent('Week of Oct 19 – Oct 25')
+    expect(sheet).toHaveTextContent('2 tasks')
+    expect([...sheet.querySelectorAll('h2')].map((h) => h.textContent)).toEqual(['Monday, October 19', 'Wednesday, October 21'])
+  })
+
+  it('keeps the day heading in a week where only one day has tasks', () => {
+    render(
+      <PrintSheet title="Week of Oct 19 – Oct 25" byDay days={[{ dayIso: '2026-10-21', tasks: [task({ title: 'Only one' })] }]} tagsById={new Map()} filterSummary={null} />,
+    )
+    expect(document.querySelector('.print-sheet h2')).toHaveTextContent('Wednesday, October 21')
   })
 })

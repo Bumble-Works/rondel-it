@@ -31,6 +31,7 @@ import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
+import { IconButton } from './shared/ui/IconButton'
 import { Menu } from './shared/ui/Menu'
 import { TagChip } from './shared/ui/TagChip'
 import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
@@ -105,7 +106,7 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   // The day being printed. The sheet stays mounted (hidden on screen) so the
   // print dialog always has it, however long the dialog stays open.
-  const [printRequest, setPrintRequest] = useState<{ dayIso: string; at: number } | null>(null)
+  const [printRequest, setPrintRequest] = useState<{ title: string; dayIsos: string[]; at: number } | null>(null)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
@@ -478,7 +479,7 @@ function App() {
       addTarget: { dayDate: iso },
       tasks: dayTasks,
       emptyLabel: 'Nothing here yet — add your first task below',
-      onPrint: () => setPrintRequest({ dayIso: iso, at: Date.now() }),
+      onPrint: () => setPrintRequest({ title: formatDayLabel(iso), dayIsos: [iso], at: Date.now() }),
     }
   }
 
@@ -725,6 +726,20 @@ function App() {
                 )}
               </Menu>
             ) : null}
+            {(view === 'week' || view === 'month') && (
+              <IconButton
+                icon="print"
+                label={view === 'week' ? 'Print this week' : 'Print this month'}
+                onClick={() =>
+                  setPrintRequest({
+                    title: view === 'week' ? `Week of ${subtitle}` : subtitle,
+                    // Calendar order on paper (the board lists newest first).
+                    dayIsos: view === 'week' ? weekDays(anchorWeekStart) : [...monthDayIsos()].reverse(),
+                    at: Date.now(),
+                  })
+                }
+              />
+            )}
             {canPage && (
               <div className="app-nav">
                 <button
@@ -824,8 +839,13 @@ function App() {
       {/* After the nag so "Pick a date" from the nag opens on top of it. */}
       {printRequest && (
         <PrintSheet
-          dayIso={printRequest.dayIso}
-          tasks={dayGroup(printRequest.dayIso).tasks}
+          title={printRequest.title}
+          // The same day lists the board shows (filters applied). For a week or
+          // month, days without tasks are left out.
+          days={printRequest.dayIsos
+            .map((iso) => ({ dayIso: iso, tasks: dayGroup(iso).tasks }))
+            .filter((day) => printRequest.dayIsos.length === 1 || day.tasks.length > 0)}
+          byDay={printRequest.dayIsos.length > 1}
           tagsById={tagsById}
           filterSummary={filterSummary()}
         />

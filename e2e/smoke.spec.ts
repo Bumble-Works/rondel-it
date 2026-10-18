@@ -94,3 +94,18 @@ test('a task left undone on a past day nags, and Done marks it done on that day'
   await expect(row(page, 'Forgot to check off')).toHaveClass(/is-done/)
 })
 
+test('prints the whole week from the top bar, skipping empty days', async ({ page }) => {
+  await addTask(page, 'This week thing')
+  await page.locator('.sidebar-link', { hasText: 'Week' }).click()
+  await page.evaluate(() => {
+    window.print = () => document.body.setAttribute('data-printed', 'yes')
+  })
+  await page.getByRole('button', { name: 'Print this week' }).click()
+  await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes')
+  await page.emulateMedia({ media: 'print' })
+  const sheet = page.locator('.print-sheet')
+  await expect(sheet.locator('h1')).toContainText('Week of')
+  await expect(sheet.locator('h2')).toHaveCount(1)
+  await expect(sheet).toContainText('○This week thing — To do')
+})
+
