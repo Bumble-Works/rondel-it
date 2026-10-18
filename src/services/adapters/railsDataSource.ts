@@ -51,6 +51,7 @@ function mapTask(payload: Record<string, unknown>): Task {
     position: Number(payload.position),
     rondelCount: Number(payload.rondelCount),
     flagged: Boolean(payload.flagged),
+    reminderTime: optionalString(payload.reminderTime),
     tagIds: (payload.tagIds as string[]) || [],
     note: String(payload.note || ''),
     createdAt: String(payload.createdAt || ''),
@@ -87,6 +88,11 @@ export const railsDataSource: DataSource = {
     return response.tasks.map(mapTask)
   },
 
+  async listUpcomingReminders(fromDate) {
+    const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?reminders_from=${fromDate}`)
+    return response.tasks.map(mapTask)
+  },
+
   async listLeftUndone(date) {
     const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?undone_before=${date}`)
     return response.tasks.map(mapTask)
@@ -113,7 +119,13 @@ export const railsDataSource: DataSource = {
   async updateTask(id, input) {
     const response = await request<{ task: Record<string, unknown> }>(`/tasks/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ title: input.title, tag_ids: input.tagIds, note: input.note, flagged: input.flagged }),
+      body: JSON.stringify({
+        title: input.title,
+        tag_ids: input.tagIds,
+        note: input.note,
+        flagged: input.flagged,
+        reminder_time: input.reminderTime,
+      }),
     })
     return mapTask(response.task)
   },
@@ -198,10 +210,10 @@ export const railsDataSource: DataSource = {
     return response.rule
   },
 
-  async updateRecurringRule(id, input) {
+  async updateRecurringRule(id, input, options) {
     const response = await request<{ rule: RecurringRule }>(`/recurring_rules/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify(snakeKeys(input)),
+      body: JSON.stringify({ ...snakeKeys(input), apply_to_open_tasks: options?.applyToOpenTasks ?? false }),
     })
     return response.rule
   },

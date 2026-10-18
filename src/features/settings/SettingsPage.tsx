@@ -5,6 +5,7 @@ import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
 import { InlineEditInput } from '../../shared/ui/InlineEditInput'
 import type { useSync } from '../sync/useSync'
+import { StartAtLoginSetting } from './StartAtLoginSetting'
 import { SyncSettings } from './SyncSettings'
 import { TagColorInput } from './TagColorInput'
 import './SettingsPage.css'
@@ -28,6 +29,7 @@ interface SettingsPageProps {
   onUpdateTag: (id: string, patch: { name?: string; color?: string }) => void
   onDeleteTag: (id: string) => void
   sync: ReturnType<typeof useSync>
+  reportError: (context: string, e: unknown) => void
   onBack: () => void
 }
 
@@ -39,6 +41,7 @@ export function SettingsPage({
   onUpdateTag,
   onDeleteTag,
   sync,
+  reportError,
   onBack,
 }: SettingsPageProps) {
   const [newTag, setNewTag] = useState('')
@@ -95,6 +98,7 @@ export function SettingsPage({
               onChange={(e) => e.target.value && onUpdateSettings({ endOfDayTime: e.target.value })}
             />
           </div>
+          <StartAtLoginSetting reportError={reportError} />
         </section>
 
         <section className="settings-card">

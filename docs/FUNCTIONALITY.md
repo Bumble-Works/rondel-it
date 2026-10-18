@@ -182,9 +182,30 @@ Today, Next week, Next month, Pick a date, Mark done.
 - In the new-rule form, selected tags show a colored border and ✓; unselected
   ones are plain outlines.
 
+## Reminders
+
+- A dated task can have a **reminder time** (side panel → Reminder). Only a
+  time: the task's day is the date. The row shows 🔔 and the time.
+- A reminder needs a day: Bucket List items, rondeled items waiting in a
+  container and history copies can't have one ("Give it a day to set a reminder").
+- At that time a **notification** appears: Mac Notification Center in the Mac
+  app (the browser version uses browser notifications). Permission is asked
+  the first time you set a reminder.
+- Reminders fire **while the app is running, even if its window is hidden or
+  minimized**, but not while it's fully quit. A reminder missed earlier today
+  (app closed, Mac asleep) fires when the app opens; earlier days don't.
+  Each fires once, even across restarts. Done tasks don't remind.
+- **Recurring rules** can have a reminder time; each task they create gets it.
+  Changing the reminder on a recurring task asks **"Only this one"** or
+  **"All"** (the rule, plus its tasks that aren't done yet).
+
 ## Nag and review times
 
 - Settings: **morning review time** and **end-of-day rondel time**.
+- At each review time, if anything needs a decision, the nag opens and a
+  notification appears, **even while the window is hidden** (same rules as
+  reminders: the app must be running). Review times already past when the app
+  opens are covered by the nag shown on open.
 - The nag opens once when the app opens, and again at each review time, if
   anything needs a decision. It closes when nothing is left. It has two sections:
   - **Left undone on past days:** todo/doing tasks on any day before today
@@ -197,6 +218,17 @@ Today, Next week, Next month, Pick a date, Mark done.
   if you finished it then and forgot to check it off: it stays on that day,
   completed that day. (Done on a rondeled item moves it to today, as before.)
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
+
+## Start at login (Mac app)
+
+- Settings → Week & day rhythm → **Start Rondel It at login**. **Off by
+  default.** It's this Mac's login item, so it's per device and never synced
+  (the browser version doesn't show it).
+- Started at login, the app opens **hidden** in the background, so reminders
+  and review times still arrive; clicking it in the Dock shows the window.
+- While it's on, a **menu-bar icon** (one-color logo, tinted for light/dark
+  menu bars) shows the app is running, with **Open Rondel It** and **Quit
+  Rondel It**. Turning the setting off removes the icon.
 
 ## Sync (Mac app)
 
@@ -267,5 +299,7 @@ Today, Next week, Next month, Pick a date, Mark done.
   fields are filled in on read, and nothing is reset.
 - Done items left in a rondel container by older versions are moved, on read,
   to the day they were completed.
-- Time zone: uses your computer's time zone. It isn't editable in Settings yet.
+- Time zone: everything (the board's "today", review times, reminders,
+  midnight and recurring tasks) uses **this device's** time zone, so it
+  follows you when you travel. The synced settings' `timezone` isn't used.
 - The Rails adapter (`VITE_DATA_SOURCE=rails`) sends snake_case and reads camelCase.

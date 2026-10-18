@@ -28,6 +28,7 @@ function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
     ...task,
     originDate: task.originDate ?? task.dayDate ?? null,
     flagged: task.flagged ?? false,
+    reminderTime: task.reminderTime ?? null,
     originTaskId: task.originTaskId ?? null,
     previousTaskId: task.previousTaskId ?? null,
     carriedToId: task.carriedToId ?? null,
@@ -63,12 +64,17 @@ function readSettings(): UserSetting {
   return { ...defaultSettings, ...(readSettingsRaw() ?? {}) }
 }
 
+/** Fill fields added to rules later, so existing rules keep working. */
+function normalizeRule(rule: RecurringRule): RecurringRule {
+  return { ...rule, reminderTime: rule.reminderTime ?? null }
+}
+
 function readRules(): RecurringRule[] {
-  return readRaw<RecurringRule>('rules')
+  return readRaw<RecurringRule>('rules').map(normalizeRule)
 }
 
 function writeRules(rules: RecurringRule[]) {
-  writeCollection('rules', rules)
+  writeCollection('rules', rules, normalizeRule)
 }
 
 /* ---------- helpers ---------- */
@@ -103,6 +109,7 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
     bucket: null,
     rondelCount: 0,
     flagged: false,
+    reminderTime: null,
     tagIds: [],
     note: '',
     createdAt: nowIso(),
@@ -186,6 +193,7 @@ function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): T
     tagIds: [...rule.tagIds],
     note: rule.note,
     recurringRuleId: rule.id,
+    reminderTime: rule.reminderTime ?? null,
   })
 }
 
@@ -207,6 +215,18 @@ export const mockDataSource: DataSource = {
   async listRondelItems() {
     const tasks = readTasks().filter((t) => t.rondeled)
     return ordered(tasks)
+  },
+
+  async listUpcomingReminders(fromDate) {
+    return readTasks().filter(
+      (t) =>
+        t.reminderTime !== null &&
+        t.dayDate !== null &&
+        t.dayDate >= fromDate &&
+        (t.status === 'todo' || t.status === 'doing') &&
+        !t.rondeled &&
+        !isCarriedForward(t),
+    )
   },
 
   async listLeftUndone(date) {
@@ -253,6 +273,7 @@ export const mockDataSource: DataSource = {
       tagIds: input.tagIds ?? tasks[index].tagIds,
       note: input.note ?? tasks[index].note,
       flagged: input.flagged ?? tasks[index].flagged,
+      reminderTime: input.reminderTime !== undefined ? input.reminderTime : tasks[index].reminderTime,
     }
     writeTasks(tasks)
     return tasks[index]
@@ -301,6 +322,7 @@ export const mockDataSource: DataSource = {
         position: tasks.length,
         rondelCount: source.rondelCount + 1,
         flagged: source.flagged,
+        reminderTime: source.reminderTime,
         tagIds: [...source.tagIds],
         note: source.note,
         recurringRuleId: source.recurringRuleId,
@@ -406,6 +428,7 @@ export const mockDataSource: DataSource = {
       kind: input.kind,
       weekday: input.weekday ?? null,
       dayOfMonth: input.dayOfMonth ?? null,
+      reminderTime: input.reminderTime ?? null,
       createdAt: nowIso(),
       lastRunDate: null,
     }
@@ -414,10 +437,15 @@ export const mockDataSource: DataSource = {
     return rule
   },
 
-  async updateRecurringRule(id, input) {
+  async updateRecurringRule(id, input, options) {
     const rules = readRules()
     const index = rules.findIndex((r) => r.id === id)
     if (index === -1) throw new Error('Recurring rule not found')
+    if (options?.applyToOpenTasks && input.reminderTime !== undefined) {
+      const reminderTime = input.reminderTime
+      const isOpen = (t: Task) => t.recurringRuleId === id && t.status !== 'done' && !isCarriedForward(t)
+      writeTasks(readTasks().map((t) => (isOpen(t) ? { ...t, reminderTime } : t)))
+    }
     rules[index] = {
       ...rules[index],
       title: input.title?.trim() || rules[index].title,
@@ -426,6 +454,7 @@ export const mockDataSource: DataSource = {
       kind: input.kind ?? rules[index].kind,
       weekday: input.weekday !== undefined ? input.weekday : rules[index].weekday,
       dayOfMonth: input.dayOfMonth !== undefined ? input.dayOfMonth : rules[index].dayOfMonth,
+      reminderTime: input.reminderTime !== undefined ? input.reminderTime : rules[index].reminderTime,
     }
     writeRules(rules)
     return rules[index]

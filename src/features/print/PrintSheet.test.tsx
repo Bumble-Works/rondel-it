@@ -13,6 +13,7 @@ function task(fields: Partial<Task>): Task {
     position: 0,
     rondelCount: 0,
     flagged: false,
+    reminderTime: null,
     tagIds: [],
     note: '',
     createdAt: '',

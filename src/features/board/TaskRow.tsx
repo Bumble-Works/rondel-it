@@ -1,5 +1,6 @@
 import { useRef, useState, type DragEvent } from 'react'
 import type { RondelTarget } from '../../services/adapters/DataSource'
+import { formatClock } from '../../domain/dates'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
@@ -160,8 +161,14 @@ export function TaskRow({
           )}
           <LinkifiedText text={task.title} />
         </span>
-        {(tags.length > 0 || task.note) && (
+        {(tags.length > 0 || task.note || task.reminderTime) && (
           <span className="task-meta">
+            {task.reminderTime && (
+              <span className="task-reminder" title="Reminder">
+                <Icon name="bell" size={12} />
+                {formatClock(task.reminderTime)}
+              </span>
+            )}
             {task.note && (
               <span className="task-note-preview">
                 <Icon name="note" size={13} />

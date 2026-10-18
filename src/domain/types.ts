@@ -15,6 +15,8 @@ export interface Task {
   position: number
   rondelCount: number
   flagged: boolean
+  /** Reminder on the task's day, 'HH:mm' (local time); null for none. */
+  reminderTime: string | null
   /** First day this task (or its lineage) was scheduled on. For reporting. */
   originDate: string | null
   /** First task in a carry-forward lineage; null when this is the original. */
@@ -39,6 +41,8 @@ export interface RecurringRule {
   tagIds: string[]
   note: string
   kind: RecurrenceKind
+  /** Reminder time copied onto each task the rule creates, 'HH:mm'. */
+  reminderTime: string | null
   /** 0=Sun..6=Sat, for 'weekly-on'. */
   weekday: number | null
   /** 1..31, for 'monthly-on'. */

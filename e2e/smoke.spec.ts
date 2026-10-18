@@ -129,3 +129,15 @@ test('#tag suggestions in the side panel title close when you click away', async
   await page.locator('#detail-note').click()
   await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeHidden()
 })
+
+test('sets a reminder on a task; the row shows it and it survives a reload', async ({ page }) => {
+  await addTask(page, 'Call the bank')
+  await row(page, 'Call the bank').locator('.task-title').click({ force: true })
+  const reminder = page.getByLabel('Reminder')
+  await reminder.fill('09:30')
+  await reminder.blur()
+  await expect(row(page, 'Call the bank').locator('.task-reminder')).toBeVisible()
+
+  await page.reload()
+  await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
+})

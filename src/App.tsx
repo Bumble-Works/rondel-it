@@ -10,7 +10,6 @@ import {
   formatShort,
   fromIso,
   isToday,
-  nowInZone,
   relativeDayLabel,
   sameMonth,
   startOfMonth,
@@ -37,9 +36,11 @@ import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 import { useSync } from './features/sync/useSync'
+import { restoreMenuBarIcon } from './shared/startAtLogin'
 import { PrintSheet } from './features/print/PrintSheet'
 import { printPage } from './features/print/printPage'
-import { startVisibleInterval } from './shared/visibleInterval'
+import { useSchedule } from './features/reminders/useSchedule'
+import { notify } from './shared/notify'
 
 const dataSource = createDataSource()
 
@@ -89,6 +90,8 @@ function App() {
   const [buckets, setBuckets] = useState<Buckets>(EMPTY_BUCKETS)
   const [containerItems, setContainerItems] = useState<Task[]>([])
   const [undecided, setUndecided] = useState<Task[]>([])
+  // Active tasks with a reminder, today or later (for the reminder schedule).
+  const [reminderTasks, setReminderTasks] = useState<Task[]>([])
   // Todo/doing tasks left on past days: nag alongside rondeled items.
   const [leftUndone, setLeftUndone] = useState<Task[]>([])
   const [nagOpen, setNagOpen] = useState(false)
@@ -112,7 +115,6 @@ function App() {
 
   const today = todayIso()
   const weekStartDay = settings?.weekStartDay ?? 1
-  const timezone = settings?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
 
   const anchorWeekStart = useMemo(
     () => startOfWeek(anchorDate, weekStartDay),
@@ -128,7 +130,6 @@ function App() {
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const naggedRef = useRef<Set<string>>(new Set())
-  const lastSeenDateRef = useRef<string | null>(null)
   // The day recurring tasks were last created for. Browsing (which reloads the
   // board a lot) reuses it; any change resets it, since finishing a "start of
   // week/month" task is what lets the next one be created.
@@ -143,17 +144,20 @@ function App() {
     try {
       // Recurring tasks appear on their own day, never ahead of time — browsing
       // forward must not pre-create them.
-      const recurringDay = nowInZone(timezone).date
+      // The device's own day, like the board, the review times and midnight.
+      const recurringDay = today
       if (recurringSyncedFor.current !== recurringDay) {
         await dataSource.syncRecurring(recurringDay)
         recurringSyncedFor.current = recurringDay
       }
-      const [range, bl, rondelItems, leftItems] = await Promise.all([
+      const [range, bl, rondelItems, withReminders, leftItems] = await Promise.all([
         dataSource.listTasksInRange(rangeStart, rangeEnd),
         dataSource.listBucketTasks('bucket-list'),
         dataSource.listRondelItems(),
+        dataSource.listUpcomingReminders(today),
         dataSource.listLeftUndone(today),
       ])
+      setReminderTasks(withReminders)
       setRangeTasks(range)
       setBuckets({ 'bucket-list': bl })
 
@@ -179,7 +183,7 @@ function App() {
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
+  }, [reportError, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
   /** Tags, settings and rules; the board reloads itself when settings change. */
   const loadAppData = useCallback(async () => {
@@ -202,6 +206,11 @@ function App() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAppData()
   }, [loadAppData])
+
+  // The menu-bar icon shows while "Start at login" is on.
+  useEffect(() => {
+    restoreMenuBarIcon().catch((e) => reportError('Couldn’t show the menu-bar icon', e))
+  }, [reportError])
 
   const sync = useSync({
     onRemoteChange: useCallback(() => {
@@ -238,36 +247,20 @@ function App() {
     nagCountRef.current = nagCount
   }, [nagCount])
 
-  // Nag at begin-review and end-review times, in the user's timezone.
-  // Never tied to navigation — only the clock triggers this.
-  useEffect(() => {
-    if (!settings) return
-    const tz = settings.timezone
-    const slots: Array<[string, string]> = [
-      ['start', settings.dayStartTime],
-      ['end', settings.endOfDayTime],
-    ]
-    // Review times already past are covered by the nag shown on open.
-    const opened = nowInZone(tz)
-    for (const [slot, at] of slots) {
-      if (opened.time >= at) naggedRef.current.add(`${opened.date}-${slot}`)
-    }
-    const check = () => {
-      const { date, time } = nowInZone(tz)
-      // Past midnight: reload so the new day's recurring tasks get created.
-      if (lastSeenDateRef.current !== null && date !== lastSeenDateRef.current) void loadBoard()
-      lastSeenDateRef.current = date
-      for (const [slot, at] of slots) {
-        const key = `${date}-${slot}`
-        // ">=" so a throttled background tab that skips the exact minute still nags.
-        if (time >= at && !naggedRef.current.has(key)) {
-          naggedRef.current.add(key)
-          if (nagCountRef.current > 0) setNagOpen(true)
-        }
-      }
-    }
-    return startVisibleInterval(check, 30000)
-  }, [settings, loadBoard])
+  // Review times, task reminders and midnight fire on time, even while hidden.
+  useSchedule({
+    reminders: reminderTasks,
+    settings,
+    onReview: (slot) => {
+      const count = nagCountRef.current
+      if (count === 0) return
+      setNagOpen(true)
+      const name = slot === 'start' ? 'Morning review' : 'End-of-day review'
+      void notify(name, `${count} ${count === 1 ? 'thing needs' : 'things need'} a decision`)
+    },
+    // The new day's recurring tasks are created when the board reloads.
+    onNewDay: () => void loadBoard(),
+  })
 
   const allTasks = useMemo(
     () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...undecided, ...leftUndone],
@@ -339,6 +332,14 @@ function App() {
       ),
     )
   const toggleFlag = (task: Task) => run(() => dataSource.updateTask(task.id, { flagged: !task.flagged }))
+  // "All" on a recurring task changes the rule and its unfinished tasks.
+  const changeReminder = (task: Task, reminderTime: string | null, scope: 'one' | 'all') =>
+    run(async () => {
+      if (scope === 'all' && task.recurringRuleId) {
+        await dataSource.updateRecurringRule(task.recurringRuleId, { reminderTime }, { applyToOpenTasks: true })
+        await refreshRules()
+      } else await dataSource.updateTask(task.id, { reminderTime })
+    })
   const saveNote = (taskId: string, note: string) => run(() => dataSource.updateTask(taskId, { note }))
   const changeTitle = (taskId: string, title: string) => run(() => dataSource.updateTask(taskId, { title }))
   const removeTask = (taskId: string) =>
@@ -579,6 +580,7 @@ function App() {
           onUpdateTag={updateTag}
           onDeleteTag={deleteTag}
           sync={sync}
+          reportError={reportError}
           onBack={() => setPage('board')}
         />
       </div>
@@ -783,6 +785,7 @@ function App() {
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}
           onSaveNote={(note) => saveNote(selectedTask.id, note)}
           onToggleFlag={() => toggleFlag(selectedTask)}
+          onChangeReminder={(time, scope) => changeReminder(selectedTask, time, scope)}
           onAdvance={() => advance(selectedTask)}
           onSetDone={() => setDone(selectedTask)}
           onRondel={(target) => rondel(selectedTask, target)}
