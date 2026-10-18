@@ -13,6 +13,7 @@ describe('LinkifiedText', () => {
 
     const link = screen.getByRole('link', { name: 'example.com/spec' })
     expect(link).toHaveAttribute('href', 'https://www.example.com/spec')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
     fireEvent.click(link)
     expect(open).toHaveBeenCalledWith('https://www.example.com/spec', '_blank', 'noopener,noreferrer')
     expect(onRowClick).not.toHaveBeenCalled()

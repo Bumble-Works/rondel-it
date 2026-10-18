@@ -134,20 +134,19 @@ export function TaskRow({
         disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
       />
 
-      {/* Not a <button>: its title and note can contain links. */}
-      <div
-        role="button"
-        tabIndex={0}
-        className="task-main"
-        title={carried ? CARRIED_FORWARD_HINT : undefined}
-        onClick={onOpen}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            onOpen()
-          }
-        }}
-      >
+      {/*
+        The title and note can contain links, which can't go inside a button.
+        So an invisible "open" button covers the text area from behind, and the
+        links sit on top of it: siblings, not nested.
+      */}
+      <div className="task-main">
+        <button
+          type="button"
+          className="task-open"
+          aria-label={`Open ${task.title}`}
+          title={carried ? CARRIED_FORWARD_HINT : undefined}
+          onClick={onOpen}
+        />
         <span className="task-title">
           {task.flagged && (
             <span className="task-flag-mark" title="Important">

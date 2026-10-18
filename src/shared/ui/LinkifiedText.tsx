@@ -21,6 +21,10 @@ export function LinkifiedText({ text }: LinkifiedTextProps) {
             key={index}
             className="linkified"
             href={part.href}
+            // Cmd/middle-click skip onClick and open the href directly: keep
+            // that path as safe as openExternal (no opener, no referrer).
+            target="_blank"
+            rel="noopener noreferrer"
             title={part.href}
             onClick={(e) => {
               e.preventDefault()
