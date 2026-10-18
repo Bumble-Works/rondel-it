@@ -10,6 +10,13 @@ Read these before doing any work:
   differs is a bug. When you change behavior, update it in the same change.
 - `Plan1.md`: the Stage 1 engineering spec (temporary; deleted once done).
 
+## Commit locally; the human pushes
+
+Work on a branch off the latest `main` and **commit locally only**. Don't push,
+open pull requests, or post on GitHub. The user reviews locally, then pushes
+and opens the PR. When work is ready, say what it does and how to try it
+(`npm run dev` → http://localhost:1420), after lint, tests and build pass.
+
 ## Always stop and ask
 
 If any question or clarification comes up, at any point in any task, stop and
