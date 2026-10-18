@@ -164,8 +164,22 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Recurring tasks
 
-- Rules: every week on a weekday, every month on a day (the 31st becomes the
-  month's last day), or "start of each week/month" (waits in that period's rondel container).
+- **Repeats** works like Apple Reminders. The presets are Daily, Weekdays,
+  Weekends, Weekly, Biweekly, Monthly, Every 3 months, Every 6 months and
+  Yearly, all anchored on the **Starts** date (Weekly means that date's
+  weekday; Monthly means that date's day).
+- **Custom…**: every N days, weeks, months or years.
+  - Weeks: pick the weekdays (at least one stays selected). "Every 2 weeks"
+    counts from the start date's week.
+  - Months: either **on the [day]** (the 31st becomes the month's last day)
+    or **on the [first…fourth/last] [weekday]**.
+  - Years: on the start date (Feb 29 falls on Feb 28 in other years).
+- **End repeat**: Never, or On date (that day is included).
+- A plain-words summary ("Every 2 weeks on Mon, Thu") shows under the form
+  and in the rules list.
+- "Start of every week/month" is still there (the task waits in that
+  period's rondel container). Rules made before Custom existed (every week
+  on a weekday, every month on a day) keep working unchanged.
 - A task is created **on its own day, never ahead of time**: the sync only
   goes up to today in your time zone. Browsing forward creates nothing.
 - Recurring tasks are created once per day (and again when rules change), not

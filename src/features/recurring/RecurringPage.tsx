@@ -1,27 +1,18 @@
 import { useState } from 'react'
 import { ensureNotificationPermission } from '../../shared/notify'
 import { describeRecurrence } from '../../domain/recurrence'
-import { formatClock, weekdayName } from '../../domain/dates'
-import type { RecurrenceKind, RecurringRule, Tag } from '../../domain/types'
+import { formatClock, todayIso } from '../../domain/dates'
+import { defaultRepeat } from '../../domain/repeat'
+import type { RecurringRule, Tag } from '../../domain/types'
 import type { RecurringRuleInput } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
 import { InlineEditInput } from '../../shared/ui/InlineEditInput'
 import { IconButton } from '../../shared/ui/IconButton'
 import { TagChip } from '../../shared/ui/TagChip'
+import { RepeatPicker, type RepeatChoice } from './RepeatPicker'
 import './RecurringPage.css'
 
-function clampDayOfMonth(text: string): number {
-  const day = Math.round(Number(text))
-  return Number.isFinite(day) ? Math.min(31, Math.max(1, day)) : 1
-}
-
-const KIND_OPTIONS: Array<{ value: RecurrenceKind; label: string }> = [
-  { value: 'weekly-on', label: 'Every week on a weekday' },
-  { value: 'monthly-on', label: 'Every month on a date' },
-  { value: 'weekly-start', label: 'Start of every week, rondeled into that week' },
-  { value: 'monthly-start', label: 'Start of every month, rondeled into that month' },
-]
 
 interface RecurringPageProps {
   rules: RecurringRule[]
@@ -34,11 +25,7 @@ interface RecurringPageProps {
 
 export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, onBack }: RecurringPageProps) {
   const [title, setTitle] = useState('')
-  const [kind, setKind] = useState<RecurrenceKind>('weekly-on')
-  const [weekday, setWeekday] = useState(1)
-  // Kept as text so the field can be cleared while typing; clamped on blur/submit.
-  const [dayOfMonthText, setDayOfMonthText] = useState('1')
-  const dayOfMonth = clampDayOfMonth(dayOfMonthText)
+  const [repeat, setRepeat] = useState<RepeatChoice>(() => ({ kind: 'repeat', repeat: defaultRepeat(todayIso()) }))
   const [tagIds, setTagIds] = useState<string[]>([])
   const [reminderTime, setReminderTime] = useState('')
 
@@ -51,9 +38,8 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
     if (!title.trim()) return
     onCreate({
       title: title.trim(),
-      kind,
-      weekday: kind === 'weekly-on' ? weekday : null,
-      dayOfMonth: kind === 'monthly-on' ? dayOfMonth : null,
+      kind: repeat.kind,
+      repeat: repeat.kind === 'repeat' ? repeat.repeat : null,
       tagIds,
       reminderTime: reminderTime || null,
     })
@@ -87,55 +73,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
 
-          <div className="recurring-row">
-            <label htmlFor="recur-kind">Repeats</label>
-            <select
-              id="recur-kind"
-              className="field recurring-control"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as RecurrenceKind)}
-            >
-              {KIND_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {kind === 'weekly-on' && (
-            <div className="recurring-row">
-              <label htmlFor="recur-weekday">On</label>
-              <select
-                id="recur-weekday"
-                className="field recurring-control"
-                value={weekday}
-                onChange={(e) => setWeekday(Number(e.target.value))}
-              >
-                {[0, 1, 2, 3, 4, 5, 6].map((d) => (
-                  <option key={d} value={d}>
-                    {weekdayName(d)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {kind === 'monthly-on' && (
-            <div className="recurring-row">
-              <label htmlFor="recur-dom">On day</label>
-              <input
-                id="recur-dom"
-                type="number"
-                min={1}
-                max={31}
-                className="field recurring-control"
-                value={dayOfMonthText}
-                onChange={(e) => setDayOfMonthText(e.target.value)}
-                onBlur={() => setDayOfMonthText(String(dayOfMonth))}
-              />
-            </div>
-          )}
+          <RepeatPicker onChange={setRepeat} />
 
           <div className="recurring-row">
             <label htmlFor="recur-reminder">Reminder</label>
@@ -192,7 +130,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
                       onCommit={(title) => onUpdateTitle(rule.id, title)}
                     />
                     <span className="recurring-item-desc">
-                      {describeRecurrence(rule.kind, rule.weekday, rule.dayOfMonth)}
+                      {describeRecurrence(rule)}
                       {rule.reminderTime && <span> · 🔔 {formatClock(rule.reminderTime)}</span>}
                       {rule.tagIds.length > 0 && (
                         <span className="recurring-item-tags">

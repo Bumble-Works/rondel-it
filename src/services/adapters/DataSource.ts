@@ -1,4 +1,4 @@
-import type { RecurringRule, Tag, Task, TaskBucket, TaskStatus, UserSetting } from '../../domain/types'
+import type { RecurringRule, RepeatSpec, Tag, Task, TaskBucket, TaskStatus, UserSetting } from '../../domain/types'
 
 export interface CreateTaskInput {
   title: string
@@ -23,6 +23,8 @@ export interface RecurringRuleInput {
   weekday?: number | null
   dayOfMonth?: number | null
   reminderTime?: string | null
+  /** For kind 'repeat'. */
+  repeat?: RepeatSpec | null
 }
 
 export interface MoveOptions {

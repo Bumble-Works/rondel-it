@@ -106,3 +106,19 @@ test('sets a reminder on a task; the row shows it and it survives a reload', asy
   await page.reload()
   await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
 })
+
+test('creates a custom repeat rule; the list describes it and it survives a reload', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByPlaceholder('Task title (e.g. Weekly review)').fill('Water the plants')
+  await page.getByLabel('Repeats').selectOption('custom')
+  await page.getByLabel('Every', { exact: true }).fill('3')
+  await page.getByLabel('Unit').selectOption('day')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+
+  await expect(page.getByRole('textbox', { name: 'Recurring task title' })).toHaveValue('Water the plants')
+  await expect(page.locator('.recurring-item-desc')).toHaveText('Every 3 days')
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await expect(page.locator('.recurring-item-desc')).toHaveText('Every 3 days')
+})

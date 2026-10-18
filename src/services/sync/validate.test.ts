@@ -65,4 +65,11 @@ describe('validateSnapshot', () => {
     const good = validateSnapshot(snapshot({ settings: { weekStartDay: 0, dayStartTime: '08:30', timezone: 'Asia/Tokyo' } }), NOW)
     expect(good.ok && good.snapshot.settings).toEqual({ weekStartDay: 0, dayStartTime: '08:30', timezone: 'Asia/Tokyo' })
   })
+
+  it('accepts custom repeat rules and drops malformed ones', () => {
+    const good = { id: 'r1', title: 'Gym', kind: 'repeat', tagIds: [], createdAt: 'x', repeat: { unit: 'week', every: 1, weekdays: [1], startDate: '2026-10-19', endDate: null } }
+    const bad = { id: 'r2', title: 'Broken', kind: 'repeat', tagIds: [], createdAt: 'x', repeat: { unit: 'fortnight', every: 0 } }
+    const result = validateSnapshot(snapshot({ rules: [good, bad] }), NOW)
+    expect(result.ok && result.snapshot.rules.map((r) => r.id)).toEqual(['r1'])
+  })
 })

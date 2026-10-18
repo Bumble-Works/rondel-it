@@ -9,6 +9,7 @@ function makeRule(partial: Partial<RecurringRule>): RecurringRule {
     note: '',
     kind: 'weekly-on',
     reminderTime: null,
+    repeat: null,
     weekday: null,
     dayOfMonth: null,
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -57,13 +58,18 @@ describe('occurrencesBetween', () => {
 
 describe('describeRecurrence', () => {
   it('labels each supported recurrence kind', () => {
-    expect(describeRecurrence('weekly-start', null, null)).toBe('Start of every week, rondeled into that week')
-    expect(describeRecurrence('monthly-start', null, null)).toBe('Start of every month, rondeled into that month')
-    expect(describeRecurrence('weekly-on', 5, null)).toBe('Every Friday')
-    expect(describeRecurrence('monthly-on', null, 21)).toBe('Every 21st of the month')
+    expect(describeRecurrence({ kind: 'weekly-start', weekday: null, dayOfMonth: null, repeat: null })).toBe('Start of every week, rondeled into that week')
+    expect(describeRecurrence({ kind: 'monthly-start', weekday: null, dayOfMonth: null, repeat: null })).toBe('Start of every month, rondeled into that month')
+    expect(describeRecurrence({ kind: 'weekly-on', weekday: 5, dayOfMonth: null, repeat: null })).toBe('Every Friday')
+    expect(describeRecurrence({ kind: 'monthly-on', weekday: null, dayOfMonth: 21, repeat: null })).toBe('Every 21st of the month')
   })
 
   it('handles unknown kinds defensively', () => {
-    expect(describeRecurrence('unknown' as RecurrenceKind, null, null)).toBe('')
+    expect(describeRecurrence({ kind: 'unknown' as RecurrenceKind, weekday: null, dayOfMonth: null, repeat: null })).toBe('')
+  })
+
+  it('describes a custom repeat pattern', () => {
+    const repeat = { unit: 'week' as const, every: 2, weekdays: [1, 4], startDate: '2026-10-19', endDate: null }
+    expect(describeRecurrence({ kind: 'repeat', weekday: null, dayOfMonth: null, repeat })).toBe('Every 2 weeks on Mon, Thu')
   })
 })

@@ -66,7 +66,7 @@ function readSettings(): UserSetting {
 
 /** Fill fields added to rules later, so existing rules keep working. */
 function normalizeRule(rule: RecurringRule): RecurringRule {
-  return { ...rule, reminderTime: rule.reminderTime ?? null }
+  return { ...rule, reminderTime: rule.reminderTime ?? null, repeat: rule.repeat ?? null }
 }
 
 function readRules(): RecurringRule[] {
@@ -429,6 +429,7 @@ export const mockDataSource: DataSource = {
       weekday: input.weekday ?? null,
       dayOfMonth: input.dayOfMonth ?? null,
       reminderTime: input.reminderTime ?? null,
+      repeat: input.repeat ?? null,
       createdAt: nowIso(),
       lastRunDate: null,
     }
@@ -455,6 +456,7 @@ export const mockDataSource: DataSource = {
       weekday: input.weekday !== undefined ? input.weekday : rules[index].weekday,
       dayOfMonth: input.dayOfMonth !== undefined ? input.dayOfMonth : rules[index].dayOfMonth,
       reminderTime: input.reminderTime !== undefined ? input.reminderTime : rules[index].reminderTime,
+      repeat: input.repeat !== undefined ? input.repeat : rules[index].repeat,
     }
     writeRules(rules)
     return rules[index]

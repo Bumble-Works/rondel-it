@@ -425,4 +425,17 @@ describe('mockDataSource recurring', () => {
     expect(new Date(done.completedAt!).getDate()).toBe(12) // completed that day, local time
     expect((await mockDataSource.listLeftUndone('2026-10-19')).map((t) => t.title)).toEqual(['Still doing'])
   })
+
+  it('creates tasks for a custom repeat only on its days, up to today', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({
+      title: 'Gym',
+      kind: 'repeat',
+      repeat: { unit: 'week', every: 1, weekdays: [1, 3, 5], startDate: '2026-10-19', endDate: null },
+    })
+    await mockDataSource.syncRecurring('2026-10-23') // through Friday
+    const week = await mockDataSource.listTasksInRange('2026-10-19', '2026-10-25')
+    expect(week.filter((t) => t.recurringRuleId === rule.id).map((t) => t.dayDate)).toEqual(['2026-10-19', '2026-10-21', '2026-10-23'])
+  })
 })

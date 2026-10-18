@@ -15,6 +15,14 @@ const isString = (v: unknown): v is string => typeof v === 'string'
 const isStringOrNull = (v: unknown) => v === null || isString(v)
 const isStringArray = (v: unknown) => Array.isArray(v) && v.every(isString)
 
+const isRepeat = (v: unknown) =>
+  isObject(v) &&
+  ['day', 'week', 'month', 'year'].includes(v.unit as string) &&
+  Number.isInteger(v.every) &&
+  (v.every as number) >= 1 &&
+  isString(v.startDate) &&
+  isStringOrNull(v.endDate ?? null)
+
 const RECORD_CHECKS: Record<Collection, (r: Rec) => boolean> = {
   tasks: (r) =>
     isString(r.title) &&
@@ -30,7 +38,8 @@ const RECORD_CHECKS: Record<Collection, (r: Rec) => boolean> = {
   tags: (r) => isString(r.name) && isString(r.color),
   rules: (r) =>
     isString(r.title) &&
-    ['weekly-start', 'monthly-start', 'weekly-on', 'monthly-on'].includes(r.kind as string) &&
+    ['weekly-start', 'monthly-start', 'weekly-on', 'monthly-on', 'repeat'].includes(r.kind as string) &&
+    (r.kind !== 'repeat' || isRepeat(r.repeat)) &&
     isStringArray(r.tagIds) &&
     isString(r.createdAt),
 }
