@@ -1,4 +1,4 @@
-import { canRondel, isLeftUndone, isCarriedForward, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
+import { canRondel, isCarriedForward, isLeftUndone, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
 import type { Task } from './types'
 
 function task(fields: Partial<Task> = {}): Task {
