@@ -225,6 +225,7 @@ export function TaskDetailPanel({
             size={26}
             weekStartDay={weekStartDay}
             disabledReason={rondelBlockedReason(task)}
+            inBucketList={task.bucket !== null}
           />
         </div>
         <Button variant="danger" size="sm" onClick={onDelete}>

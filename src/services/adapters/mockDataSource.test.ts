@@ -145,6 +145,11 @@ describe('mockDataSource tasks', () => {
     const dated = await mockDataSource.moveTask(dream.id, { dayDate: '2026-11-03' }, { rondel: true })
     expect(dated).toMatchObject({ dayDate: '2026-11-03', bucket: null, rondelCount: 0 })
 
+    // Out of the Bucket List into next week's container is scheduling too.
+    const someday = await mockDataSource.createTask({ title: 'Someday', bucket: 'bucket-list' })
+    const nextWeek = await mockDataSource.moveTask(someday.id, { dayDate: '2026-11-09', rondeled: true }, { rondel: true })
+    expect(nextWeek).toMatchObject({ rondeled: true, bucket: null, rondelCount: 0, originDate: '2026-11-09' })
+
     // Pushing it off again still counts.
     const pushed = await mockDataSource.moveTask(task.id, { dayDate: '2026-11-04' }, { rondel: true })
     expect(pushed.rondelCount).toBe(2)
