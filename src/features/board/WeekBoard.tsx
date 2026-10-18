@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { RondelTarget } from '../../services/adapters/DataSource'
+import { formatDayLabel } from '../../domain/dates'
 import type { Tag, Task, TaskBucket } from '../../domain/types'
 import { IconButton } from '../../shared/ui/IconButton'
 import { BoardSection } from './BoardSection'
@@ -24,7 +25,7 @@ export interface BoardGroup {
   addTarget?: BoardGroupAddTarget
   emptyLabel?: string
   tasks: Task[]
-  /** Day sections can be printed (as filtered). */
+  /** Week/month day sections can be printed on their own (as filtered). */
   onPrint?: () => void
   /** The page header already shows this title (it's the only section of its kind). */
   hideTitle?: boolean
@@ -102,7 +103,14 @@ export function WeekBoard({
           hideTitle={group.hideTitle}
           headerRight={
             group.onPrint && (
-              <IconButton icon="print" label={`Print ${group.title}`} size={17} onClick={group.onPrint} />
+              <IconButton
+                icon="print"
+                label={`Print ${group.title}`}
+                title={`Print ${formatDayLabel(group.key)}`}
+                className="board-section-print"
+                size={17}
+                onClick={group.onPrint}
+              />
             )
           }
           empty={group.tasks.length === 0 && !group.addTarget}

@@ -30,6 +30,7 @@ import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
+import { IconButton } from './shared/ui/IconButton'
 import { Menu } from './shared/ui/Menu'
 import { TagChip } from './shared/ui/TagChip'
 import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
@@ -38,6 +39,7 @@ import { createDataSource } from './services/adapters/dataSourceFactory'
 import { useSync } from './features/sync/useSync'
 import { restoreMenuBarIcon } from './shared/startAtLogin'
 import { PrintSheet } from './features/print/PrintSheet'
+import { printView } from './features/print/printView'
 import { printPage } from './features/print/printPage'
 import { useSchedule } from './features/reminders/useSchedule'
 import { notify } from './shared/notify'
@@ -105,9 +107,9 @@ function App() {
   const [page, setPage] = useState<'board' | 'settings' | 'recurring'>('board')
   // Narrow windows show the sidebar as a drawer (see App.css / Sidebar.css).
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  // The day being printed. The sheet stays mounted (hidden on screen) so the
-  // print dialog always has it, however long the dialog stays open.
-  const [printRequest, setPrintRequest] = useState<{ dayIso: string; at: number } | null>(null)
+  // The last Print: the whole view, or one day of it. The sheet stays mounted
+  // (hidden on screen) so the print dialog always has it, however long it stays open.
+  const [printRequest, setPrintRequest] = useState<{ dayIso: string | null; at: number } | null>(null)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
@@ -230,7 +232,7 @@ function App() {
 
   useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
-  // Print once the sheet for the requested day has rendered.
+  // Print once the sheet has rendered.
   useEffect(() => {
     if (!printRequest) return
     const frame = requestAnimationFrame(() => {
@@ -473,7 +475,8 @@ function App() {
       addTarget: { dayDate: iso },
       tasks: dayTasks,
       emptyLabel: 'Nothing here yet — add your first task below',
-      onPrint: () => setPrintRequest({ dayIso: iso, at: Date.now() }),
+      // In Day view the top bar prints the day.
+      onPrint: view === 'day' ? undefined : () => setPrintRequest({ dayIso: iso, at: Date.now() }),
     }
   }
 
@@ -567,6 +570,8 @@ function App() {
         : view === 'month'
           ? formatMonthLabel(anchorDate)
           : 'Someday'
+
+  const printTitle = view === 'week' ? `Week of ${subtitle}` : view === 'rondel' ? 'Bucket List' : subtitle
 
   if (page === 'settings' && settings) {
     return (
@@ -720,6 +725,12 @@ function App() {
                 )}
               </Menu>
             ) : null}
+            <IconButton
+              icon="print"
+              label={view === 'rondel' ? 'Print the Bucket List' : `Print this ${view}`}
+              title={`Print ${printTitle}${view === 'week' || view === 'month' ? ', every day with tasks' : ''}`}
+              onClick={() => setPrintRequest({ dayIso: null, at: Date.now() })}
+            />
             {canPage && (
               <div className="app-nav">
                 <button
@@ -821,8 +832,12 @@ function App() {
       {/* After the nag so "Pick a date" from the nag opens on top of it. */}
       {printRequest && (
         <PrintSheet
-          dayIso={printRequest.dayIso}
-          tasks={dayGroup(printRequest.dayIso).tasks}
+          // Exactly what the board shows, filters applied.
+          title={printRequest.dayIso ? formatDayLabel(printRequest.dayIso) : printTitle}
+          {...(printRequest.dayIso
+            ? printView([dayGroup(printRequest.dayIso)], false)
+            : // Rondeled items waiting in the period's container aren't printed.
+              printView(groups.filter((g) => g.key !== 'rondel-container'), view === 'week' || view === 'month'))}
           tagsById={tagsById}
           filterSummary={filterSummary()}
         />
