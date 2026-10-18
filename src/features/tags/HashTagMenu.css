@@ -37,3 +37,12 @@
 .hashtag-create {
   color: var(--brand);
 }
+
+/* Already on the task/rule: say so, quietly. */
+.hashtag-added {
+  margin-left: auto;
+  padding-left: 0.6rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}

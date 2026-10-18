@@ -48,7 +48,7 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
     >
       {options.map((option, index) => (
         <li
-          key={option.kind === 'tag' ? option.tag.id : `create:${option.name}`}
+          key={option.kind === 'create' ? `create:${option.name}` : option.tag.id}
           role="option"
           aria-selected={index === highlight}
           className={`hashtag-option ${index === highlight ? 'is-active' : ''}`.trim()}
@@ -58,12 +58,13 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
             onPick(option)
           }}
         >
-          {option.kind === 'tag' ? (
+          {option.kind === 'create' ? (
+            <span className="hashtag-create">Create #{option.name}</span>
+          ) : (
             <>
               <span className="hashtag-dot" style={{ background: option.tag.color }} />#{option.tag.name}
+              {option.kind === 'added' && <span className="hashtag-added">✓ Added</span>}
             </>
-          ) : (
-            <span className="hashtag-create">Create #{option.name}</span>
           )}
         </li>
       ))}

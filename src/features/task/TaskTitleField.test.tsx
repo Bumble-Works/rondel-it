@@ -66,11 +66,14 @@ describe('TaskTitleField', () => {
     expect(screen.getByRole('option', { name: '#work' })).toBeInTheDocument()
   })
 
-  it('doesn’t suggest tags the task already has', async () => {
-    const { title } = setup(undefined, ['w'])
+  it('shows tags the task already has as "Added"; picking one just clears the #word', async () => {
+    const { title, onAddTag } = setup(undefined, ['w'])
     await userEvent.type(title, ' #wo')
-    expect(screen.queryByRole('option', { name: '#work' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '#work✓ Added' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: '#workshop' })).toBeInTheDocument()
+    await userEvent.keyboard('{Enter}') // the first match: work, already added
+    expect(title).toHaveValue('Plan offsite')
+    expect(onAddTag).not.toHaveBeenCalled()
   })
 })
 

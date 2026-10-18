@@ -299,7 +299,7 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
 
 test('two quick #tag picks in the side panel title both stick', async ({ page }) => {
   await addTask(page, 'Plan trip')
-  await row(page, 'Plan trip').locator('.task-title').click({ force: true })
+  await page.getByRole('button', { name: 'Open Plan trip' }).click()
   const panel = page.getByRole('complementary', { name: 'Task details' })
   const title = panel.getByLabel('Title')
   await title.click()
