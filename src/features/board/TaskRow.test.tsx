@@ -24,12 +24,17 @@ const task: Task = {
   carriedToId: null,
 }
 
+<<<<<<< HEAD
 function renderRow(selected: boolean, copies = { onCopy: vi.fn(), onPickCopyDate: vi.fn() }) {
+=======
+function renderRow(selected: boolean, extra: Partial<Task> = {}, repeatLabel?: string) {
+>>>>>>> origin/main
   const noop = () => {}
   render(
     <TaskRow
-      task={task}
+      task={{ ...task, ...extra }}
       tagsById={new Map()}
+      repeatLabel={repeatLabel}
       selected={selected}
       onOpen={noop}
       onAdvance={noop}
@@ -120,4 +125,15 @@ describe('TaskRow', () => {
     open.click()
     expect(onOpen).toHaveBeenCalledTimes(1)
   })
+
+  it('marks a recurring task with an icon that names its pattern', () => {
+    renderRow(false, { recurringRuleId: 'r1' }, 'Every day')
+    expect(screen.getByRole('img', { name: 'Recurring task' })).toHaveAttribute('title', 'Recurring: Every day')
+  })
+
+  it('shows no recurring icon on a one-off task', () => {
+    renderRow(false)
+    expect(screen.queryByRole('img', { name: 'Recurring task' })).not.toBeInTheDocument()
+  })
 })
+

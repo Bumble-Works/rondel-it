@@ -56,42 +56,6 @@
   margin-bottom: 1rem;
 }
 
-.recurring-input {
-  margin-bottom: 0.9rem;
-  font-weight: 600;
-}
-
-.recurring-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 0;
-}
-
-.recurring-row label {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-
-.recurring-control {
-  width: 260px;
-}
-
-.recurring-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.8rem 0 0.4rem;
-}
-
-.recurring-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
 .recurring-empty {
   color: var(--faint);
   font-style: italic;
@@ -133,21 +97,24 @@
 }
 
 .recurring-item-title {
-  border: 1px solid transparent;
-  border-radius: var(--r-sm);
-  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--ink);
-  padding: 0.2rem 0.35rem;
-  margin-left: -0.35rem;
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
-.recurring-item-title:focus {
-  outline: none;
-  background: var(--surface);
-  border-color: var(--brand);
+.recurring-item-title svg {
+  flex: none;
+  color: var(--accent-amber);
+}
+
+.recurring-item.is-editing .recurring-item-icon {
+  background: var(--brand);
+  color: #fff;
 }
 
 .recurring-item-desc {
@@ -166,10 +133,4 @@
   min-width: 0;
   display: inline-flex;
   gap: 0.3rem;
-}
-
-@media (max-width: 640px) {
-  .recurring-control {
-    width: 180px;
-  }
 }

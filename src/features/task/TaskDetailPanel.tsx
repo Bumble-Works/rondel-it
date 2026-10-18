@@ -9,10 +9,9 @@ import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { Button } from '../../shared/ui/Button'
 import { IconButton } from '../../shared/ui/IconButton'
-import { Menu, MenuItem, MenuLabel } from '../../shared/ui/Menu'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
-import { TagChip } from '../../shared/ui/TagChip'
 import { RondelMenu } from '../rondel/RondelMenu'
+import { TagPicker } from '../tags/TagPicker'
 import './TaskDetailPanel.css'
 
 const BUCKET_LABEL: Record<string, string> = {
@@ -23,8 +22,9 @@ const BUCKET_LABEL: Record<string, string> = {
 
 interface TaskDetailPanelProps {
   task: Task
-  tagsById: Map<string, Tag>
   allTags: Tag[]
+  /** For a recurring task: its rule's pattern, or null if the rule was deleted. */
+  repeatLabel?: string | null
   onClose: () => void
   onChangeTitle: (title: string) => void
   onToggleTag: (tagId: string) => void
@@ -44,8 +44,8 @@ interface TaskDetailPanelProps {
 
 export function TaskDetailPanel({
   task,
-  tagsById,
   allTags,
+  repeatLabel,
   onClose,
   onChangeTitle,
   onToggleTag,
@@ -62,9 +62,7 @@ export function TaskDetailPanel({
   weekStartDay,
 }: TaskDetailPanelProps) {
   const [note, setNote] = useState(task.note)
-  const [newTag, setNewTag] = useState('')
 
-  const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const carried = isCarriedForward(task)
   const statusLocked = carried || !task.dayDate
   const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
@@ -107,65 +105,13 @@ export function TaskDetailPanel({
           createTag={createTag}
         />
 
-        <div className="detail-tags">
-          {tags.map((tag) => (
-            <TagChip
-              key={tag.id}
-              name={tag.name}
-              color={tag.color}
-              onRemove={() => onToggleTag(tag.id)}
-            />
-          ))}
-          <Menu
-            align="left"
-            trigger={({ onClick, 'aria-expanded': expanded }) => (
-              <button
-                type="button"
-                className={`detail-add-tag ${expanded ? 'is-open' : ''}`.trim()}
-                onClick={onClick}
-              >
-                <Icon name="plus" size={14} /> Tag
-              </button>
-            )}
-          >
-            {(close) => (
-              <>
-                <MenuLabel>Toggle tags</MenuLabel>
-                {allTags.map((tag) => {
-                  const on = task.tagIds.includes(tag.id)
-                  return (
-                    <MenuItem
-                      key={tag.id}
-                      icon={<span className="detail-tag-swatch" style={{ background: tag.color }} />}
-                      onClick={() => {
-                        onToggleTag(tag.id)
-                        close()
-                      }}
-                    >
-                      {tag.name}
-                      {on && <Icon name="check" size={15} />}
-                    </MenuItem>
-                  )
-                })}
-                <div className="detail-tag-create">
-                  <input
-                    className="detail-tag-create-input"
-                    placeholder="Create a tag…"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && newTag.trim()) {
-                        onCreateTag(newTag.trim())
-                        setNewTag('')
-                        close()
-                      }
-                    }}
-                  />
-                </div>
-              </>
-            )}
-          </Menu>
-        </div>
+        <TagPicker
+          className="detail-tags"
+          tags={allTags}
+          selectedIds={task.tagIds}
+          onToggle={onToggleTag}
+          onCreate={onCreateTag}
+        />
 
         <label className="detail-field-label" htmlFor="detail-note">
           Note
@@ -191,6 +137,14 @@ export function TaskDetailPanel({
             </dt>
             <dd>{where}</dd>
           </div>
+          {task.recurringRuleId && (
+            <div>
+              <dt>
+                <Icon name="repeat" size={15} /> Repeats
+              </dt>
+              <dd>{repeatLabel ?? 'Rule deleted'}</dd>
+            </div>
+          )}
           <div>
             <dt>
               <img src="/icon.svg" alt="" width={15} height={15} /> Rondeled

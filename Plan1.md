@@ -196,8 +196,8 @@ Frontend:
 - Customizing shortcuts stays out of scope (premium).
 
 ### Smaller fixes found in the PR #2 review
-- Recurring "start" rules: finishing a task late creates the next one in a
-  past week (`lastRunDate` only moves when a task is created).
+- [x] Recurring "start" rules: finishing a task late created the next one in a
+  past week. Fixed: every rule is one at a time, and missed days are skipped.
 - Recurring rules use the UTC date from `createdAt`, so a rule made in the
   evening (US) can skip today.
 - Recurring sync silently deletes "duplicate" pending tasks, notes included.

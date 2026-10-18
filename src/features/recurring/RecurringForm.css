@@ -1,0 +1,69 @@
+.recurring-card.is-editing {
+  border-color: var(--brand);
+}
+
+.recurring-input {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.recurring-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+}
+
+.recurring-row label,
+.recurring-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.recurring-control {
+  width: 260px;
+}
+
+.recurring-tags {
+  margin: 0 0 0.6rem;
+}
+
+.recurring-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.recurring-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.recurring-form-head h2 {
+  margin-bottom: 0;
+}
+
+.recurring-flag.is-on {
+  color: var(--accent-amber);
+}
+
+.recurring-label {
+  display: block;
+  margin: 0.6rem 0 0.35rem;
+}
+
+.recurring-note {
+  width: 100%;
+  resize: vertical;
+}
+
+@media (max-width: 640px) {
+  .recurring-control {
+    width: 180px;
+  }
+}

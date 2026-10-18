@@ -232,6 +232,7 @@ test('sets a reminder on a task; the row shows it and it survives a reload', asy
   await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
 })
 
+<<<<<<< HEAD
 test('filters by a tag even when it is the only tag', async ({ page }) => {
   const input = page.getByPlaceholder('Add a task')
   await input.fill('Pay bills #home')
@@ -309,3 +310,70 @@ test('a copy of a recurring task starts new: not recurring, never rondeled', asy
   await expect(panel.locator('dl div', { hasText: 'Rondeled' }).locator('dd')).toHaveText('Never')
 })
 
+=======
+test('creates a custom repeat rule; the list describes it, the form resets, and it survives a reload', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Water the plants')
+  await page.getByLabel('Repeats').selectOption('custom')
+  await page.getByLabel('Every', { exact: true }).fill('3')
+  await page.getByLabel('Unit').selectOption('day')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+
+  await expect(page.locator('.recurring-item-title')).toHaveText('Water the plants')
+  await expect(page.locator('.recurring-item-desc')).toHaveText('Every 3 days')
+  // The form starts over for the next rule.
+  await expect(page.getByLabel('Title', { exact: true })).toHaveValue('')
+  await expect(page.getByLabel('Repeats')).toHaveValue('daily')
+  await expect(page.getByLabel('Unit')).toBeHidden()
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await expect(page.locator('.recurring-item-desc')).toHaveText('Every 3 days')
+})
+
+test('edits a recurring rule: the form fills in, and saving updates the list', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Standup')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await expect(page.locator('.recurring-item-desc')).toHaveText('Every day')
+
+  await page.getByRole('button', { name: 'Edit Standup' }).click()
+  await expect(page.getByRole('heading', { name: 'Edit recurring task' })).toBeVisible()
+  await expect(page.getByLabel('Title', { exact: true })).toHaveValue('Standup')
+  await page.getByLabel('Title', { exact: true }).fill('Team standup')
+  await page.getByLabel('Repeats').selectOption('yearly')
+  await page.getByRole('button', { name: 'Flag as important' }).click()
+  await page.getByRole('button', { name: 'Save changes' }).click()
+
+  await expect(page.getByRole('heading', { name: 'New recurring task' })).toBeVisible()
+  await expect(page.locator('.recurring-item-title')).toHaveText('Team standup')
+  await expect(page.locator('.recurring-item-desc')).toHaveText(/^Every year on /)
+  await expect(page.locator('.recurring-item-title svg')).toBeVisible()
+})
+
+test('a task from a recurring rule shows the repeat icon, and the side panel says how it repeats', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Stretch')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await page.getByRole('button', { name: 'Back to tasks' }).click()
+
+  const task = row(page, 'Stretch')
+  await expect(task.getByRole('img', { name: 'Recurring task' })).toHaveAttribute('title', 'Recurring: Every day')
+  await task.locator('.task-title').click({ force: true })
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  await expect(panel.locator('dl div', { hasText: 'Repeats' }).locator('dd')).toHaveText('Every day')
+})
+
+
+test('#tags in the recurring form work like the task title: pick, strip, attach', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  const title = page.getByLabel('Title', { exact: true })
+  await title.fill('Gym #health')
+  await page.getByRole('option', { name: 'Create #health' }).click()
+  await expect(title).toHaveValue('Gym')
+  await title.press('Enter')
+
+  await expect(page.locator('.recurring-item-title')).toHaveText('Gym')
+  await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
+})
+>>>>>>> origin/main

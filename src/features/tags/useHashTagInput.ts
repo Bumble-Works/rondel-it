@@ -10,6 +10,8 @@ interface Options {
   onCreateTag: (name: string) => Promise<Tag | null>
   /** Starting text (e.g. an existing title). */
   initialText?: string
+  /** Starting picked tags (e.g. a recurring rule being edited). */
+  initialTagIds?: string[]
   /** Tags not to suggest (e.g. already on the task). */
   excludeTagIds?: string[]
   /**
@@ -28,13 +30,14 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
   tags,
   onCreateTag,
   initialText = '',
+  initialTagIds = [],
   excludeTagIds = [],
   onTag,
 }: Options) {
   const inputRef = useRef<E>(null)
   const [text, setText] = useState(initialText)
   const [caret, setCaret] = useState(0)
-  const [tagIds, setTagIds] = useState<string[]>([])
+  const [tagIds, setTagIds] = useState<string[]>(initialTagIds)
   // null = not browsed yet: Enter only auto-picks an existing tag, never "Create".
   const [browsed, setBrowsed] = useState<number | null>(null)
   const [dismissed, setDismissed] = useState(false)
@@ -97,6 +100,7 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
     pick,
     handleKey,
     removeTag: (id: string) => setTagIds((ids) => ids.filter((x) => x !== id)),
+    toggleTag: (id: string) => setTagIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
     inputProps: {
       ref: inputRef,
       value: text,
@@ -119,3 +123,6 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
     },
   }
 }
+
+/** A title textarea's hook result, for `HashTagTextField`. */
+export type HashTagTextarea = ReturnType<typeof useHashTagInput<HTMLTextAreaElement>>
