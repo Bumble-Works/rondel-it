@@ -111,6 +111,8 @@ function App() {
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
+  // What the date picker is for: rondel the task there, or copy it there.
+  const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
   const [error, setError] = useState<string | null>(null)
 
   const today = todayIso()
@@ -393,11 +395,32 @@ function App() {
       await loadBoard()
     })
 
+  /**
+   * A fresh to-do on that day: same title, tags, note and flag. It starts new:
+   * not recurring, never rondeled, no history or reminder.
+   */
+  const copyTask = (task: Task, dayIso: string) =>
+    run(async () => {
+      const copy = await dataSource.createTask({ title: task.title, dayDate: dayIso, tagIds: task.tagIds })
+      if (task.note || task.flagged) await dataSource.updateTask(copy.id, { note: task.note, flagged: task.flagged })
+    })
+
+  // The reminder lives in the side panel: open it there, ready to type a time.
+  const openReminder = (task: Task) => {
+    setSelectedTaskId(task.id)
+    requestAnimationFrame(() => document.getElementById('reminder-time')?.focus())
+  }
+
+  const pickDate = (task: Task, purpose: 'rondel' | 'copy') => {
+    setDatePurpose(purpose)
+    setDateTaskId(task.id)
+  }
   const confirmDate = (dateIso: string) => {
-    if (!dateTaskId) return
-    const id = dateTaskId
+    const task = allTasks.find((t) => t.id === dateTaskId)
     setDateTaskId(null)
-    void run(() => dataSource.moveTask(id, { dayDate: dateIso }, { rondel: true }))
+    if (!task) return
+    if (datePurpose === 'copy') copyTask(task, dateIso)
+    else void run(() => dataSource.moveTask(task.id, { dayDate: dateIso }, { rondel: true }))
   }
 
   /* ---- settings actions ---- */
@@ -751,10 +774,13 @@ function App() {
             onAdvance={advance}
             onSetDone={setDone}
             onRondel={rondel}
-            onPickDate={(task) => setDateTaskId(task.id)}
+            onPickDate={(task) => pickDate(task, 'rondel')}
             onOpenNote={(task) => setNoteTaskId(task.id)}
             onToggleFlag={toggleFlag}
             onDelete={(task) => removeTask(task.id)}
+            onCopy={copyTask}
+            onPickCopyDate={(task) => pickDate(task, 'copy')}
+            onOpenReminder={openReminder}
             onQuickAdd={quickAdd}
             onCreateTag={createTagNamed}
             onMove={move}
@@ -778,7 +804,7 @@ function App() {
           onAdvance={() => advance(selectedTask)}
           onSetDone={() => setDone(selectedTask)}
           onRondel={(target) => rondel(selectedTask, target)}
-          onPickDate={() => setDateTaskId(selectedTask.id)}
+          onPickDate={() => pickDate(selectedTask, 'rondel')}
           onDelete={() => removeTask(selectedTask.id)}
           onCreateTag={(name) => createTagForTask(selectedTask, name)}
           createTag={createTagNamed}
@@ -804,7 +830,7 @@ function App() {
         onRondel={(task, target) => rondel(task, target)}
         // A forgotten task counts as done on the day it was planned.
         onSetDone={(task) => setDone(task, { onItsDay: !task.rondeled })}
-        onPickDate={(task) => setDateTaskId(task.id)}
+        onPickDate={(task) => pickDate(task, 'rondel')}
       />
 
       {/* After the nag so "Pick a date" from the nag opens on top of it. */}
@@ -817,7 +843,13 @@ function App() {
         />
       )}
 
-      <DatePickModal key={`date:${dateTaskId ?? 'closed'}`} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
+      <DatePickModal
+        key={`date:${dateTaskId ?? 'closed'}`}
+        open={Boolean(dateTaskId)}
+        purpose={datePurpose}
+        onClose={() => setDateTaskId(null)}
+        onConfirm={confirmDate}
+      />
     </div>
   )
 }

@@ -21,7 +21,7 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   it to done.
 - `canceled` exists in the data model, but nothing in the UI sets it yet.
 - Reopening a done task (back to todo) moves it to the **top** of its day.
-- **Flag (important):** one flag per task, toggled from the row's flag button
+- **Flag (important):** one flag per task, toggled from the row's ⋯ menu
   or the detail panel. A flagged task's title is bold with a small amber flag.
   Flagging **doesn't reorder**; drag it up yourself. The flag carries forward
   when a task is rondeled. History copies can't be flagged or unflagged.
@@ -89,7 +89,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 | **history copy** | Not offered (button greyed out, with the history tooltip). |
 
 - The rondel button is **always shown** on every row and in the detail panel,
-  so row actions (flag, note, delete, rondel) stay aligned in a fixed grid. When
+  so row actions (note, rondel, ⋯) stay aligned in a fixed grid. When
   rondel doesn't apply, the button is greyed out and its tooltip says why.
 
 - Every rondel adds 1 to `rondelCount`. Copies carry the count forward.
@@ -128,10 +128,21 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Clicking a task opens the side panel: title, note, tags, scheduled day,
   rondel count, first scheduled day, created date.
 - **One editor per task:** while a task is open in the panel, its row's
-  controls (status, note, delete, rondel, drag) are disabled, with the hint
+  controls (status, note, rondel, ⋯, drag) are disabled, with the hint
   "Open in the side panel — edit it there".
 - Title and note save when you leave the field. An empty title reverts.
 - The row's note button opens a note popup for tasks that aren't open in the panel.
+- **Row actions:** note and rondel sit in the row (drawn the same size); the
+  rest is under **⋯**:
+  - **Copy to tomorrow** / **Copy to a date…** — a fresh to-do on that day with
+    the same title, tags, note and flag. It starts new: to-do, not recurring
+    (even if copied from a recurring task), never rondeled, no history or
+    reminder. The original is untouched.
+  - **Flag as important** (not on history copies) and **Add reminder** (tasks
+    with a day; opens the side panel with the reminder time focused; shows the
+    time once set).
+  - **Delete task**.
+  Disabled buttons (task open in the panel) don't react to hover.
 
 ## Links
 

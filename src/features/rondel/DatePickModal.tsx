@@ -4,13 +4,21 @@ import { Button } from '../../shared/ui/Button'
 import { Modal } from '../../shared/ui/Modal'
 import './DatePickModal.css'
 
+const TEXT = {
+  rondel: { title: 'Rondel to a specific date', label: 'Move this task to', confirm: 'Rondel it' },
+  copy: { title: 'Copy to a date', label: 'Add a new to-do copy on', confirm: 'Copy it' },
+}
+
 interface DatePickModalProps {
   open: boolean
+  /** Rondel the task to the date, or copy it there. */
+  purpose?: keyof typeof TEXT
   onClose: () => void
   onConfirm: (dateIso: string) => void
 }
 
-export function DatePickModal({ open, onClose, onConfirm }: DatePickModalProps) {
+export function DatePickModal({ open, purpose = 'rondel', onClose, onConfirm }: DatePickModalProps) {
+  const text = TEXT[purpose]
   // The parent remounts this modal (via `key`) each time it opens, so the
   // date always starts fresh at tomorrow.
   const [date, setDate] = useState(() => addDays(todayIso(), 1))
@@ -20,7 +28,7 @@ export function DatePickModal({ open, onClose, onConfirm }: DatePickModalProps) 
   return (
     <Modal
       open={open}
-      title="Rondel to a specific date"
+      title={text.title}
       width={380}
       onClose={onClose}
       footer={
@@ -29,13 +37,13 @@ export function DatePickModal({ open, onClose, onConfirm }: DatePickModalProps) 
             Cancel
           </Button>
           <Button variant="primary" disabled={!isValid} onClick={() => isValid && onConfirm(date)}>
-            Rondel it
+            {text.confirm}
           </Button>
         </>
       }
     >
       <label className="datepick-label" htmlFor="datepick-input">
-        Move this task to
+        {text.label}
       </label>
       <input
         id="datepick-input"

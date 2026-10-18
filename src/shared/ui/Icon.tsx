@@ -28,6 +28,7 @@ export type IconName =
   | 'flag'
   | 'flag-filled'
   | 'bell'
+  | 'copy'
 
 const PATHS: Record<IconName, ReactNode> = {
   note: <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v6.7a1.5 1.5 0 0 1-.44 1.06l-3.3 3.3a1.5 1.5 0 0 1-1.06.44H5.5A1.5 1.5 0 0 1 4 15.5v-10Zm7.5 10.9V13a1 1 0 0 1 1-1h3.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
@@ -106,6 +107,12 @@ const PATHS: Record<IconName, ReactNode> = {
     />
   ),
   flag: <path d="M5.5 16.5V4m0 .5h8.2a.5.5 0 0 1 .4.8L12.3 8l1.8 2.7a.5.5 0 0 1-.4.8H5.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  copy: (
+    <>
+      <rect x="7" y="7" width="9" height="9" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M13 7V5.5A1.5 1.5 0 0 0 11.5 4h-6A1.5 1.5 0 0 0 4 5.5v6A1.5 1.5 0 0 0 5.5 13H7" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </>
+  ),
   bell: (
     <path
       d="M10 3.5a4.5 4.5 0 0 0-4.5 4.5v2.6L4.2 13a.6.6 0 0 0 .5.9h10.6a.6.6 0 0 0 .5-.9l-1.3-2.4V8A4.5 4.5 0 0 0 10 3.5Zm-1.6 12.2a1.7 1.7 0 0 0 3.2 0"

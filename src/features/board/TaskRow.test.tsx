@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { Task } from '../../domain/types'
 import { TaskRow } from './TaskRow'
 
@@ -24,7 +24,7 @@ const task: Task = {
   carriedToId: null,
 }
 
-function renderRow(selected: boolean) {
+function renderRow(selected: boolean, copies = { onCopy: vi.fn(), onPickCopyDate: vi.fn() }) {
   const noop = () => {}
   render(
     <TaskRow
@@ -39,6 +39,9 @@ function renderRow(selected: boolean) {
       onOpenNote={noop}
       onToggleFlag={noop}
       onDelete={noop}
+      onCopy={copies.onCopy}
+      onPickCopyDate={copies.onPickCopyDate}
+      onOpenReminder={noop}
       dragging={false}
       isDragged={false}
       onDragStartTask={noop}
@@ -51,16 +54,38 @@ function renderRow(selected: boolean) {
 describe('TaskRow', () => {
   it('locks row actions while the task is open in the detail panel', () => {
     renderRow(true)
-    for (const name of ['Flag as important', 'Add note', 'Delete task', 'Rondel this task', 'Mark as doing']) {
+    for (const name of ['More actions', 'Add note', 'Rondel this task', 'Mark as doing']) {
       expect(screen.getByRole('button', { name })).toBeDisabled()
     }
   })
 
-  it('keeps row actions available when the task is not open', () => {
+  it('shows note and rondel in the row, with copy, flag and delete one menu away', () => {
     renderRow(false)
-    for (const name of ['Flag as important', 'Add note', 'Delete task', 'Rondel this task', 'Mark as doing']) {
+    for (const name of ['More actions', 'Add note', 'Rondel this task', 'Mark as doing']) {
       expect(screen.getByRole('button', { name })).toBeEnabled()
     }
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(screen.getAllByRole('menuitem').map((m) => m.textContent)).toEqual([
+      'Copy to tomorrow',
+      'Copy to a date…',
+      'Flag as important',
+      'Add reminder',
+      'Delete task',
+    ])
+  })
+
+  it('copies to tomorrow, or asks for a date', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 9))
+    const copies = { onCopy: vi.fn(), onPickCopyDate: vi.fn() }
+    renderRow(false, copies)
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Copy to tomorrow' }))
+    expect(copies.onCopy).toHaveBeenCalledWith('2026-10-20')
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Copy to a date…' }))
+    expect(copies.onPickCopyDate).toHaveBeenCalled()
+    vi.useRealTimers()
   })
 
   it('opens from a real button that sits next to (not around) links in the title', () => {
@@ -78,6 +103,9 @@ describe('TaskRow', () => {
         onOpenNote={() => {}}
         onDelete={() => {}}
         onToggleFlag={() => {}}
+        onCopy={() => {}}
+        onPickCopyDate={() => {}}
+        onOpenReminder={() => {}}
         dragging={false}
         isDragged={false}
         onDragStartTask={() => {}}

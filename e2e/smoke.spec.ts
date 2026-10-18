@@ -22,7 +22,8 @@ test('adds a task, starts it, flags it, finishes it, and keeps it after reload',
   await task.getByRole('button', { name: 'Mark as doing' }).click()
   await expect(task.getByRole('button', { name: 'Mark as done' })).toBeVisible()
 
-  await task.getByRole('button', { name: 'Flag as important' }).click()
+  await task.getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Flag as important' }).click()
   await expect(task).toHaveClass(/is-flagged/)
 
   await task.getByRole('button', { name: 'Mark as done' }).click()
@@ -154,3 +155,68 @@ test('filters by a tag even when it is the only tag', async ({ page }) => {
   await expect(row(page, 'Pay bills')).toBeVisible()
   await expect(row(page, 'Untagged thing')).toBeHidden()
 })
+
+test('copies a task to tomorrow as a fresh to-do, keeping the original', async ({ page }) => {
+  await addTask(page, 'Water plants')
+  const original = row(page, 'Water plants')
+  await original.getByRole('button', { name: 'Mark as doing' }).click()
+  await original.getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Copy to tomorrow' }).click()
+
+  // Today's stays as it was.
+  await expect(original.getByRole('button', { name: 'Mark as done' })).toBeVisible()
+  await page.getByRole('button', { name: 'Next day' }).click()
+  const copy = row(page, 'Water plants')
+  await expect(copy.getByRole('button', { name: 'Mark as doing' })).toBeVisible()
+})
+
+test('copies a task to a picked date', async ({ page }) => {
+  await addTask(page, 'Renew passport')
+  await row(page, 'Renew passport').getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Copy to a date…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Copy to a date' })
+  // It starts at tomorrow; pick the day after.
+  const input = dialog.getByLabel('Add a new to-do copy on')
+  const tomorrow = new Date(await input.inputValue() + 'T12:00')
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  await input.fill(`${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`)
+  await dialog.getByRole('button', { name: 'Copy it' }).click()
+  await expect(dialog).toBeHidden()
+
+  await page.getByRole('button', { name: 'Next day' }).click()
+  await expect(row(page, 'Renew passport')).toBeHidden()
+  await page.getByRole('button', { name: 'Next day' }).click()
+  await expect(row(page, 'Renew passport')).toBeVisible()
+})
+
+test('Add reminder in the ⋯ menu opens the task with its reminder ready', async ({ page }) => {
+  await addTask(page, 'Call mom')
+  await row(page, 'Call mom').getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Add reminder' }).click()
+  await expect(page.getByRole('complementary', { name: 'Task details' })).toBeVisible()
+  await expect(page.getByLabel('Reminder')).toBeFocused()
+})
+
+test('a copy of a recurring task starts new: not recurring, never rondeled', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByPlaceholder('Task title (e.g. Weekly review)').fill('Stretch')
+  // Every week on today's weekday, so today's task is created now.
+  await page.getByLabel('On', { exact: true }).selectOption(String(new Date().getDay()))
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await page.getByRole('button', { name: 'Back to tasks' }).click()
+
+  await expect(row(page, 'Stretch').locator('.task-recur')).toBeVisible()
+  await row(page, 'Stretch').getByRole('button', { name: 'More actions' }).click()
+  await page.getByRole('menuitem', { name: 'Copy to tomorrow' }).click()
+
+  // Tomorrow has only the copy (the rule's next one waits for today's to be done).
+  await page.getByRole('button', { name: 'Next day' }).click()
+  const copy = row(page, 'Stretch')
+  await expect(copy).toHaveCount(1)
+  await expect(copy.locator('.task-recur')).toHaveCount(0)
+  await copy.locator('.task-title').click({ force: true })
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  await expect(panel.locator('dl div', { hasText: 'Rondeled' }).locator('dd')).toHaveText('Never')
+})
+

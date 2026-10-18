@@ -1,0 +1,21 @@
+.task-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--muted);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+/* Same round hover as the note and rondel buttons. */
+.task-more-btn:hover:not(:disabled),
+.task-more-btn.is-open {
+  background: var(--brand-tint);
+  border-color: color-mix(in srgb, var(--brand) 25%, transparent);
+  color: var(--ink);
+}
