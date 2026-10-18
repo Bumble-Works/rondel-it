@@ -41,8 +41,8 @@ export function repeatsOn(spec: RepeatSpec, iso: string, weekStartDay: number): 
       const months = (day.year - start.year) * 12 + (day.month - start.month)
       if (months % every !== 0) return false
       const lastDay = lastDayOf(day.year, day.month)
-      const monthly = spec.monthly ?? { type: 'date', day: start.day }
-      if (monthly.type === 'date') return day.day === Math.min(monthly.day, lastDay)
+      const monthly = spec.monthly ?? { type: 'date', days: [start.day] }
+      if (monthly.type === 'date') return monthly.days.some((d) => day.day === Math.min(d, lastDay))
       if (day.weekday !== monthly.weekday) return false
       return monthly.nth === -1 ? day.day + 7 > lastDay : Math.ceil(day.day / 7) === monthly.nth
     }
@@ -90,8 +90,11 @@ export function describeRepeat(spec: RepeatSpec): string {
       break
     }
     case 'month': {
-      const monthly = spec.monthly ?? { type: 'date', day: start.day }
-      const on = monthly.type === 'date' ? `the ${ordinal(monthly.day)}` : `the ${NTH[monthly.nth]} ${weekdayName(monthly.weekday)}`
+      const monthly = spec.monthly ?? { type: 'date', days: [start.day] }
+      const on =
+        monthly.type === 'date'
+          ? `the ${[...monthly.days].sort((a, b) => a - b).map(ordinal).join(', ')}`
+          : `the ${NTH[monthly.nth]} ${weekdayName(monthly.weekday)}`
       text = `${every('month', 'months')} on ${on}`
       break
     }
@@ -102,39 +105,20 @@ export function describeRepeat(spec: RepeatSpec): string {
   return spec.endDate ? `${text} until ${formatShort(spec.endDate)}` : text
 }
 
-export type RepeatPresetId =
-  | 'daily'
-  | 'weekdays'
-  | 'weekends'
-  | 'weekly'
-  | 'biweekly'
-  | 'monthly'
-  | 'every-3-months'
-  | 'every-6-months'
-  | 'yearly'
+export type RepeatPresetId = 'daily' | 'monthly' | 'yearly'
 
-/** Apple Reminders' presets, as repeat patterns anchored on `startDate`. */
+/** The quick choices, as repeat patterns anchored on `startDate`. Anything else is Custom. */
 export const REPEAT_PRESETS: Array<{ id: RepeatPresetId; label: string; make: (startDate: string) => RepeatSpec }> = [
   { id: 'daily', label: 'Daily', make: (s) => ({ unit: 'day', every: 1, startDate: s, endDate: null }) },
-  { id: 'weekdays', label: 'Weekdays', make: (s) => ({ unit: 'week', every: 1, weekdays: [1, 2, 3, 4, 5], startDate: s, endDate: null }) },
-  { id: 'weekends', label: 'Weekends', make: (s) => ({ unit: 'week', every: 1, weekdays: [0, 6], startDate: s, endDate: null }) },
-  { id: 'weekly', label: 'Weekly', make: (s) => ({ unit: 'week', every: 1, weekdays: [parts(s).weekday], startDate: s, endDate: null }) },
-  { id: 'biweekly', label: 'Biweekly', make: (s) => ({ unit: 'week', every: 2, weekdays: [parts(s).weekday], startDate: s, endDate: null }) },
-  ...([1, 3, 6] as const).map((every) => ({
-    id: (every === 1 ? 'monthly' : `every-${every}-months`) as RepeatPresetId,
-    label: every === 1 ? 'Monthly' : `Every ${every} months`,
-    make: (s: string): RepeatSpec => ({ unit: 'month', every, monthly: { type: 'date', day: parts(s).day }, startDate: s, endDate: null }),
-  })),
+  {
+    id: 'monthly',
+    label: 'Monthly',
+    make: (s) => ({ unit: 'month', every: 1, monthly: { type: 'date', days: [parts(s).day] }, startDate: s, endDate: null }),
+  },
   { id: 'yearly', label: 'Yearly', make: (s) => ({ unit: 'year', every: 1, startDate: s, endDate: null }) },
 ]
 
-/** Which preset `spec` is (ignoring its end date), or 'custom'. */
-export function presetOf(spec: RepeatSpec): RepeatPresetId | 'custom' {
-  const same = (a: RepeatSpec, b: RepeatSpec) => JSON.stringify({ ...a, endDate: null }) === JSON.stringify({ ...b, endDate: null })
-  return REPEAT_PRESETS.find((p) => same(p.make(spec.startDate), spec))?.id ?? 'custom'
-}
-
-/** Where a new rule starts: weekly, on the start date's weekday. */
+/** Where a new rule starts: daily, from the start date. */
 export function defaultRepeat(startDate: string): RepeatSpec {
-  return REPEAT_PRESETS.find((p) => p.id === 'weekly')!.make(startDate)
+  return REPEAT_PRESETS[0].make(startDate)
 }

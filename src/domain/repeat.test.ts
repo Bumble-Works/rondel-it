@@ -1,4 +1,4 @@
-import { describeRepeat, presetOf, REPEAT_PRESETS, repeatDatesBetween, repeatsOn } from './repeat'
+import { describeRepeat, repeatDatesBetween, repeatsOn } from './repeat'
 import type { RepeatSpec } from './types'
 
 const MON = 1
@@ -32,7 +32,7 @@ describe('repeat patterns', () => {
   })
 
   it('monthly on a date (the 31st falls on the last day) or on the first/last weekday', () => {
-    expect(dates(spec({ unit: 'month', monthly: { type: 'date', day: 31 }, startDate: '2026-01-31' }), '2026-01-01', '2026-04-30')).toEqual([
+    expect(dates(spec({ unit: 'month', monthly: { type: 'date', days: [31] }, startDate: '2026-01-31' }), '2026-01-01', '2026-04-30')).toEqual([
       '2026-01-31',
       '2026-02-28',
       '2026-03-31',
@@ -49,8 +49,16 @@ describe('repeat patterns', () => {
     ])
   })
 
+  it('monthly on several dates, like the 1st and 15th', () => {
+    expect(dates(spec({ unit: 'month', monthly: { type: 'date', days: [15, 1] } }), '2026-10-01', '2026-11-30')).toEqual([
+      '2026-11-01',
+      '2026-11-15',
+    ])
+    expect(describeRepeat(spec({ unit: 'month', monthly: { type: 'date', days: [15, 1] } }))).toBe('Every month on the 1st, 15th')
+  })
+
   it('every 3 months, and yearly (Feb 29 on Feb 28 in other years)', () => {
-    expect(dates(spec({ unit: 'month', every: 3, monthly: { type: 'date', day: 19 } }), '2026-10-01', '2027-07-31')).toEqual([
+    expect(dates(spec({ unit: 'month', every: 3, monthly: { type: 'date', days: [19] } }), '2026-10-01', '2027-07-31')).toEqual([
       '2026-10-19',
       '2027-01-19',
       '2027-04-19',
@@ -72,14 +80,10 @@ describe('repeat patterns', () => {
     expect(describeRepeat(spec({ unit: 'week', weekdays: [1, 2, 3, 4, 5] }))).toBe('Every weekday')
     expect(describeRepeat(spec({ unit: 'week', every: 2, weekdays: [4, 1] }))).toBe('Every 2 weeks on Mon, Thu')
     expect(describeRepeat(spec({ unit: 'month', monthly: { type: 'weekday', nth: 1, weekday: MON } }))).toBe('Every month on the first Monday')
-    expect(describeRepeat(spec({ unit: 'month', every: 3, monthly: { type: 'date', day: 15 }, endDate: '2026-12-31' }))).toBe(
+    expect(describeRepeat(spec({ unit: 'month', every: 3, monthly: { type: 'date', days: [15] }, endDate: '2026-12-31' }))).toBe(
       'Every 3 months on the 15th until Dec 31',
     )
     expect(describeRepeat(spec({ unit: 'year' }))).toBe('Every year on Oct 19')
   })
 
-  it('recognizes presets, and anything else as custom', () => {
-    for (const preset of REPEAT_PRESETS) expect(presetOf(preset.make('2026-10-19'))).toBe(preset.id)
-    expect(presetOf(spec({ every: 3 }))).toBe('custom')
-  })
 })

@@ -22,9 +22,9 @@ interface RepeatPickerProps {
   onChange: (choice: RepeatChoice) => void
 }
 
-/** Apple Reminders-style repeat: presets, or every N days/weeks/months/years. */
+/** Repeat: daily, monthly, yearly, or custom (every N days/weeks/months/years). */
 export function RepeatPicker({ onChange }: RepeatPickerProps) {
-  const [mode, setMode] = useState<Mode>('weekly')
+  const [mode, setMode] = useState<Mode>('daily')
   const [spec, setSpec] = useState<RepeatSpec>(() => defaultRepeat(todayIso()))
 
   const emit = (nextMode: Mode, nextSpec: RepeatSpec) => {
@@ -164,17 +164,17 @@ export function RepeatPicker({ onChange }: RepeatPickerProps) {
   )
 }
 
-/** Adds or removes a weekday, keeping at least one selected. */
+/** Adds or removes a day, keeping at least one selected. */
 function toggleDay(days: number[], day: number): number[] {
-  if (!days.includes(day)) return [...days, day].sort()
+  if (!days.includes(day)) return [...days, day].sort((a, b) => a - b)
   const rest = days.filter((d) => d !== day)
   return rest.length ? rest : days
 }
 
 function MonthlyChoice({ spec, onChange }: { spec: RepeatSpec; onChange: (monthly: MonthlyRepeat) => void }) {
   const start = fromIso(spec.startDate)
-  const monthly = spec.monthly ?? { type: 'date', day: start.getDate() }
-  const byDate = { type: 'date' as const, day: monthly.type === 'date' ? monthly.day : start.getDate() }
+  const monthly = spec.monthly ?? { type: 'date', days: [start.getDate()] }
+  const byDate = { type: 'date' as const, days: monthly.type === 'date' ? monthly.days : [start.getDate()] }
   const byWeekday =
     monthly.type === 'weekday'
       ? monthly
@@ -183,20 +183,27 @@ function MonthlyChoice({ spec, onChange }: { spec: RepeatSpec; onChange: (monthl
   return (
     <div className="repeat-monthly" role="radiogroup" aria-label="Each month">
       <label>
-        <input type="radio" checked={monthly.type === 'date'} onChange={() => onChange(byDate)} /> On the{' '}
-        <select
-          aria-label="Day of month"
-          className="field"
-          value={byDate.day}
-          onChange={(e) => onChange({ type: 'date', day: Number(e.target.value) })}
-        >
-          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-            <option key={d} value={d}>
-              {ordinal(d)}
-            </option>
-          ))}
-        </select>
+        <input type="radio" checked={monthly.type === 'date'} onChange={() => onChange(byDate)} /> On these dates
       </label>
+      {monthly.type === 'date' && (
+        <div className="repeat-dates" role="group" aria-label="Dates of the month">
+          {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => {
+            const on = byDate.days.includes(d)
+            return (
+              <button
+                key={d}
+                type="button"
+                aria-pressed={on}
+                aria-label={ordinal(d)}
+                className={`repeat-day ${on ? 'is-on' : ''}`.trim()}
+                onClick={() => onChange({ type: 'date', days: toggleDay(byDate.days, d) })}
+              >
+                {d}
+              </button>
+            )
+          })}
+        </div>
+      )}
       <label>
         <input type="radio" checked={monthly.type === 'weekday'} onChange={() => onChange(byWeekday)} /> On the{' '}
         <select

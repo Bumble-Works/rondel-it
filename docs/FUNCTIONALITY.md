@@ -164,14 +164,14 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Recurring tasks
 
-- **Repeats** works like Apple Reminders. The presets are Daily, Weekdays,
-  Weekends, Weekly, Biweekly, Monthly, Every 3 months, Every 6 months and
-  Yearly, all anchored on the **Starts** date (Weekly means that date's
-  weekday; Monthly means that date's day).
+- **Repeats**: Daily (the default), Monthly, Yearly, Custom…, or one of the
+  two rondel rules (start of every week/month). Monthly and Yearly use the
+  **Starts** date's day.
 - **Custom…**: every N days, weeks, months or years.
   - Weeks: pick the weekdays (at least one stays selected). "Every 2 weeks"
     counts from the start date's week.
-  - Months: either **on the [day]** (the 31st becomes the month's last day)
+  - Months: either **on these dates** (tap any of 1–31, e.g. the 1st and
+    15th; at least one stays selected; the 31st becomes the month's last day)
     or **on the [first…fourth/last] [weekday]**.
   - Years: on the start date (Feb 29 falls on Feb 28 in other years).
 - **End repeat**: Never, or On date (that day is included).

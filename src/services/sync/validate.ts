@@ -15,8 +15,16 @@ const isString = (v: unknown): v is string => typeof v === 'string'
 const isStringOrNull = (v: unknown) => v === null || isString(v)
 const isStringArray = (v: unknown) => Array.isArray(v) && v.every(isString)
 
+const isIntArray = (v: unknown) => Array.isArray(v) && v.length > 0 && v.every(Number.isInteger)
+const isMonthly = (v: unknown) =>
+  v === undefined ||
+  (isObject(v) &&
+    ((v.type === 'date' && isIntArray(v.days)) ||
+      (v.type === 'weekday' && Number.isInteger(v.nth) && Number.isInteger(v.weekday))))
+
 const isRepeat = (v: unknown) =>
   isObject(v) &&
+  isMonthly(v.monthly) &&
   ['day', 'week', 'month', 'year'].includes(v.unit as string) &&
   Number.isInteger(v.every) &&
   (v.every as number) >= 1 &&

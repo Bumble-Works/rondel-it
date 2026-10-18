@@ -69,7 +69,8 @@ describe('validateSnapshot', () => {
   it('accepts custom repeat rules and drops malformed ones', () => {
     const good = { id: 'r1', title: 'Gym', kind: 'repeat', tagIds: [], createdAt: 'x', repeat: { unit: 'week', every: 1, weekdays: [1], startDate: '2026-10-19', endDate: null } }
     const bad = { id: 'r2', title: 'Broken', kind: 'repeat', tagIds: [], createdAt: 'x', repeat: { unit: 'fortnight', every: 0 } }
-    const result = validateSnapshot(snapshot({ rules: [good, bad] }), NOW)
+    const badMonth = { ...good, id: 'r3', repeat: { ...good.repeat, unit: 'month', monthly: { type: 'date', day: 5 } } }
+    const result = validateSnapshot(snapshot({ rules: [good, bad, badMonth] }), NOW)
     expect(result.ok && result.snapshot.rules.map((r) => r.id)).toEqual(['r1'])
   })
 })

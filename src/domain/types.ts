@@ -36,7 +36,7 @@ export interface Task {
 export type RecurrenceKind = 'weekly-start' | 'monthly-start' | 'weekly-on' | 'monthly-on' | 'repeat'
 
 /** "On the 15th" or "on the first Monday" (nth: 1–4, or -1 for the last). */
-export type MonthlyRepeat = { type: 'date'; day: number } | { type: 'weekday'; nth: 1 | 2 | 3 | 4 | -1; weekday: number }
+export type MonthlyRepeat = { type: 'date'; days: number[] } | { type: 'weekday'; nth: 1 | 2 | 3 | 4 | -1; weekday: number }
 
 /** A repeat pattern like Apple Reminders': every N days/weeks/months/years. */
 export interface RepeatSpec {

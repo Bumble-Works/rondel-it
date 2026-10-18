@@ -11,18 +11,27 @@ function setup() {
 }
 
 describe('RepeatPicker', () => {
-  it('starts weekly from today and offers the presets', () => {
+  it('starts daily from today and offers daily, monthly, yearly, custom and the rondel rules', () => {
     setup()
-    expect(screen.getByLabelText('Repeats')).toHaveValue('weekly')
-    expect(screen.getByText('Every week on Mon')).toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText('Repeats'), { target: { value: 'weekdays' } })
-    expect(screen.getByText('Every weekday')).toBeInTheDocument()
+    expect(screen.getByLabelText('Repeats')).toHaveValue('daily')
+    expect(screen.getByText('Every day')).toBeInTheDocument()
+    expect(screen.getAllByRole('option').slice(0, 6).map((o) => o.textContent)).toEqual([
+      'Daily',
+      'Monthly',
+      'Yearly',
+      'Custom…',
+      'Start of every week, rondeled into that week',
+      'Start of every month, rondeled into that month',
+    ])
+    fireEvent.change(screen.getByLabelText('Repeats'), { target: { value: 'monthly' } })
+    expect(screen.getByText('Every month on the 19th')).toBeInTheDocument()
   })
 
   it('builds a custom "every 2 weeks on Mon and Thu"', () => {
     const { last } = setup()
     fireEvent.change(screen.getByLabelText('Repeats'), { target: { value: 'custom' } })
     fireEvent.change(screen.getByLabelText('Every'), { target: { value: '2' } })
+    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'week' } })
     fireEvent.click(screen.getByRole('button', { name: 'Thursday' }))
     expect(last()).toEqual({
       kind: 'repeat',
@@ -44,6 +53,18 @@ describe('RepeatPicker', () => {
       repeat: expect.objectContaining({ unit: 'month', monthly: { type: 'weekday', nth: 1, weekday: 1 }, endDate: '2027-06-30' }),
     })
     expect(screen.getByText('Every month on the first Monday until Jun 30')).toBeInTheDocument()
+  })
+
+  it('builds "every month on the 1st and 19th" from the date toggles', () => {
+    const { last } = setup()
+    fireEvent.change(screen.getByLabelText('Repeats'), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'month' } })
+    fireEvent.click(screen.getByRole('button', { name: '1st' }))
+    expect(last()).toEqual({
+      kind: 'repeat',
+      repeat: expect.objectContaining({ unit: 'month', monthly: { type: 'date', days: [1, 19] } }),
+    })
+    expect(screen.getByText('Every month on the 1st, 19th')).toBeInTheDocument()
   })
 
   it('still offers the rondel "start of every week/month" rules', () => {
