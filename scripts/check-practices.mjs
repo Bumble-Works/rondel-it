@@ -14,6 +14,7 @@ const NO_STYLESHEET_NEEDED = new Set([
   'src/shared/ui/Icon.tsx',
   'src/shared/ui/InlineEditInput.tsx',
   'src/features/settings/TagColorInput.tsx',
+  'src/features/task/TaskTitleField.tsx', // styled by TaskDetailPanel.css (.detail-title)
 ])
 const DUPLICATE_BLOCK_LINES = 20
 

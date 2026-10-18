@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
 import { TaskLinks } from './TaskLinks'
+import { TaskTitleField } from './TaskTitleField'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
@@ -34,6 +35,8 @@ interface TaskDetailPanelProps {
   onPickDate: () => void
   onDelete: () => void
   onCreateTag: (name: string) => void
+  /** Creates a tag (without attaching it), for #tag in the title. */
+  createTag: (name: string) => Promise<Tag | null>
   weekStartDay?: number
 }
 
@@ -52,9 +55,9 @@ export function TaskDetailPanel({
   onPickDate,
   onDelete,
   onCreateTag,
+  createTag,
   weekStartDay,
 }: TaskDetailPanelProps) {
-  const [title, setTitle] = useState(task.title)
   const [note, setNote] = useState(task.note)
   const [newTag, setNewTag] = useState('')
 
@@ -69,11 +72,6 @@ export function TaskDetailPanel({
       ? BUCKET_LABEL[task.bucket]
       : 'Unscheduled'
 
-  const commitTitle = () => {
-    const next = title.trim()
-    if (next && next !== task.title) onChangeTitle(next)
-    else setTitle(task.title)
-  }
 
   return (
     <aside className="detail-panel" role="complementary" aria-label="Task details">
@@ -98,18 +96,12 @@ export function TaskDetailPanel({
       </header>
 
       <div className="detail-body">
-        <textarea
-          className="detail-title"
-          rows={2}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={commitTitle}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              e.currentTarget.blur()
-            }
-          }}
+        <TaskTitleField
+          task={task}
+          allTags={allTags}
+          onChangeTitle={onChangeTitle}
+          onAddTag={onToggleTag}
+          createTag={createTag}
         />
 
         <div className="detail-tags">
@@ -185,7 +177,7 @@ export function TaskDetailPanel({
           onBlur={() => note !== task.note && onSaveNote(note)}
         />
 
-        <TaskLinks text={`${title}\n${note}`} />
+        <TaskLinks text={`${task.title}\n${note}`} />
 
         <dl className="detail-meta">
           <div>

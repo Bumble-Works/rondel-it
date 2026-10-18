@@ -8,6 +8,15 @@ interface Options {
   tags: Tag[]
   /** Creates a tag the user explicitly chose to create; null if it failed. */
   onCreateTag: (name: string) => Promise<Tag | null>
+  /** Starting text (e.g. an existing title). */
+  initialText?: string
+  /** Tags not to suggest (e.g. already on the task). */
+  excludeTagIds?: string[]
+  /**
+   * Called with each picked tag. Without it, picked tags are collected in
+   * `tagIds` (for a task that doesn't exist yet).
+   */
+  onTag?: (tag: Tag) => void
 }
 
 /**
@@ -15,9 +24,15 @@ interface Options {
  * from the title and attaches the tag. New tags are only created when the
  * user picks "Create"; an unpicked `#word` stays plain text.
  */
-export function useHashTagInput({ tags, onCreateTag }: Options) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [text, setText] = useState('')
+export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>({
+  tags,
+  onCreateTag,
+  initialText = '',
+  excludeTagIds = [],
+  onTag,
+}: Options) {
+  const inputRef = useRef<E>(null)
+  const [text, setText] = useState(initialText)
   const [caret, setCaret] = useState(0)
   const [tagIds, setTagIds] = useState<string[]>([])
   // null = not browsed yet: Enter only auto-picks an existing tag, never "Create".
@@ -25,7 +40,7 @@ export function useHashTagInput({ tags, onCreateTag }: Options) {
   const [dismissed, setDismissed] = useState(false)
 
   const query = dismissed ? null : hashQueryAt(text, caret)
-  const available = tags.filter((t) => !tagIds.includes(t.id))
+  const available = tags.filter((t) => !tagIds.includes(t.id) && !excludeTagIds.includes(t.id))
   const options: HashTagOption[] = query
     ? [
         ...matchTags(available, query.query).map((tag) => ({ kind: 'tag' as const, tag })),
@@ -46,12 +61,13 @@ export function useHashTagInput({ tags, onCreateTag }: Options) {
     setText(next.text)
     setCaret(next.caret)
     moveCaret(next.caret)
-    setTagIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
+    if (onTag) onTag(tag)
+    else setTagIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
     setBrowsed(null)
   }
 
   /** Returns true when the key was used by the suggestions menu. */
-  const handleKey = (e: KeyboardEvent<HTMLInputElement>): boolean => {
+  const handleKey = (e: KeyboardEvent<E>): boolean => {
     if (!open) return false
     const step = { ArrowDown: 1, ArrowUp: -1 }[e.key]
     if (step) {
@@ -84,17 +100,18 @@ export function useHashTagInput({ tags, onCreateTag }: Options) {
     inputProps: {
       ref: inputRef,
       value: text,
-      onChange: (e: ChangeEvent<HTMLInputElement>) => {
+      onChange: (e: ChangeEvent<E>) => {
         setText(e.target.value)
         setCaret(e.target.selectionStart ?? e.target.value.length)
         setDismissed(false)
         setBrowsed(null)
       },
-      onSelect: (e: SyntheticEvent<HTMLInputElement>) => setCaret(e.currentTarget.selectionStart ?? 0),
+      onSelect: (e: SyntheticEvent<E>) => setCaret(e.currentTarget.selectionStart ?? 0),
     },
-    reset: () => {
-      setText('')
-      setCaret(0)
+    /** Clears the input (or sets it back to `to`) and any picked tags. */
+    reset: (to = '') => {
+      setText(to)
+      setCaret(to.length)
       setTagIds([])
       setDismissed(false)
     },

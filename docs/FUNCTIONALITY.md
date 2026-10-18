@@ -161,6 +161,11 @@ Today, Next week, Next month, Pick a date, Mark done.
   tag is only created when you deliberately pick "Create #name" (click, or
   arrow to it then Enter). An unpicked `#word` stays as plain title text.
   Active tag filters are added to the new task too.
+- **`#tag` in the side panel title** works the same way: picking a suggestion
+  attaches the tag right away and strips the `#word`; the title saves on blur
+  or Enter. Tags already on the task aren't suggested.
+- The suggestions open just below the text box (or above, if there's no
+  room), on top of everything, so they're never cut off.
 
 ## Recurring tasks
 

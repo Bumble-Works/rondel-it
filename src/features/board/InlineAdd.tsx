@@ -55,7 +55,7 @@ export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task'
           }}
         />
       ))}
-      {input.open && <HashTagMenu options={input.options} highlight={input.highlight} onPick={input.pick} />}
+      {input.open && <HashTagMenu anchorRef={input.inputRef} options={input.options} highlight={input.highlight} onPick={input.pick} />}
     </div>
   )
 }
