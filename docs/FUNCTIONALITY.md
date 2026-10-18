@@ -50,6 +50,9 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   subtitle already says "Wednesday, October 15".
 - **Week and Month** views scroll to today when they open on the period that
   contains today (they list the newest day first).
+- In **Day** and **Bucket List** views the section doesn't repeat the page
+  title: it shows a slim row with the task count ("3 tasks") and 🖨 print.
+  Week and Month keep each day's title, since there are many days.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
 - The week starts on the day set in Settings.

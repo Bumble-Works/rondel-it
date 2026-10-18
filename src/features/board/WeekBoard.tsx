@@ -26,6 +26,8 @@ export interface BoardGroup {
   tasks: Task[]
   /** Day sections can be printed (as filtered). */
   onPrint?: () => void
+  /** The page header already shows this title (it's the only section of its kind). */
+  hideTitle?: boolean
 }
 
 interface WeekBoardProps {
@@ -97,6 +99,7 @@ export function WeekBoard({
           tone={group.kind}
           defaultCollapsed={group.defaultCollapsed}
           collapsible={group.collapsible}
+          hideTitle={group.hideTitle}
           headerRight={
             group.onPrint && (
               <IconButton icon="print" label={`Print ${group.title}`} size={17} onClick={group.onPrint} />

@@ -493,6 +493,9 @@ function App() {
     addTarget: { bucket },
     tasks: buckets[bucket].filter(visible),
     emptyLabel: 'Nothing in bucket list yet',
+    // The page header already says "Bucket List / Someday".
+    collapsible: false,
+    hideTitle: true,
   })
 
   const bucketGroups = (): BoardGroup[] =>
@@ -509,7 +512,7 @@ function App() {
   const groups: BoardGroup[] = useMemo(() => {
     switch (view) {
       case 'day':
-        return [containerGroup(), { ...dayGroup(anchorDate), collapsible: false }]
+        return [containerGroup(), { ...dayGroup(anchorDate), collapsible: false, hideTitle: true }]
       case 'week':
         return [containerGroup(), ...weekDays(anchorWeekStart).slice().reverse().map(dayGroup)]
       case 'month':
