@@ -530,5 +530,27 @@ describe('mockDataSource recurring', () => {
     const updated = await mockDataSource.updateRecurringRule(rule.id, { kind: 'repeat', repeat, flagged: true, note: 'Zoom link' })
     expect(updated).toMatchObject({ kind: 'repeat', repeat, flagged: true, note: 'Zoom link', title: 'Standup' })
   })
+
+  it('an edit with applyToOpenTasks updates the open task (not done ones), keeping its day', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 9, 19, 8)) // Mon Oct 19
+    const rule = await mockDataSource.createRecurringRule({ title: 'Standup', kind: 'repeat', repeat: { unit: 'day', every: 1, startDate: '2026-10-19', endDate: null } })
+    await mockDataSource.syncRecurring('2026-10-19')
+    const [open] = await mockDataSource.listTasksInRange('2026-10-19', '2026-10-19')
+
+    await mockDataSource.updateRecurringRule(rule.id, { title: 'Team standup', note: 'Zoom', flagged: true, tagIds: ['w'], reminderTime: '09:00' }, { applyToOpenTasks: true })
+    expect(await mockDataSource.getTask(open.id)).toMatchObject({
+      title: 'Team standup',
+      note: 'Zoom',
+      flagged: true,
+      tagIds: ['w'],
+      reminderTime: '09:00',
+      dayDate: '2026-10-19',
+    })
+
+    await mockDataSource.setTaskStatus(open.id, 'done')
+    await mockDataSource.updateRecurringRule(rule.id, { title: 'Daily sync' }, { applyToOpenTasks: true })
+    expect((await mockDataSource.getTask(open.id)).title).toBe('Team standup') // done: left as it was
+  })
 })
 

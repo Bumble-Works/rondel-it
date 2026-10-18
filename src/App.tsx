@@ -394,17 +394,26 @@ function App() {
     }
   }
 
-  const toggleTag = (task: Task, tagId: string) => {
-    const tagIds = task.tagIds.includes(tagId)
-      ? task.tagIds.filter((id) => id !== tagId)
-      : [...task.tagIds, tagId]
-    return run(() => dataSource.updateTask(task.id, { tagIds }))
+  // Tag changes run one at a time, each on the task's current tags, so quick
+  // picks (e.g. two #tags in a row) never undo each other.
+  const tagQueue = useRef<Promise<unknown>>(Promise.resolve())
+  const changeTags = (taskId: string, change: (tagIds: string[]) => string[]) => {
+    const job = tagQueue.current.then(async () => {
+      const { tagIds } = await dataSource.getTask(taskId)
+      await dataSource.updateTask(taskId, { tagIds: change(tagIds) })
+    })
+    tagQueue.current = job.catch(() => {})
+    return job
   }
+  const addTag = (task: Task, tagId: string) =>
+    run(() => changeTags(task.id, (ids) => (ids.includes(tagId) ? ids : [...ids, tagId])))
+  const toggleTag = (task: Task, tagId: string) =>
+    run(() => changeTags(task.id, (ids) => (ids.includes(tagId) ? ids.filter((id) => id !== tagId) : [...ids, tagId])))
 
   const createTagForTask = (task: Task, name: string) =>
     void attempt('Unable to create tag', async () => {
       const tag = await dataSource.createTag({ name })
-      await dataSource.updateTask(task.id, { tagIds: [...task.tagIds, tag.id] })
+      await changeTags(task.id, (ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
       await refreshTags()
       await loadBoard()
     })
@@ -455,7 +464,8 @@ function App() {
     })
   const updateRule = (id: string, input: RecurringRuleInput) =>
     void attempt('Unable to update recurring task', async () => {
-      await dataSource.updateRecurringRule(id, input)
+      // The task already on the list follows the edit too.
+      await dataSource.updateRecurringRule(id, input, { applyToOpenTasks: true })
       await refreshRules()
       await loadBoard()
     })
@@ -800,6 +810,7 @@ function App() {
           onClose={() => setSelectedTaskId(null)}
           onChangeTitle={(title) => changeTitle(selectedTask.id, title)}
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}
+          onAddTag={(tagId) => addTag(selectedTask, tagId)}
           onSaveNote={(note) => saveNote(selectedTask.id, note)}
           onToggleFlag={() => toggleFlag(selectedTask)}
           onChangeReminder={(time, scope) => changeReminder(selectedTask, time, scope)}

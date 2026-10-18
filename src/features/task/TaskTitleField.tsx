@@ -22,6 +22,12 @@ export function TaskTitleField({ task, allTags, onChangeTitle, onAddTag, createT
     initialText: task.title,
     excludeTagIds: task.tagIds,
     onTag: (tag) => onAddTag(tag.id),
+    // Save the stripped title now, so the board row never keeps the `#word`
+    // (e.g. if a click on the menu briefly took focus and saved it).
+    onPicked: (text) => {
+      const next = text.trim()
+      if (next && next !== task.title) onChangeTitle(next)
+    },
   })
 
   const commit = () => {

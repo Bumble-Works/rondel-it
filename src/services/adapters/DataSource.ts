@@ -41,6 +41,7 @@ export interface DataSource {
   listRondelItems(): Promise<Task[]>
   /** Todo/doing tasks on days before `date` that were never dealt with (oldest first). */
   listLeftUndone(date: string): Promise<Task[]>
+  getTask(id: string): Promise<Task>
   createTask(input: CreateTaskInput): Promise<Task>
   deleteTask(id: string): Promise<void>
   updateTask(
@@ -73,7 +74,10 @@ export interface DataSource {
   // recurring rules
   listRecurringRules(): Promise<RecurringRule[]>
   createRecurringRule(input: RecurringRuleInput): Promise<RecurringRule>
-  /** `applyToOpenTasks`: also update the rule's tasks that aren't done yet. */
+  /**
+   * `applyToOpenTasks`: the rule's to-do/doing tasks also take the new title,
+   * tags, note, flag and reminder (their day stays).
+   */
   updateRecurringRule(
     id: string,
     input: Partial<RecurringRuleInput>,

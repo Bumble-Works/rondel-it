@@ -1,5 +1,14 @@
 import type { Tag } from './types'
 
+/** Tag colors, in the order new tags get them. */
+export const TAG_COLORS = ['#3b82f6', '#16b98a', '#f59022', '#eab308', '#ef4757', '#8b5cf6', '#ec4899', '#14b8c4']
+
+/** A new tag's color: the one fewest tags use (palette order breaks ties), so colors cycle. */
+export function nextTagColor(tags: Tag[]): string {
+  const uses = (color: string) => tags.filter((t) => t.color.toLowerCase() === color).length
+  return TAG_COLORS.reduce((best, color) => (uses(color) < uses(best) ? color : best))
+}
+
 /** The `#word` being typed right before the caret, if any. */
 export function hashQueryAt(text: string, caret: number): { start: number; query: string } | null {
   const match = /(^|\s)#([^\s#]*)$/.exec(text.slice(0, caret))

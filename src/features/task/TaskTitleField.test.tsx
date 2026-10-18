@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { createEvent, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Tag, Task } from '../../domain/types'
 import { TaskTitleField } from './TaskTitleField'
@@ -66,11 +66,41 @@ describe('TaskTitleField', () => {
     expect(screen.getByRole('option', { name: '#work' })).toBeInTheDocument()
   })
 
-  it('doesn’t suggest tags the task already has', async () => {
-    const { title } = setup(undefined, ['w'])
+  it('shows tags the task already has as "Added"; picking one just clears the #word', async () => {
+    const { title, onAddTag } = setup(undefined, ['w'])
     await userEvent.type(title, ' #wo')
-    expect(screen.queryByRole('option', { name: '#work' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '#work✓ Added' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: '#workshop' })).toBeInTheDocument()
+    await userEvent.keyboard('{Enter}') // the first match: work, already added
+    expect(title).toHaveValue('Plan offsite')
+    expect(onAddTag).not.toHaveBeenCalled()
+  })
+
+  it('saves the stripped title after a pick, even if the #word was saved a moment before', async () => {
+    const onChangeTitle = vi.fn()
+    render(
+      <TaskTitleField
+        task={{ ...task, title: 'Plan offsite #wo' }}
+        allTags={[work, workshop]}
+        onChangeTitle={onChangeTitle}
+        onAddTag={vi.fn()}
+        createTag={vi.fn()}
+      />,
+    )
+    const title = screen.getByLabelText('Title')
+    await userEvent.click(title)
+    await userEvent.type(title, '{End}r')
+    await userEvent.click(screen.getByRole('option', { name: '#work' }))
+    expect(onChangeTitle).toHaveBeenCalledWith('Plan offsite')
+  })
+
+  it('a click anywhere in the menu (even between chips) can’t take focus from the title', async () => {
+    const { title } = setup()
+    await userEvent.type(title, ' #wo')
+    const list = screen.getByRole('listbox', { name: 'Tag suggestions' })
+    const press = createEvent.mouseDown(list)
+    fireEvent(list, press)
+    expect(press.defaultPrevented).toBe(true) // what stops the browser moving focus
   })
 })
 
