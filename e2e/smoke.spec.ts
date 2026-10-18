@@ -304,9 +304,10 @@ test('two quick #tag picks in the side panel title both stick', async ({ page })
   const title = panel.getByLabel('Title')
   await title.click()
   await title.press('End')
-  // No waiting between the two picks.
+  // The second pick doesn't wait for the first tag to be saved.
   await title.pressSequentially(' #travel')
   await page.getByRole('option', { name: 'Create #travel' }).click()
+  await expect(title).toHaveValue('Plan trip')
   await title.pressSequentially(' #family')
   await page.getByRole('option', { name: 'Create #family' }).click()
 
