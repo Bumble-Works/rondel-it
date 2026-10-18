@@ -232,7 +232,6 @@ test('sets a reminder on a task; the row shows it and it survives a reload', asy
   await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
 })
 
-<<<<<<< HEAD
 test('filters by a tag even when it is the only tag', async ({ page }) => {
   const input = page.getByPlaceholder('Add a task')
   await input.fill('Pay bills #home')
@@ -290,13 +289,12 @@ test('Add reminder in the ⋯ menu opens the task with its reminder ready', asyn
 
 test('a copy of a recurring task starts new: not recurring, never rondeled', async ({ page }) => {
   await page.getByRole('button', { name: 'Recurring' }).click()
-  await page.getByPlaceholder('Task title (e.g. Weekly review)').fill('Stretch')
-  // Every week on today's weekday, so today's task is created now.
-  await page.getByLabel('On', { exact: true }).selectOption(String(new Date().getDay()))
+  // Daily (the default): today's task is created right away.
+  await page.getByLabel('Title', { exact: true }).fill('Stretch')
   await page.getByRole('button', { name: 'Add recurring task' }).click()
   await page.getByRole('button', { name: 'Back to tasks' }).click()
 
-  await expect(row(page, 'Stretch').locator('.task-recur')).toBeVisible()
+  await expect(row(page, 'Stretch').getByRole('img', { name: 'Recurring task' })).toBeVisible()
   await row(page, 'Stretch').getByRole('button', { name: 'More actions' }).click()
   await page.getByRole('menuitem', { name: 'Copy to tomorrow' }).click()
 
@@ -304,13 +302,13 @@ test('a copy of a recurring task starts new: not recurring, never rondeled', asy
   await page.getByRole('button', { name: 'Next day' }).click()
   const copy = row(page, 'Stretch')
   await expect(copy).toHaveCount(1)
-  await expect(copy.locator('.task-recur')).toHaveCount(0)
-  await copy.locator('.task-title').click({ force: true })
+  await expect(copy.getByRole('img', { name: 'Recurring task' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Open Stretch' }).click()
   const panel = page.getByRole('complementary', { name: 'Task details' })
   await expect(panel.locator('dl div', { hasText: 'Rondeled' }).locator('dd')).toHaveText('Never')
+  await expect(panel.locator('dl div', { hasText: 'Repeats' })).toHaveCount(0)
 })
 
-=======
 test('creates a custom repeat rule; the list describes it, the form resets, and it survives a reload', async ({ page }) => {
   await page.getByRole('button', { name: 'Recurring' }).click()
   await page.getByLabel('Title', { exact: true }).fill('Water the plants')
@@ -376,4 +374,3 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
   await expect(page.locator('.recurring-item-title')).toHaveText('Gym')
   await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
 })
->>>>>>> origin/main
