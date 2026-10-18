@@ -48,7 +48,8 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
   "Tomorrow (Thursday)", "Yesterday (Tuesday)"; other days show just the
   weekday. The Day view's page title stays short ("Today") because its
   subtitle already says "Wednesday, October 15".
-- Month view scrolls to today when it opens on the current month.
+- **Week and Month** views scroll to today when they open on the period that
+  contains today (they list the newest day first).
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
 - The week starts on the day set in Settings.
