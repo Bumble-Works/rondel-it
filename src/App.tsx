@@ -327,6 +327,14 @@ function App() {
       ),
     )
   const toggleFlag = (task: Task) => run(() => dataSource.updateTask(task.id, { flagged: !task.flagged }))
+  // "All" on a recurring task changes the rule and its unfinished tasks.
+  const changeReminder = (task: Task, reminderTime: string | null, scope: 'one' | 'all') =>
+    run(async () => {
+      if (scope === 'all' && task.recurringRuleId) {
+        await dataSource.updateRecurringRule(task.recurringRuleId, { reminderTime }, { applyToOpenTasks: true })
+        await refreshRules()
+      } else await dataSource.updateTask(task.id, { reminderTime })
+    })
   const saveNote = (taskId: string, note: string) => run(() => dataSource.updateTask(taskId, { note }))
   const changeTitle = (taskId: string, title: string) => run(() => dataSource.updateTask(taskId, { title }))
   const removeTask = (taskId: string) =>
@@ -771,6 +779,7 @@ function App() {
           onToggleTag={(tagId) => toggleTag(selectedTask, tagId)}
           onSaveNote={(note) => saveNote(selectedTask.id, note)}
           onToggleFlag={() => toggleFlag(selectedTask)}
+          onChangeReminder={(time, scope) => changeReminder(selectedTask, time, scope)}
           onAdvance={() => advance(selectedTask)}
           onSetDone={() => setDone(selectedTask)}
           onRondel={(target) => rondel(selectedTask, target)}

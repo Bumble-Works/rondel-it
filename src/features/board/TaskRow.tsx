@@ -160,8 +160,14 @@ export function TaskRow({
           )}
           <LinkifiedText text={task.title} />
         </span>
-        {(tags.length > 0 || task.note) && (
+        {(tags.length > 0 || task.note || task.reminderTime) && (
           <span className="task-meta">
+            {task.reminderTime && (
+              <span className="task-reminder" title="Reminder">
+                <Icon name="bell" size={12} />
+                {formatClock(task.reminderTime)}
+              </span>
+            )}
             {task.note && (
               <span className="task-note-preview">
                 <Icon name="note" size={13} />
@@ -224,4 +230,10 @@ export function TaskRow({
 /** The note's first line; CSS trims it to fit (never cutting a link's address). */
 function firstLine(note: string): string {
   return note.split('\n')[0].trim()
+}
+
+/** "09:30" → "9:30 AM" (in the user's locale). */
+function formatClock(time: string): string {
+  const [h, m] = time.split(':').map(Number)
+  return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 }
