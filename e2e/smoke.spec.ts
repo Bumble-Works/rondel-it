@@ -141,3 +141,16 @@ test('sets a reminder on a task; the row shows it and it survives a reload', asy
   await page.reload()
   await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
 })
+
+test('filters by a tag even when it is the only tag', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  await input.fill('Pay bills #home')
+  await page.getByRole('option', { name: 'Create #home' }).click()
+  await input.press('Enter')
+  await addTask(page, 'Untagged thing')
+
+  await page.locator('.sidebar-pill', { hasText: 'home' }).click()
+  await expect(page.locator('.sidebar-pill', { hasText: 'home' })).toHaveClass(/is-active/)
+  await expect(row(page, 'Pay bills')).toBeVisible()
+  await expect(row(page, 'Untagged thing')).toBeHidden()
+})

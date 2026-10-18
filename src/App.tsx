@@ -372,22 +372,11 @@ function App() {
       return next.length === FILTERABLE_STATUSES.length ? [] : next
     })
   const resetStatuses = () => setActiveStatuses([])
+  // Selecting every tag is still a filter: it hides untagged tasks, which
+  // "All tags" shows. (With one tag, that's the only way to filter by it.)
   const toggleTagFilter = (id: string) =>
-    setActiveTagIds((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-      // In "Any" mode, selecting every tag equals "All tags" → reset.
-      // In "All" mode, selecting every tag is meaningful, so keep them.
-      if (tagMatchMode === 'any' && tags.length > 0 && next.length === tags.length) return []
-      return next
-    })
+    setActiveTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   const resetTagFilter = () => setActiveTagIds([])
-  const setTagMatch = (mode: 'any' | 'all') => {
-    setTagMatchMode(mode)
-    // Switching to "Any" while every tag is selected is the same as "All tags".
-    if (mode === 'any') {
-      setActiveTagIds((prev) => (tags.length > 0 && prev.length === tags.length ? [] : prev))
-    }
-  }
 
   const toggleTag = (task: Task, tagId: string) => {
     const tagIds = task.tagIds.includes(tagId)
@@ -618,7 +607,7 @@ function App() {
         onToggleTag={toggleTagFilter}
         onResetTags={resetTagFilter}
         tagMatchMode={tagMatchMode}
-        onSetTagMatchMode={setTagMatch}
+        onSetTagMatchMode={setTagMatchMode}
         activeStatuses={activeStatuses}
         onToggleStatus={toggleStatus}
         onResetStatuses={resetStatuses}

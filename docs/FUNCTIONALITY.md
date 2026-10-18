@@ -152,7 +152,8 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Tags have a name and a color. They're managed in Settings, or created from
   the detail panel.
 - Filters by tag (match **any** or **all**) and by status. Selecting every
-  status (or every tag in "any" mode) is the same as no filter.
+  status is the same as no filter. Selecting every tag is not: it hides
+  untagged tasks (so with a single tag, you can filter by it).
 - Deleting a tag removes it from every task.
 - Tag names save on blur or Enter. Escape undoes the edit.
 - **`#tag` while adding a task:** typing `#` in "Add a task" suggests tags
