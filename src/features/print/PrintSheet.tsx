@@ -1,5 +1,4 @@
 import { createPortal } from 'react-dom'
-import { formatDayLabel } from '../../domain/dates'
 import { isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import './PrintSheet.css'
@@ -12,27 +11,29 @@ const STATUS: Record<Task['status'], { mark: string; label: string }> = {
   canceled: { mark: '⊘', label: 'Canceled' },
 }
 
-export interface PrintDay {
-  dayIso: string
-  /** The day's tasks exactly as shown, filters applied. */
+export interface PrintSection {
+  key: string
+  /** e.g. "Monday, October 19" or "Unassigned". */
+  heading: string
+  /** The section's tasks exactly as shown, filters applied. */
   tasks: Task[]
 }
 
 interface PrintSheetProps {
-  /** e.g. "Monday, October 19", "Week of Oct 12 – Oct 18", "October 2026". */
+  /** e.g. "Monday, October 19", "Week of Oct 12 – Oct 18", "October 2026", "Bucket List". */
   title: string
-  /** One day, or a week/month in calendar order (days without tasks left out). */
-  days: PrintDay[]
-  /** A week or month: each day gets a heading (even if only one day has tasks). */
-  byDay?: boolean
+  /** What the view shows, in paper order (empty sections left out). */
+  sections: PrintSection[]
+  /** Head each section (a week or month always does, even with one day). */
+  showHeadings: boolean
   tagsById: Map<string, Tag>
   /** e.g. "Tags: #work · Status: To do"; null when nothing is filtered. */
   filterSummary: string | null
 }
 
-/** Paper version of one day, a week or a month. Hidden on screen; the only thing printed. */
-export function PrintSheet({ title, days, byDay = false, tagsById, filterSummary }: PrintSheetProps) {
-  const total = days.reduce((sum, day) => sum + day.tasks.length, 0)
+/** Paper version of the current view. Hidden on screen; the only thing printed. */
+export function PrintSheet({ title, sections, showHeadings, tagsById, filterSummary }: PrintSheetProps) {
+  const total = sections.reduce((sum, section) => sum + section.tasks.length, 0)
 
   return createPortal(
     <section className="print-sheet" aria-hidden="true">
@@ -45,12 +46,12 @@ export function PrintSheet({ title, days, byDay = false, tagsById, filterSummary
       </header>
 
       {total === 0 ? (
-        <p className="print-empty">{byDay ? 'Nothing in this period.' : 'Nothing on this day.'}</p>
+        <p className="print-empty">Nothing to print.</p>
       ) : (
-        days.map((day) => (
-          <section key={day.dayIso} className="print-day">
-            {byDay && <h2>{formatDayLabel(day.dayIso)}</h2>}
-            <PrintTaskList tasks={day.tasks} tagsById={tagsById} />
+        sections.map((section) => (
+          <section key={section.key} className="print-day">
+            {showHeadings && <h2>{section.heading}</h2>}
+            <PrintTaskList tasks={section.tasks} tagsById={tagsById} />
           </section>
         ))
       )}

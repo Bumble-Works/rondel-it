@@ -51,7 +51,7 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - **Week and Month** views scroll to today when they open on the period that
   contains today (they list the newest day first).
 - In **Day** and **Bucket List** views the section doesn't repeat the page
-  title: it shows a slim row with the task count ("3 tasks") and 🖨 print.
+  title: it shows a slim row with the task count ("3 tasks").
   Week and Month keep each day's title, since there are many days.
 - Arrows move by day, week or month. "Today" jumps back. Month steps always go
   from the 1st, so the 31st never skips a month.
@@ -268,11 +268,14 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Printing
 
-- **A day:** every day header (Day, Week and Month views) has a 🖨 button that
-  prints that one day.
-- **A week or month:** in Week and Month view, the 🖨 in the top bar prints the
-  whole period ("Week of Oct 12 – Oct 18", "October 2026"): one heading per day,
-  in calendar order, leaving out days with no tasks.
+- **One 🖨 in the top bar, on every view.** It prints the view as shown:
+  - **Day:** that day ("Monday, October 19").
+  - **Week / Month:** the whole period ("Week of Oct 12 – Oct 18",
+    "October 2026"), one heading per day in calendar order.
+  - **Bucket List:** the list, titled "Bucket List".
+- **Rondeled items** waiting in the week's/month's container are not printed.
+- Empty sections are left out; if nothing is left, the page says "Nothing to
+  print."
 - It prints **what's shown right now**: active tag/status filters apply, and
   the page says which filters were on. The system print dialog also offers
   *Save as PDF*.

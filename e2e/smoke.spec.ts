@@ -70,7 +70,7 @@ test('prints one day as a clean sheet', async ({ page }) => {
   await page.evaluate(() => {
     window.print = () => document.body.setAttribute('data-printed', 'yes')
   })
-  await page.locator('.board-section', { hasText: 'Prep slides' }).getByRole('button', { name: /^Print / }).click()
+  await page.getByRole('button', { name: 'Print this day' }).click()
 
   await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes')
   await page.emulateMedia({ media: 'print' })
@@ -94,9 +94,59 @@ test('a task left undone on a past day nags, and Done marks it done on that day'
   await expect(row(page, 'Forgot to check off')).toHaveClass(/is-done/)
 })
 
-test('prints the whole week from the top bar, skipping empty days', async ({ page }) => {
+test('prints only what the filter shows, and says which filter is on', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  await input.fill('Pay bills #home')
+  await page.getByRole('option', { name: 'Create #home' }).click()
+  await input.press('Enter')
+  await expect(row(page, 'Pay bills')).toBeVisible()
+  await input.fill('Team sync #work')
+  await page.getByRole('option', { name: 'Create #work' }).click()
+  await input.press('Enter')
+  await expect(row(page, 'Team sync')).toBeVisible()
+
+  await page.locator('.sidebar-pill', { hasText: 'home' }).click()
+  await expect(row(page, 'Team sync')).toBeHidden()
+  await page.evaluate(() => {
+    window.print = () => document.body.setAttribute('data-printed', 'yes')
+  })
+  await page.getByRole('button', { name: 'Print this day' }).click()
+  await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes')
+  await page.emulateMedia({ media: 'print' })
+  const sheet = page.locator('.print-sheet')
+  await expect(sheet.locator('.print-head p')).toHaveText('1 task · Filtered: Tags: #home')
+  await expect(sheet).toContainText('Pay bills')
+  await expect(sheet).not.toContainText('Team sync')
+})
+
+test('prints the Bucket List from the top bar', async ({ page }) => {
+  await page.locator('.sidebar-link', { hasText: 'Bucket List' }).click()
+  const add = page.getByPlaceholder('Add to this bucket')
+  await add.fill('Learn piano')
+  await add.press('Enter')
+  await expect(row(page, 'Learn piano')).toBeVisible()
+  await page.evaluate(() => {
+    window.print = () => document.body.setAttribute('data-printed', 'yes')
+  })
+  await page.getByRole('button', { name: 'Print the Bucket List' }).click()
+  await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes')
+  await page.emulateMedia({ media: 'print' })
+  const sheet = page.locator('.print-sheet')
+  await expect(sheet.locator('h1')).toHaveText('Bucket List')
+  await expect(sheet.locator('h2')).toHaveCount(0)
+  await expect(sheet).toContainText('Learn piano — To do')
+})
+
+test('prints the whole week from the top bar, skipping empty days and rondeled items', async ({ page }) => {
   await addTask(page, 'This week thing')
   await page.locator('.sidebar-link', { hasText: 'Week' }).click()
+  const container = page.locator('.board-section', { hasText: 'Unassigned' }).getByPlaceholder('Add to this bucket')
+  await container.fill('Rondeled for later')
+  await container.press('Enter')
+  await expect(row(page, 'Rondeled for later')).toBeVisible()
+  // It's in the current week, so the "Don't lose these" nag opens over the
+  // page. Close it to reach the Print button (the nag itself never prints).
+  await page.getByRole('dialog').getByRole('button', { name: 'Later' }).click()
   await page.evaluate(() => {
     window.print = () => document.body.setAttribute('data-printed', 'yes')
   })
@@ -107,6 +157,7 @@ test('prints the whole week from the top bar, skipping empty days', async ({ pag
   await expect(sheet.locator('h1')).toContainText('Week of')
   await expect(sheet.locator('h2')).toHaveCount(1)
   await expect(sheet).toContainText('○This week thing — To do')
+  await expect(sheet).not.toContainText('Rondeled for later')
 })
 
 test('sets a reminder on a task; the row shows it and it survives a reload', async ({ page }) => {

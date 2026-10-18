@@ -4,3 +4,20 @@
   gap: 0.6rem;
   padding-bottom: 2.4rem;
 }
+
+/* A day's own print button stays out of the way until you're on that day. */
+.board-section-print {
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.board-section:hover .board-section-print,
+.board-section-print:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .board-section-print {
+    opacity: 1;
+  }
+}

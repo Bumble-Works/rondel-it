@@ -34,7 +34,8 @@ describe('PrintSheet', () => {
     render(
       <PrintSheet
         title="Monday, October 19"
-        days={[{ dayIso: '2026-10-19', tasks: [
+        showHeadings={false}
+        sections={[{ key: '2026-10-19', heading: 'Monday, October 19', tasks: [
           task({ title: 'Ship release', status: 'done' }),
           task({ title: 'Review PR', status: 'doing', flagged: true, tagIds: ['w'], note: 'Ask about tests\nand docs' }),
           task({ title: 'Started, moved on', status: 'doing', carriedToId: 'next' }),
@@ -53,22 +54,22 @@ describe('PrintSheet', () => {
     expect(sheet.querySelector('.print-note')?.textContent).toBe('Ask about tests\nand docs')
     expect(sheet).toHaveTextContent('Started, moved on — Worked on, carried forward')
     expect(sheet).toHaveTextContent('○Email Sam — To do')
-    expect(sheet.querySelector('h2')).toBeNull() // one day: no day headings
+    expect(sheet.querySelector('h2')).toBeNull() // one day: no headings
   })
 
-  it('says so when the (filtered) day is empty', () => {
-    render(<PrintSheet title="Monday, October 19" days={[{ dayIso: '2026-10-19', tasks: [] }]} tagsById={new Map()} filterSummary={null} />)
-    expect(document.querySelector('.print-sheet')).toHaveTextContent('0 tasksNothing on this day.')
+  it('says so when the (filtered) view is empty', () => {
+    render(<PrintSheet title="Monday, October 19" sections={[]} showHeadings={false} tagsById={new Map()} filterSummary={null} />)
+    expect(document.querySelector('.print-sheet')).toHaveTextContent('0 tasksNothing to print.')
   })
 
   it('prints a week as one sheet with a heading per day, in calendar order', () => {
     render(
       <PrintSheet
         title="Week of Oct 19 – Oct 25"
-        byDay
-        days={[
-          { dayIso: '2026-10-19', tasks: [task({ title: 'Monday thing' })] },
-          { dayIso: '2026-10-21', tasks: [task({ title: 'Wednesday thing', status: 'done' })] },
+        showHeadings
+        sections={[
+          { key: '2026-10-19', heading: 'Monday, October 19', tasks: [task({ title: 'Monday thing' })] },
+          { key: '2026-10-21', heading: 'Wednesday, October 21', tasks: [task({ title: 'Wednesday thing', status: 'done' })] },
         ]}
         tagsById={new Map()}
         filterSummary={null}
@@ -80,9 +81,15 @@ describe('PrintSheet', () => {
     expect([...sheet.querySelectorAll('h2')].map((h) => h.textContent)).toEqual(['Monday, October 19', 'Wednesday, October 21'])
   })
 
-  it('keeps the day heading in a week where only one day has tasks', () => {
+  it('keeps the heading when asked, even with one section', () => {
     render(
-      <PrintSheet title="Week of Oct 19 – Oct 25" byDay days={[{ dayIso: '2026-10-21', tasks: [task({ title: 'Only one' })] }]} tagsById={new Map()} filterSummary={null} />,
+      <PrintSheet
+        title="Week of Oct 19 – Oct 25"
+        showHeadings
+        sections={[{ key: '2026-10-21', heading: 'Wednesday, October 21', tasks: [task({ title: 'Only one' })] }]}
+        tagsById={new Map()}
+        filterSummary={null}
+      />,
     )
     expect(document.querySelector('.print-sheet h2')).toHaveTextContent('Wednesday, October 21')
   })
