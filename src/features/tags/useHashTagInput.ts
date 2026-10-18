@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type KeyboardEvent, type SyntheticEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type SyntheticEvent } from 'react'
 import { findTagByName, hashQueryAt, matchTags, removeHashToken } from '../../domain/hashTags'
 import type { Tag } from '../../domain/types'
 
@@ -53,8 +53,14 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
   const open = options.length > 0
   const highlight = browsed ?? (options[0]?.kind === 'tag' ? 0 : -1)
 
-  const moveCaret = (position: number) =>
-    requestAnimationFrame(() => inputRef.current?.setSelectionRange(position, position))
+  // Where the caret goes once the stripped text is on screen. Set right after
+  // that render (not a frame later), so quick typing can't land mid-word.
+  const pendingCaret = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    if (pendingCaret.current === null) return
+    inputRef.current?.setSelectionRange(pendingCaret.current, pendingCaret.current)
+    pendingCaret.current = null
+  }, [text])
 
   const pick = async (option: HashTagOption) => {
     if (!query) return
@@ -63,7 +69,7 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
     const next = removeHashToken(text, query.start, caret)
     setText(next.text)
     setCaret(next.caret)
-    moveCaret(next.caret)
+    pendingCaret.current = next.caret
     if (onTag) onTag(tag)
     else setTagIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
     setBrowsed(null)
