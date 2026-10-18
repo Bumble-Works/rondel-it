@@ -1,4 +1,4 @@
-import { canRondel, isCarriedForward, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
+import { canRondel, isLeftUndone, isCarriedForward, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
 import type { Task } from './types'
 
 function task(fields: Partial<Task> = {}): Task {
@@ -58,5 +58,17 @@ describe('rondel rules', () => {
     const november = { start: '2026-11-01', end: '2026-11-30' }
     expect(showsInRondelContainer(weekOfSep28, november, '2026-10-01')).toBe(false)
     expect(showsInRondelContainer(task({ rondeled: true, dayDate: '2026-11-01' }), november, '2026-10-01')).toBe(true)
+  })
+
+  it('counts todo/doing tasks on past days as left undone', () => {
+    const today = '2026-10-19'
+    expect(isLeftUndone(task({ dayDate: '2026-10-18' }), today)).toBe(true)
+    expect(isLeftUndone(task({ dayDate: '2026-10-12', status: 'doing' }), today)).toBe(true)
+    // Not left undone:
+    expect(isLeftUndone(task({ dayDate: today }), today)).toBe(false)
+    expect(isLeftUndone(task({ dayDate: '2026-10-18', status: 'done' }), today)).toBe(false)
+    expect(isLeftUndone(task({ dayDate: '2026-10-18', status: 'doing', carriedToId: 'next' }), today)).toBe(false)
+    expect(isLeftUndone(task({ dayDate: '2026-10-12', rondeled: true }), today)).toBe(false)
+    expect(isLeftUndone(task({ dayDate: null, bucket: 'bucket-list' }), today)).toBe(false)
   })
 })

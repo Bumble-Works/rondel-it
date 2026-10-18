@@ -65,3 +65,19 @@ export function showsInRondelContainer(
   const containsToday = today >= period.start && today <= period.end
   return inPeriod || (containsToday && task.dayDate < period.start)
 }
+
+/**
+ * A task still todo/doing on a day that has passed, never rondeled on. It nags
+ * (separately from rondeled items) until the user decides.
+ */
+export function isLeftUndone(task: Task, today: string): boolean {
+  const active = task.status === 'todo' || task.status === 'doing'
+  return (
+    active &&
+    task.dayDate !== null &&
+    task.dayDate < today &&
+    !task.rondeled &&
+    task.bucket === null &&
+    !isCarriedForward(task)
+  )
+}

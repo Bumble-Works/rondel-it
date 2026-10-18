@@ -35,11 +35,17 @@ export interface DataSource {
   listBucketTasks(bucket: TaskBucket, tagId?: string): Promise<Task[]>
   /** All unassigned rondel-container items (rondeled = true). */
   listRondelItems(): Promise<Task[]>
+  /** Todo/doing tasks on days before `date` that were never dealt with (oldest first). */
+  listLeftUndone(date: string): Promise<Task[]>
   createTask(input: CreateTaskInput): Promise<Task>
   deleteTask(id: string): Promise<void>
   updateTask(id: string, input: { title?: string; tagIds?: string[]; note?: string; flagged?: boolean }): Promise<Task>
   advanceTask(id: string): Promise<Task>
-  setTaskStatus(id: string, status: TaskStatus): Promise<Task>
+  /**
+   * `onItsDay`: marking a forgotten task done counts as done on the day it was
+   * planned (it stays there, completed that day) instead of today.
+   */
+  setTaskStatus(id: string, status: TaskStatus, options?: { onItsDay?: boolean }): Promise<Task>
   /**
    * Put a task somewhere: a day or a bucket. Handles reorder (beforeId) and
    * carry-forward (rondel). The single way to change where a task lives.

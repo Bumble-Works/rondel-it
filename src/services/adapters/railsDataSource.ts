@@ -87,6 +87,11 @@ export const railsDataSource: DataSource = {
     return response.tasks.map(mapTask)
   },
 
+  async listLeftUndone(date) {
+    const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?undone_before=${date}`)
+    return response.tasks.map(mapTask)
+  },
+
   async createTask(input: CreateTaskInput) {
     const response = await request<{ task: Record<string, unknown> }>('/tasks', {
       method: 'POST',
@@ -120,10 +125,10 @@ export const railsDataSource: DataSource = {
     return mapTask(response.task)
   },
 
-  async setTaskStatus(id, status) {
+  async setTaskStatus(id, status, options) {
     const response = await request<{ task: Record<string, unknown> }>(`/tasks/${id}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, on_its_day: options?.onItsDay ?? false }),
     })
     return mapTask(response.task)
   },
