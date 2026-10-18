@@ -195,6 +195,7 @@ Today, Next week, Next month, Pick a date, Mark done.
     so finishing last period's one brings in this period's (never a past one).
   - If the app wasn't opened for a few days, only the latest due one is created.
   - The Recurring page explains this under its title.
+- After adding a rule the form starts over (empty title, Daily, no tags or reminder).
 - Rule titles save on blur or Enter.
 - In the new-rule form, selected tags show a colored border and ✓; unselected
   ones are plain outlines.
