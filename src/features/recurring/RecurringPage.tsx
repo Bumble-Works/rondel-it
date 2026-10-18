@@ -13,6 +13,7 @@ import { TagChip } from '../../shared/ui/TagChip'
 import { RepeatPicker, type RepeatChoice } from './RepeatPicker'
 import './RecurringPage.css'
 
+const newRepeat = (): RepeatChoice => ({ kind: 'repeat', repeat: defaultRepeat(todayIso()) })
 
 interface RecurringPageProps {
   rules: RecurringRule[]
@@ -25,7 +26,9 @@ interface RecurringPageProps {
 
 export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, onBack }: RecurringPageProps) {
   const [title, setTitle] = useState('')
-  const [repeat, setRepeat] = useState<RepeatChoice>(() => ({ kind: 'repeat', repeat: defaultRepeat(todayIso()) }))
+  const [repeat, setRepeat] = useState<RepeatChoice>(newRepeat)
+  // Bumped on submit so the repeat picker starts over too.
+  const [formKey, setFormKey] = useState(0)
   const [tagIds, setTagIds] = useState<string[]>([])
   const [reminderTime, setReminderTime] = useState('')
 
@@ -46,6 +49,8 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
     setTitle('')
     setTagIds([])
     setReminderTime('')
+    setRepeat(newRepeat())
+    setFormKey((k) => k + 1)
   }
 
   return (
@@ -77,7 +82,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
             onKeyDown={(e) => e.key === 'Enter' && submit()}
           />
 
-          <RepeatPicker onChange={setRepeat} />
+          <RepeatPicker key={formKey} onChange={setRepeat} />
 
           <div className="recurring-row">
             <label htmlFor="recur-reminder">Reminder</label>
