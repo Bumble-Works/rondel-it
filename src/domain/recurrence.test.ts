@@ -1,4 +1,4 @@
-import { describeRecurrence, occurrencesBetween } from './recurrence'
+import { describeRecurrence, occurrencesBetween, repeatOf } from './recurrence'
 import type { RecurrenceKind, RecurringRule } from './types'
 
 function makeRule(partial: Partial<RecurringRule>): RecurringRule {
@@ -9,6 +9,7 @@ function makeRule(partial: Partial<RecurringRule>): RecurringRule {
     note: '',
     kind: 'weekly-on',
     reminderTime: null,
+    flagged: false,
     repeat: null,
     weekday: null,
     dayOfMonth: null,
@@ -71,5 +72,18 @@ describe('describeRecurrence', () => {
   it('describes a custom repeat pattern', () => {
     const repeat = { unit: 'week' as const, every: 2, weekdays: [1, 4], startDate: '2026-10-19', endDate: null }
     expect(describeRecurrence({ kind: 'repeat', weekday: null, dayOfMonth: null, repeat })).toBe('Every 2 weeks on Mon, Thu')
+  })
+
+  it('turns a rule into a repeat for editing, old kinds included', () => {
+    const createdAt = new Date(2026, 9, 5, 12).toISOString()
+    expect(repeatOf(makeRule({ kind: 'weekly-on', weekday: 3, createdAt }))).toEqual({
+      unit: 'week',
+      every: 1,
+      weekdays: [3],
+      startDate: '2026-10-05',
+      endDate: null,
+    })
+    expect(repeatOf(makeRule({ kind: 'monthly-on', dayOfMonth: 15, createdAt }))?.monthly).toEqual({ type: 'date', days: [15] })
+    expect(repeatOf(makeRule({ kind: 'weekly-start' }))).toBeNull()
   })
 })

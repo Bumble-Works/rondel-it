@@ -1,6 +1,6 @@
 import { addDays, addMonths, fromIso, startOfMonth, startOfWeek, toIso } from './dates'
 import { describeRepeat, ordinal, repeatDatesBetween } from './repeat'
-import type { RecurringRule, TaskBucket } from './types'
+import type { RecurringRule, RepeatSpec, TaskBucket } from './types'
 
 export interface Occurrence {
   /** The occurrence's anchor date (used for de-duplication / lastRun tracking). */
@@ -73,6 +73,21 @@ export function occurrencesBetween(
   }
 
   return out
+}
+
+/**
+ * A rule's pattern as a repeat, for editing. Rules made before custom repeat
+ * ("every Monday", "every 15th") become the same pattern, starting when the
+ * rule was made. Start-of-week/month rules have none.
+ */
+export function repeatOf(rule: RecurringRule): RepeatSpec | null {
+  const startDate = toIso(new Date(rule.createdAt))
+  if (rule.kind === 'repeat') return rule.repeat
+  if (rule.kind === 'weekly-on') return { unit: 'week', every: 1, weekdays: [rule.weekday ?? 1], startDate, endDate: null }
+  if (rule.kind === 'monthly-on') {
+    return { unit: 'month', every: 1, monthly: { type: 'date', days: [rule.dayOfMonth ?? 1] }, startDate, endDate: null }
+  }
+  return null
 }
 
 const WEEKDAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']

@@ -1,4 +1,4 @@
-import { describeRepeat, repeatDatesBetween, repeatsOn } from './repeat'
+import { describeRepeat, presetOf, REPEAT_PRESETS, repeatDatesBetween, repeatsOn } from './repeat'
 import type { RepeatSpec } from './types'
 
 const MON = 1
@@ -86,4 +86,10 @@ describe('repeat patterns', () => {
     expect(describeRepeat(spec({ unit: 'year' }))).toBe('Every year on Oct 19')
   })
 
+
+  it('recognizes the quick choices, and anything else as custom', () => {
+    for (const preset of REPEAT_PRESETS) expect(presetOf(preset.make('2026-10-19'))).toBe(preset.id)
+    expect(presetOf({ ...REPEAT_PRESETS[0].make('2026-10-19'), endDate: '2026-12-31' })).toBe('daily')
+    expect(presetOf(spec({ every: 3 }))).toBe('custom')
+  })
 })

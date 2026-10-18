@@ -48,6 +48,7 @@ const RECORD_CHECKS: Record<Collection, (r: Rec) => boolean> = {
     isString(r.title) &&
     ['weekly-start', 'monthly-start', 'weekly-on', 'monthly-on', 'repeat'].includes(r.kind as string) &&
     (r.kind !== 'repeat' || isRepeat(r.repeat)) &&
+    (r.flagged === undefined || typeof r.flagged === 'boolean') &&
     isStringArray(r.tagIds) &&
     isString(r.createdAt),
 }

@@ -118,6 +118,12 @@ export const REPEAT_PRESETS: Array<{ id: RepeatPresetId; label: string; make: (s
   { id: 'yearly', label: 'Yearly', make: (s) => ({ unit: 'year', every: 1, startDate: s, endDate: null }) },
 ]
 
+/** Which quick choice `spec` is (whatever its end date), or 'custom'. */
+export function presetOf(spec: RepeatSpec): RepeatPresetId | 'custom' {
+  const same = (a: RepeatSpec, b: RepeatSpec) => JSON.stringify({ ...a, endDate: null }) === JSON.stringify({ ...b, endDate: null })
+  return REPEAT_PRESETS.find((p) => same(p.make(spec.startDate), spec))?.id ?? 'custom'
+}
+
 /** Where a new rule starts: daily, from the start date. */
 export function defaultRepeat(startDate: string): RepeatSpec {
   return REPEAT_PRESETS[0].make(startDate)

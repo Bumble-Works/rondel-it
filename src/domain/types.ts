@@ -62,6 +62,8 @@ export interface RecurringRule {
   repeat: RepeatSpec | null
   /** Reminder time copied onto each task the rule creates, 'HH:mm'. */
   reminderTime: string | null
+  /** Each task the rule creates is flagged. */
+  flagged: boolean
   /** 0=Sun..6=Sat, for 'weekly-on'. */
   weekday: number | null
   /** 1..31, for 'monthly-on'. */

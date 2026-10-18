@@ -66,7 +66,7 @@ function readSettings(): UserSetting {
 
 /** Fill fields added to rules later, so existing rules keep working. */
 function normalizeRule(rule: RecurringRule): RecurringRule {
-  return { ...rule, reminderTime: rule.reminderTime ?? null, repeat: rule.repeat ?? null }
+  return { ...rule, reminderTime: rule.reminderTime ?? null, repeat: rule.repeat ?? null, flagged: rule.flagged ?? false }
 }
 
 function readRules(): RecurringRule[] {
@@ -194,6 +194,7 @@ function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): T
     note: rule.note,
     recurringRuleId: rule.id,
     reminderTime: rule.reminderTime ?? null,
+    flagged: rule.flagged,
   })
 }
 
@@ -429,6 +430,7 @@ export const mockDataSource: DataSource = {
       weekday: input.weekday ?? null,
       dayOfMonth: input.dayOfMonth ?? null,
       reminderTime: input.reminderTime ?? null,
+      flagged: input.flagged ?? false,
       repeat: input.repeat ?? null,
       createdAt: nowIso(),
       lastRunDate: null,
@@ -457,6 +459,7 @@ export const mockDataSource: DataSource = {
       dayOfMonth: input.dayOfMonth !== undefined ? input.dayOfMonth : rules[index].dayOfMonth,
       reminderTime: input.reminderTime !== undefined ? input.reminderTime : rules[index].reminderTime,
       repeat: input.repeat !== undefined ? input.repeat : rules[index].repeat,
+      flagged: input.flagged ?? rules[index].flagged,
     }
     writeRules(rules)
     return rules[index]

@@ -23,6 +23,7 @@ export interface RecurringRuleInput {
   weekday?: number | null
   dayOfMonth?: number | null
   reminderTime?: string | null
+  flagged?: boolean
   /** For kind 'repeat'. */
   repeat?: RepeatSpec | null
 }
