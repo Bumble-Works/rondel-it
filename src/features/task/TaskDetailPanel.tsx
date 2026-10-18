@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
+import { ReminderField, type ReminderScope } from '../reminders/ReminderField'
 import { TaskLinks } from './TaskLinks'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
@@ -28,6 +29,7 @@ interface TaskDetailPanelProps {
   onToggleTag: (tagId: string) => void
   onSaveNote: (note: string) => void
   onToggleFlag: () => void
+  onChangeReminder: (reminderTime: string | null, scope: ReminderScope) => void
   onAdvance: () => void
   onSetDone: () => void
   onRondel: (target: RondelTarget) => void
@@ -46,6 +48,7 @@ export function TaskDetailPanel({
   onToggleTag,
   onSaveNote,
   onToggleFlag,
+  onChangeReminder,
   onAdvance,
   onSetDone,
   onRondel,
@@ -186,6 +189,8 @@ export function TaskDetailPanel({
         />
 
         <TaskLinks text={`${title}\n${note}`} />
+
+        <ReminderField task={task} onChange={onChangeReminder} />
 
         <dl className="detail-meta">
           <div>

@@ -22,6 +22,7 @@ export interface RecurringRuleInput {
   kind: RecurringRule['kind']
   weekday?: number | null
   dayOfMonth?: number | null
+  reminderTime?: string | null
 }
 
 export interface MoveOptions {
@@ -39,7 +40,12 @@ export interface DataSource {
   listLeftUndone(date: string): Promise<Task[]>
   createTask(input: CreateTaskInput): Promise<Task>
   deleteTask(id: string): Promise<void>
-  updateTask(id: string, input: { title?: string; tagIds?: string[]; note?: string; flagged?: boolean }): Promise<Task>
+  updateTask(
+    id: string,
+    input: { title?: string; tagIds?: string[]; note?: string; flagged?: boolean; reminderTime?: string | null },
+  ): Promise<Task>
+  /** Active tasks with a reminder, on `fromDate` or later. */
+  listUpcomingReminders(fromDate: string): Promise<Task[]>
   advanceTask(id: string): Promise<Task>
   /**
    * `onItsDay`: marking a forgotten task done counts as done on the day it was
@@ -64,7 +70,12 @@ export interface DataSource {
   // recurring rules
   listRecurringRules(): Promise<RecurringRule[]>
   createRecurringRule(input: RecurringRuleInput): Promise<RecurringRule>
-  updateRecurringRule(id: string, input: Partial<RecurringRuleInput>): Promise<RecurringRule>
+  /** `applyToOpenTasks`: also update the rule's tasks that aren't done yet. */
+  updateRecurringRule(
+    id: string,
+    input: Partial<RecurringRuleInput>,
+    options?: { applyToOpenTasks?: boolean },
+  ): Promise<RecurringRule>
   deleteRecurringRule(id: string): Promise<void>
   /** Materialize any due recurring occurrences up to the horizon date. */
   syncRecurring(horizonDate: string): Promise<void>

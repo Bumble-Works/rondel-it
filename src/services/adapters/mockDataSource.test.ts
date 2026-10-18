@@ -377,6 +377,38 @@ describe('mockDataSource recurring', () => {
     expect(task.id).toBe(`rec:${rule.id}:2026-09-14`)
   })
 
+  it('keeps reminder times on tasks and lists upcoming ones', async () => {
+    const call = await mockDataSource.createTask({ title: 'Call dentist', dayDate: '2026-10-20' })
+    expect(call.reminderTime).toBeNull()
+    await mockDataSource.updateTask(call.id, { reminderTime: '09:30' })
+    const past = await mockDataSource.createTask({ title: 'Yesterday', dayDate: '2026-10-18' })
+    await mockDataSource.updateTask(past.id, { reminderTime: '08:00' })
+    const finished = await mockDataSource.createTask({ title: 'Done one', dayDate: '2026-10-20' })
+    await mockDataSource.updateTask(finished.id, { reminderTime: '10:00' })
+    await mockDataSource.setTaskStatus(finished.id, 'done')
+
+    const upcoming = await mockDataSource.listUpcomingReminders('2026-10-19')
+    expect(upcoming.map((t) => [t.title, t.reminderTime])).toEqual([['Call dentist', '09:30']])
+
+    await mockDataSource.updateTask(call.id, { reminderTime: null })
+    expect(await mockDataSource.listUpcomingReminders('2026-10-19')).toEqual([])
+  })
+
+  it('copies a rule’s reminder to its tasks, and can update the rule plus its open tasks', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 8, 14, 7)) // Mon Sep 14
+    const rule = await mockDataSource.createRecurringRule({ title: 'Standup', kind: 'weekly-on', weekday: 1, reminderTime: '09:00' })
+    await mockDataSource.syncRecurring('2026-09-14')
+    const [today] = await mockDataSource.listTasksInRange('2026-09-14', '2026-09-14')
+    expect(today.reminderTime).toBe('09:00')
+
+    // "All": the rule and its unfinished tasks get the new time.
+    await mockDataSource.updateRecurringRule(rule.id, { reminderTime: '09:15' }, { applyToOpenTasks: true })
+    expect((await mockDataSource.listRecurringRules())[0].reminderTime).toBe('09:15')
+    const [updated] = await mockDataSource.listTasksInRange('2026-09-14', '2026-09-14')
+    expect(updated.reminderTime).toBe('09:15')
+  })
+
   it('lists tasks left undone on past days, oldest first, and can mark them done on their day', async () => {
     const monday = await mockDataSource.createTask({ title: 'Forgot to check off', dayDate: '2026-10-12' })
     const tuesday = await mockDataSource.createTask({ title: 'Still doing', dayDate: '2026-10-13' })

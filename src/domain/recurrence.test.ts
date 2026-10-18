@@ -8,6 +8,7 @@ function makeRule(partial: Partial<RecurringRule>): RecurringRule {
     tagIds: [],
     note: '',
     kind: 'weekly-on',
+    reminderTime: null,
     weekday: null,
     dayOfMonth: null,
     createdAt: '2026-01-01T00:00:00.000Z',

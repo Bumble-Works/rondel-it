@@ -26,6 +26,8 @@ pub fn run() {
     // Remembers the folder the user granted access to, across restarts.
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_opener::init())
+    // Reminders and review times show in Notification Center, even when hidden.
+    .plugin(tauri_plugin_notification::init())
     // "Start Rondel It at login" (off unless the user turns it on in Settings).
     .plugin(tauri_plugin_autostart::init(
       tauri_plugin_autostart::MacosLauncher::LaunchAgent,
