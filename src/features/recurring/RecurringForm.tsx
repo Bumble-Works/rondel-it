@@ -30,7 +30,7 @@ function choiceOf(rule: RecurringRule | null): RepeatChoice {
 
 /** New or edit recurring rule, with the task side panel's title, tags, flag and note. Remount (`key`) to start over. */
 export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: RecurringFormProps) {
-  const title = useHashTagInput({ tags, onCreateTag, initialText: rule?.title, initialTagIds: rule?.tagIds })
+  const titleInput = useHashTagInput({ tags, onCreateTag, initialText: rule?.title, initialTagIds: rule?.tagIds })
   const [initialRepeat] = useState(() => choiceOf(rule))
   const [repeat, setRepeat] = useState<RepeatChoice>(initialRepeat)
   const [note, setNote] = useState(rule?.note ?? '')
@@ -38,12 +38,12 @@ export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: R
   const [flagged, setFlagged] = useState(rule?.flagged ?? false)
 
   const submit = () => {
-    if (!title.text.trim()) return
+    if (!titleInput.text.trim()) return
     onSubmit({
-      title: title.text.trim(),
+      title: titleInput.text.trim(),
       kind: repeat.kind,
       repeat: repeat.kind === 'repeat' ? repeat.repeat : null,
-      tagIds: title.tagIds,
+      tagIds: titleInput.tagIds,
       note,
       reminderTime: reminderTime || null,
       flagged,
@@ -65,26 +65,26 @@ export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: R
 
       <div className="recurring-title-field">
         <input
-          {...title.inputProps}
+          {...titleInput.inputProps}
           className="field recurring-input"
           aria-label="Title"
           placeholder="Task title (e.g. Weekly review #home)"
           onKeyDown={(e) => {
-            if (title.handleKey(e)) return
+            if (titleInput.handleKey(e)) return
             if (e.key === 'Enter') submit()
           }}
         />
-        {title.open && <HashTagMenu options={title.options} highlight={title.highlight} onPick={title.pick} />}
+        {titleInput.open && <HashTagMenu options={titleInput.options} highlight={titleInput.highlight} onPick={titleInput.pick} />}
       </div>
 
       <TagPicker
         className="recurring-tags"
         tags={tags}
-        selectedIds={title.tagIds}
-        onToggle={title.toggleTag}
+        selectedIds={titleInput.tagIds}
+        onToggle={titleInput.toggleTag}
         onCreate={async (name) => {
           const tag = await onCreateTag(name)
-          if (tag && !title.tagIds.includes(tag.id)) title.toggleTag(tag.id)
+          if (tag) titleInput.toggleTag(tag.id) // a new tag, so this adds it
         }}
       />
 
@@ -115,7 +115,7 @@ export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: R
         value={note}
         onChange={(e) => setNote(e.target.value)}
       />
-      <TaskLinks text={`${title.text}\n${note}`} />
+      <TaskLinks text={`${titleInput.text}\n${note}`} />
 
       <div className="recurring-actions">
         {rule && (
@@ -123,7 +123,7 @@ export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: R
             Cancel
           </Button>
         )}
-        <Button variant="primary" disabled={!title.text.trim()} onClick={submit}>
+        <Button variant="primary" disabled={!titleInput.text.trim()} onClick={submit}>
           {rule ? 'Save changes' : 'Add recurring task'}
         </Button>
       </div>

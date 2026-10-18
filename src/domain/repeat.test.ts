@@ -91,5 +91,7 @@ describe('repeat patterns', () => {
     for (const preset of REPEAT_PRESETS) expect(presetOf(preset.make('2026-10-19'))).toBe(preset.id)
     expect(presetOf({ ...REPEAT_PRESETS[0].make('2026-10-19'), endDate: '2026-12-31' })).toBe('daily')
     expect(presetOf(spec({ every: 3 }))).toBe('custom')
+    // Built by hand in Custom, but the same pattern as Monthly.
+    expect(presetOf(spec({ unit: 'month', monthly: { type: 'date', days: [19] } }))).toBe('monthly')
   })
 })

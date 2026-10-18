@@ -39,7 +39,9 @@ export function RepeatPicker({ initial, onChange }: RepeatPickerProps) {
   /** Re-anchor a preset on a new start date; custom patterns keep their settings. */
   const withStart = (startDate: string): RepeatSpec => {
     const preset = REPEAT_PRESETS.find((p) => p.id === mode)
-    return preset ? { ...preset.make(startDate), endDate: spec.endDate } : { ...spec, startDate }
+    // An end date before the new start would never repeat: move it along.
+    const endDate = spec.endDate && spec.endDate < startDate ? startDate : spec.endDate
+    return preset ? { ...preset.make(startDate), endDate } : { ...spec, startDate, endDate }
   }
   const update = (patch: Partial<RepeatSpec>) => emit('custom', { ...spec, ...patch })
   const isRepeat = mode !== 'weekly-start' && mode !== 'monthly-start'
@@ -101,7 +103,7 @@ export function RepeatPicker({ initial, onChange }: RepeatPickerProps) {
                 aria-label="Unit"
                 className="field"
                 value={spec.unit}
-                onChange={(e) => update({ unit: e.target.value as RepeatSpec['unit'] })}
+                onChange={(e) => update({ unit: e.target.value as RepeatSpec['unit'], weekdays: undefined, monthly: undefined })}
               >
                 <option value="day">{spec.every === 1 ? 'day' : 'days'}</option>
                 <option value="week">{spec.every === 1 ? 'week' : 'weeks'}</option>

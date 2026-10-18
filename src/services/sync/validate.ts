@@ -25,6 +25,7 @@ const isMonthly = (v: unknown) =>
 const isRepeat = (v: unknown) =>
   isObject(v) &&
   isMonthly(v.monthly) &&
+  (v.weekdays === undefined || isIntArray(v.weekdays)) &&
   ['day', 'week', 'month', 'year'].includes(v.unit as string) &&
   Number.isInteger(v.every) &&
   (v.every as number) >= 1 &&

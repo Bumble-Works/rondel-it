@@ -82,7 +82,7 @@ export function describeRepeat(spec: RepeatSpec): string {
       text = every('day', 'days')
       break
     case 'week': {
-      const days = [...(spec.weekdays?.length ? spec.weekdays : [start.weekday])].sort()
+      const days = [...(spec.weekdays?.length ? spec.weekdays : [start.weekday])].sort((a, b) => a - b)
       const key = days.join(',')
       if (n === 1 && key === '1,2,3,4,5') text = 'Every weekday'
       else if (n === 1 && key === '0,6') text = 'Every weekend'
@@ -118,10 +118,10 @@ export const REPEAT_PRESETS: Array<{ id: RepeatPresetId; label: string; make: (s
   { id: 'yearly', label: 'Yearly', make: (s) => ({ unit: 'year', every: 1, startDate: s, endDate: null }) },
 ]
 
-/** Which quick choice `spec` is (whatever its end date), or 'custom'. */
+/** Which quick choice `spec` is (whatever its end date), or 'custom'. Same description = same pattern. */
 export function presetOf(spec: RepeatSpec): RepeatPresetId | 'custom' {
-  const same = (a: RepeatSpec, b: RepeatSpec) => JSON.stringify({ ...a, endDate: null }) === JSON.stringify({ ...b, endDate: null })
-  return REPEAT_PRESETS.find((p) => same(p.make(spec.startDate), spec))?.id ?? 'custom'
+  const text = describeRepeat({ ...spec, endDate: null })
+  return REPEAT_PRESETS.find((p) => describeRepeat(p.make(spec.startDate)) === text)?.id ?? 'custom'
 }
 
 /** Where a new rule starts: daily, from the start date. */

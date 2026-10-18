@@ -86,4 +86,21 @@ describe('RepeatPicker', () => {
     setup({ kind: 'monthly-start' })
     expect(screen.getByLabelText('Repeats')).toHaveValue('monthly-start')
   })
+
+  it('moves the end date along when the start passes it', () => {
+    const { last } = setup()
+    fireEvent.change(screen.getByLabelText('End repeat'), { target: { value: 'date' } })
+    fireEvent.change(screen.getByLabelText('Starts'), { target: { value: '2026-11-01' } })
+    expect(last()).toEqual({ kind: 'repeat', repeat: expect.objectContaining({ startDate: '2026-11-01', endDate: '2026-11-01' }) })
+  })
+
+  it('drops the weekdays when switching Custom to another unit', () => {
+    const { last } = setup()
+    fireEvent.change(screen.getByLabelText('Repeats'), { target: { value: 'custom' } })
+    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'week' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Thursday' }))
+    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'day' } })
+    expect(last()).toEqual({ kind: 'repeat', repeat: expect.not.objectContaining({ weekdays: expect.anything() }) })
+  })
 })
+
