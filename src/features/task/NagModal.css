@@ -1,3 +1,14 @@
+.nag-section + .nag-section {
+  margin-top: 1.2rem;
+}
+
+.nag-heading {
+  margin: 0 0 0.15rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
 .nag-intro {
   margin-bottom: 0.9rem;
   color: var(--muted);
