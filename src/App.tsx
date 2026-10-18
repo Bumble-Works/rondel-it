@@ -90,13 +90,10 @@ function App() {
   const [buckets, setBuckets] = useState<Buckets>(EMPTY_BUCKETS)
   const [containerItems, setContainerItems] = useState<Task[]>([])
   const [undecided, setUndecided] = useState<Task[]>([])
-<<<<<<< HEAD
   // Active tasks with a reminder, today or later (for the reminder schedule).
   const [reminderTasks, setReminderTasks] = useState<Task[]>([])
-=======
   // Todo/doing tasks left on past days: nag alongside rondeled items.
   const [leftUndone, setLeftUndone] = useState<Task[]>([])
->>>>>>> origin/main
   const [nagOpen, setNagOpen] = useState(false)
 
   const [view, setView] = useState<ViewKey>('day')
@@ -153,19 +150,12 @@ function App() {
         await dataSource.syncRecurring(recurringDay)
         recurringSyncedFor.current = recurringDay
       }
-<<<<<<< HEAD
-      const [range, bl, rondelItems, withReminders] = await Promise.all([
+      const [range, bl, rondelItems, withReminders, leftItems] = await Promise.all([
         dataSource.listTasksInRange(rangeStart, rangeEnd),
         dataSource.listBucketTasks('bucket-list'),
         dataSource.listRondelItems(),
         dataSource.listUpcomingReminders(today),
-=======
-      const [range, bl, rondelItems, leftItems] = await Promise.all([
-        dataSource.listTasksInRange(rangeStart, rangeEnd),
-        dataSource.listBucketTasks('bucket-list'),
-        dataSource.listRondelItems(),
         dataSource.listLeftUndone(today),
->>>>>>> origin/main
       ])
       setReminderTasks(withReminders)
       setRangeTasks(range)
@@ -252,13 +242,12 @@ function App() {
     nagCountRef.current = nagCount
   }, [nagCount])
 
-<<<<<<< HEAD
   // Review times, task reminders and midnight fire on time, even while hidden.
   useSchedule({
     reminders: reminderTasks,
     settings,
     onReview: (slot) => {
-      const count = undecidedRef.current.length
+      const count = nagCountRef.current
       if (count === 0) return
       setNagOpen(true)
       const name = slot === 'start' ? 'Morning review' : 'End-of-day review'
@@ -267,38 +256,6 @@ function App() {
     // The new day's recurring tasks are created when the board reloads.
     onNewDay: () => void loadBoard(),
   })
-=======
-  // Nag at begin-review and end-review times, in the user's timezone.
-  // Never tied to navigation — only the clock triggers this.
-  useEffect(() => {
-    if (!settings) return
-    const tz = settings.timezone
-    const slots: Array<[string, string]> = [
-      ['start', settings.dayStartTime],
-      ['end', settings.endOfDayTime],
-    ]
-    // Review times already past are covered by the nag shown on open.
-    const opened = nowInZone(tz)
-    for (const [slot, at] of slots) {
-      if (opened.time >= at) naggedRef.current.add(`${opened.date}-${slot}`)
-    }
-    const check = () => {
-      const { date, time } = nowInZone(tz)
-      // Past midnight: reload so the new day's recurring tasks get created.
-      if (lastSeenDateRef.current !== null && date !== lastSeenDateRef.current) void loadBoard()
-      lastSeenDateRef.current = date
-      for (const [slot, at] of slots) {
-        const key = `${date}-${slot}`
-        // ">=" so a throttled background tab that skips the exact minute still nags.
-        if (time >= at && !naggedRef.current.has(key)) {
-          naggedRef.current.add(key)
-          if (nagCountRef.current > 0) setNagOpen(true)
-        }
-      }
-    }
-    return startVisibleInterval(check, 30000)
-  }, [settings, loadBoard])
->>>>>>> origin/main
 
   const allTasks = useMemo(
     () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...undecided, ...leftUndone],
