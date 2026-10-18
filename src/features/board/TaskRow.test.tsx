@@ -24,11 +24,14 @@ const task: Task = {
   carriedToId: null,
 }
 
-<<<<<<< HEAD
-function renderRow(selected: boolean, copies = { onCopy: vi.fn(), onPickCopyDate: vi.fn() }) {
-=======
-function renderRow(selected: boolean, extra: Partial<Task> = {}, repeatLabel?: string) {
->>>>>>> origin/main
+function renderRow(
+  selected: boolean,
+  { extra = {}, repeatLabel, copies = { onCopy: vi.fn(), onPickCopyDate: vi.fn() } }: {
+    extra?: Partial<Task>
+    repeatLabel?: string
+    copies?: { onCopy: () => void; onPickCopyDate: () => void }
+  } = {},
+) {
   const noop = () => {}
   render(
     <TaskRow
@@ -83,7 +86,7 @@ describe('TaskRow', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 9, 19, 9))
     const copies = { onCopy: vi.fn(), onPickCopyDate: vi.fn() }
-    renderRow(false, copies)
+    renderRow(false, { copies })
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
     fireEvent.click(screen.getByRole('menuitem', { name: 'Copy to tomorrow' }))
     expect(copies.onCopy).toHaveBeenCalledWith('2026-10-20')
@@ -127,7 +130,7 @@ describe('TaskRow', () => {
   })
 
   it('marks a recurring task with an icon that names its pattern', () => {
-    renderRow(false, { recurringRuleId: 'r1' }, 'Every day')
+    renderRow(false, { extra: { recurringRuleId: 'r1' }, repeatLabel: 'Every day' })
     expect(screen.getByRole('img', { name: 'Recurring task' })).toHaveAttribute('title', 'Recurring: Every day')
   })
 
