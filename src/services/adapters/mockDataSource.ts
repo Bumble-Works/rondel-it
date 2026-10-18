@@ -1,4 +1,5 @@
 import { addDays, fromIso, toIso, todayIso } from '../../domain/dates'
+import { nextTagColor } from '../../domain/hashTags'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
@@ -388,7 +389,7 @@ export const mockDataSource: DataSource = {
 
   async createTag(input) {
     const tags = readTags()
-    const tag: Tag = { id: uid(), name: input.name.trim(), color: input.color || '#3b82f6' }
+    const tag: Tag = { id: uid(), name: input.name.trim(), color: input.color || nextTagColor(tags) }
     tags.push(tag)
     writeTags(tags)
     return tag
