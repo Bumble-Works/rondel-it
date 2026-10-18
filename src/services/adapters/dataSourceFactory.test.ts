@@ -1,11 +1,11 @@
 import { createDataSource } from './dataSourceFactory'
-import { mockDataSource } from './mockDataSource'
+import { localDataSource } from './localDataSource'
 import { railsDataSource } from './railsDataSource'
 
 describe('createDataSource', () => {
-  it('returns mock adapter by default', () => {
+  it('returns the local adapter by default', () => {
     vi.stubEnv('VITE_DATA_SOURCE', '')
-    expect(createDataSource()).toBe(mockDataSource)
+    expect(createDataSource()).toBe(localDataSource)
   })
 
   it('returns rails adapter when configured', () => {

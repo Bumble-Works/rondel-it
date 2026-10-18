@@ -204,7 +204,11 @@ const FIRST_LOOKAHEAD_DAYS = 3660
 
 /* ---------- adapter ---------- */
 
-export const mockDataSource: DataSource = {
+/**
+ * The app's real storage: everything lives on this device (see localStore),
+ * and folder sync shares it between devices. Used unless VITE_DATA_SOURCE=rails.
+ */
+export const localDataSource: DataSource = {
   async listTasksInRange(startDate, endDate, tagId) {
     const tasks = readTasks().filter(
       (t) => t.dayDate !== null && t.dayDate >= startDate && t.dayDate <= endDate,
