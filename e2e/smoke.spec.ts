@@ -119,6 +119,30 @@ test('prints only what the filter shows, and says which filter is on', async ({ 
   await expect(sheet).not.toContainText('Team sync')
 })
 
+test('prints a single day from its header in Week view', async ({ page }) => {
+  await addTask(page, 'Prep for tomorrow')
+  await page.locator('.sidebar-link', { hasText: 'Week' }).click()
+  await page.evaluate(() => {
+    window.print = () => document.body.setAttribute('data-printed', 'yes')
+  })
+  const top = page.getByRole('button', { name: 'Print this week' })
+  await expect(top).toHaveAttribute('title', /^Print Week of .+, every day with tasks$/)
+
+  const daySection = page.locator('.board-section', { hasText: 'Prep for tomorrow' })
+  const dayPrint = daySection.locator('.board-section-print')
+  await expect(dayPrint).toHaveAttribute('title', /^Print \w+day, \w+ \d+$/)
+  const dayLabel = (await dayPrint.getAttribute('title'))!.replace('Print ', '')
+  await daySection.hover()
+  await dayPrint.click()
+
+  await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes')
+  await page.emulateMedia({ media: 'print' })
+  const sheet = page.locator('.print-sheet')
+  await expect(sheet.locator('h1')).toHaveText(dayLabel)
+  await expect(sheet.locator('h2')).toHaveCount(0)
+  await expect(sheet).toContainText('Prep for tomorrow — To do')
+})
+
 test('prints the Bucket List from the top bar', async ({ page }) => {
   await page.locator('.sidebar-link', { hasText: 'Bucket List' }).click()
   const add = page.getByPlaceholder('Add to this bucket')
