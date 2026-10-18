@@ -1,0 +1,12 @@
+.linkified {
+  color: var(--brand);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--brand) 40%, transparent);
+  text-underline-offset: 2px;
+  /* Long URLs wrap instead of pushing past the row's buttons. */
+  overflow-wrap: anywhere;
+}
+
+.linkified:hover {
+  text-decoration-color: currentColor;
+}

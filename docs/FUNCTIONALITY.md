@@ -125,6 +125,18 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Title and note save when you leave the field. An empty title reverts.
 - The row's note button opens a note popup for tasks that aren't open in the panel.
 
+## Links
+
+- Web links (`https://…`, `http://…`, `www.…`) in a task's **title** and
+  **note** are clickable and open in the default browser (also from the Mac app).
+  Clicking a link only opens it; it doesn't open the side panel.
+- Links are shown short: no `https://` or `www.`, and long ones trimmed to
+  ~32 characters with "…". The tooltip and the link itself use the full URL.
+- In the side panel, the title and note are text boxes, so their links are
+  listed (clickable) under the note.
+- Long words and links wrap; they never run over the row's buttons, even in a
+  narrow window.
+
 ## Tags and filters
 
 - Tags have a name and a color. They're managed in Settings, or created from

@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { formatDayLabel } from '../../domain/dates'
+import { findLinks } from '../../domain/links'
+import { LinkifiedText } from '../../shared/ui/LinkifiedText'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
@@ -58,6 +60,7 @@ export function TaskDetailPanel({
   const [newTag, setNewTag] = useState('')
 
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
+  const links = [...new Map(findLinks(`${title}\n${note}`).map((l) => [l.href, l])).values()]
   const carried = isCarriedForward(task)
   const statusLocked = carried || !task.dayDate
   const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
@@ -183,6 +186,20 @@ export function TaskDetailPanel({
           onChange={(e) => setNote(e.target.value)}
           onBlur={() => note !== task.note && onSaveNote(note)}
         />
+
+        {/* Text boxes can't hold clickable links, so list them here. */}
+        {links.length > 0 && (
+          <div className="detail-links">
+            <span className="detail-field-label">Links</span>
+            <ul>
+              {links.map((link) => (
+                <li key={link.href}>
+                  <LinkifiedText text={link.text} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <dl className="detail-meta">
           <div>

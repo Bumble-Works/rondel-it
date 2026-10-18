@@ -95,6 +95,7 @@
 .task-main {
   flex: 1;
   min-width: 0;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
@@ -104,7 +105,15 @@
   text-align: left;
 }
 
+.task-main:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
 .task-title {
+  /* Long words (and links) wrap instead of running over the row's buttons. */
+  overflow-wrap: anywhere;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--ink);
@@ -140,10 +149,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
+  min-width: 0;
   max-width: 100%;
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 500;
+}
+
+.task-note-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .task-note-preview svg {
@@ -153,6 +170,7 @@
 
 .task-actions {
   /* Fixed columns (flag, note, delete, rondel) so actions line up on every row. */
+  flex: none;
   display: grid;
   grid-template-columns: 28px 28px 28px 32px;
   align-items: center;

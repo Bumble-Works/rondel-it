@@ -4,6 +4,7 @@ import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
+import { LinkifiedText } from '../../shared/ui/LinkifiedText'
 import { TagChip } from '../../shared/ui/TagChip'
 import { RondelMenu } from '../rondel/RondelMenu'
 import { OPEN_IN_PANEL_HINT } from '../task/hints'
@@ -133,11 +134,19 @@ export function TaskRow({
         disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
       />
 
-      <button
-        type="button"
+      {/* Not a <button>: its title and note can contain links. */}
+      <div
+        role="button"
+        tabIndex={0}
         className="task-main"
         title={carried ? CARRIED_FORWARD_HINT : undefined}
         onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onOpen()
+          }
+        }}
       >
         <span className="task-title">
           {task.flagged && (
@@ -150,14 +159,16 @@ export function TaskRow({
               <Icon name="repeat" size={13} />
             </span>
           )}
-          {task.title}
+          <LinkifiedText text={task.title} />
         </span>
         {(tags.length > 0 || task.note) && (
           <span className="task-meta">
             {task.note && (
               <span className="task-note-preview">
                 <Icon name="note" size={13} />
-                {firstLine(task.note)}
+                <span className="task-note-text">
+                  <LinkifiedText text={firstLine(task.note)} />
+                </span>
               </span>
             )}
             {tags.map((tag) => (
@@ -165,7 +176,7 @@ export function TaskRow({
             ))}
           </span>
         )}
-      </button>
+      </div>
 
       <div className="task-actions">
         <button
@@ -210,7 +221,7 @@ export function TaskRow({
   )
 }
 
+/** The note's first line; CSS trims it to fit (never cutting a link's address). */
 function firstLine(note: string): string {
-  const line = note.split('\n')[0].trim()
-  return line.length > 60 ? `${line.slice(0, 60)}…` : line
+  return note.split('\n')[0].trim()
 }
