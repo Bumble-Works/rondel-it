@@ -4,12 +4,24 @@ import type { Tag, Task } from '../../domain/types'
 import { TaskTitleField } from './TaskTitleField'
 
 const work: Tag = { id: 'w', name: 'work', color: '#000' }
+const workshop: Tag = { id: 'ws', name: 'workshop', color: '#000' }
 const task = { id: 't', title: 'Plan offsite', tagIds: [] as string[] } as Task
 
-function setup(createTag = vi.fn(async (name: string): Promise<Tag | null> => ({ id: 'new', name, color: '#000' }))) {
+function setup(
+  createTag = vi.fn(async (name: string): Promise<Tag | null> => ({ id: 'new', name, color: '#000' })),
+  tagIds: string[] = [],
+) {
   const onChangeTitle = vi.fn()
   const onAddTag = vi.fn()
-  render(<TaskTitleField task={task} allTags={[work]} onChangeTitle={onChangeTitle} onAddTag={onAddTag} createTag={createTag} />)
+  render(
+    <TaskTitleField
+      task={{ ...task, tagIds }}
+      allTags={[work, workshop]}
+      onChangeTitle={onChangeTitle}
+      onAddTag={onAddTag}
+      createTag={createTag}
+    />,
+  )
   return { onChangeTitle, onAddTag, createTag, title: screen.getByLabelText('Title') }
 }
 
@@ -53,4 +65,12 @@ describe('TaskTitleField', () => {
     await userEvent.type(title, 'r')
     expect(screen.getByRole('option', { name: '#work' })).toBeInTheDocument()
   })
+
+  it('doesn’t suggest tags the task already has', async () => {
+    const { title } = setup(undefined, ['w'])
+    await userEvent.type(title, ' #wo')
+    expect(screen.queryByRole('option', { name: '#work' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '#workshop' })).toBeInTheDocument()
+  })
 })
+
