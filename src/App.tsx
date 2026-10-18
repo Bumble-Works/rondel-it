@@ -215,11 +215,7 @@ function App() {
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
-  useScrollToToday(
-    (view === 'week' && today >= anchorWeekStart && today <= anchorWeekEnd) ||
-      (view === 'month' && sameMonth(monthStart, today)),
-    `${view}:${view === 'month' ? monthStart : anchorWeekStart}`,
-  )
+  useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
   // Print once the sheet for the requested day has rendered.
   useEffect(() => {
