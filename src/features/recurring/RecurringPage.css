@@ -56,42 +56,6 @@
   margin-bottom: 1rem;
 }
 
-.recurring-input {
-  margin-bottom: 0.9rem;
-  font-weight: 600;
-}
-
-.recurring-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 0;
-}
-
-.recurring-row label {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-
-.recurring-control {
-  width: 260px;
-}
-
-.recurring-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.8rem 0 0.4rem;
-}
-
-.recurring-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
 .recurring-empty {
   color: var(--faint);
   font-style: italic;
@@ -166,10 +130,4 @@
   min-width: 0;
   display: inline-flex;
   gap: 0.3rem;
-}
-
-@media (max-width: 640px) {
-  .recurring-control {
-    width: 180px;
-  }
 }
