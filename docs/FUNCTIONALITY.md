@@ -209,8 +209,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   **Note** (copied onto each task) lists its links underneath.
 - **Editing:** each rule in the list has Edit (pencil) and Delete. Edit fills
   the form with the rule (title "Edit recurring task", Save changes /
-  Cancel) and highlights it in the list. Saving changes only tasks still to
-  come; ones already on your list stay put. Rules made before custom repeat
+  Cancel) and highlights it in the list. Saving also updates the rule's open
+  task (to-do or doing): its title, tags, note, flag and reminder follow the
+  edit, but it stays on its day. Done tasks stay as they were. Rules made before custom repeat
   open as the same pattern (e.g. "every Monday" as weekly on Monday).
 - After adding or saving, the form starts over (empty, Daily, no tags, flag,
   note or reminder).

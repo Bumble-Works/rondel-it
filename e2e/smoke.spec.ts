@@ -296,3 +296,38 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
   await expect(page.locator('.recurring-item-title')).toHaveText('Gym')
   await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
 })
+
+test('two quick #tag picks in the side panel title both stick', async ({ page }) => {
+  await addTask(page, 'Plan trip')
+  await row(page, 'Plan trip').locator('.task-title').click({ force: true })
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  const title = panel.getByLabel('Title')
+  await title.click()
+  await title.press('End')
+  // No waiting between the two picks.
+  await title.pressSequentially(' #travel')
+  await page.getByRole('option', { name: 'Create #travel' }).click()
+  await title.pressSequentially(' #family')
+  await page.getByRole('option', { name: 'Create #family' }).click()
+
+  await expect(panel.locator('.tag-picker .chip', { hasText: 'travel' })).toBeVisible()
+  await expect(panel.locator('.tag-picker .chip', { hasText: 'family' })).toBeVisible()
+  await page.reload()
+  const saved = row(page, 'Plan trip')
+  await expect(saved.locator('.chip', { hasText: 'travel' })).toBeVisible()
+  await expect(saved.locator('.chip', { hasText: 'family' })).toBeVisible()
+})
+
+test('editing a recurring rule updates the task already on the list', async ({ page }) => {
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Stretch')
+  await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await page.getByRole('button', { name: 'Edit Stretch' }).click()
+  await page.getByLabel('Title', { exact: true }).fill('Morning stretch')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await page.getByRole('button', { name: 'Back to tasks' }).click()
+
+  await expect(row(page, 'Morning stretch')).toBeVisible()
+  await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
+})
+
