@@ -14,6 +14,8 @@ pub fn run() {
     // Remembers the folder the user granted access to, across restarts.
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_opener::init())
+    // Reminders and review times show in Notification Center, even when hidden.
+    .plugin(tauri_plugin_notification::init())
     .invoke_handler(tauri::generate_handler![print_page])
     .setup(|app| {
       if cfg!(debug_assertions) {
