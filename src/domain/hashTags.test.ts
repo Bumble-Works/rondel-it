@@ -31,7 +31,7 @@ describe('hash tags', () => {
 describe('nextTagColor', () => {
   const tag = (color: string) => ({ id: color, name: color, color })
   it('cycles through the palette as tags are added', () => {
-    const tags = []
+    const tags: Tag[] = []
     for (const expected of TAG_COLORS) {
       const color = nextTagColor(tags)
       expect(color).toBe(expected)

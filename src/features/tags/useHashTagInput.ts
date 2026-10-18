@@ -23,6 +23,8 @@ interface Options {
    * `tagIds` (for a task that doesn't exist yet).
    */
   onTag?: (tag: Tag) => void
+  /** After any pick, with the text as it is now (the `#word` stripped). */
+  onPicked?: (text: string) => void
 }
 
 /**
@@ -37,6 +39,7 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
   initialTagIds = [],
   excludeTagIds = [],
   onTag,
+  onPicked,
 }: Options) {
   const inputRef = useRef<E>(null)
   const [text, setText] = useState(initialText)
@@ -79,6 +82,7 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
       // Already on it: nothing to add.
     } else if (onTag) onTag(tag)
     else setTagIds((ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
+    onPicked?.(next.text)
     setBrowsed(null)
   }
 

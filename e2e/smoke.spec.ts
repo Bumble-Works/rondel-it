@@ -323,6 +323,7 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await page.getByRole('button', { name: 'Recurring' }).click()
   await page.getByLabel('Title', { exact: true }).fill('Stretch')
   await page.getByRole('button', { name: 'Add recurring task' }).click()
+  await expect(page.locator('.recurring-item-title')).toHaveText('Stretch')
   await page.getByRole('button', { name: 'Edit Stretch' }).click()
   await page.getByLabel('Title', { exact: true }).fill('Morning stretch')
   await page.getByRole('button', { name: 'Save changes' }).click()

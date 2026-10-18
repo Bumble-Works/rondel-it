@@ -150,7 +150,9 @@ Today, Next week, Next month, Pick a date, Mark done.
 ## Tags and filters
 
 - Tags have a name and a color. They're managed in Settings, or created from
-  the detail panel.
+  the detail panel or by typing `#name`. **New tags cycle through the colors**
+  (the least-used one next), so they don't all come out blue. Settings
+  suggests the next color too; you can always pick another.
 - Filters by tag (match **any** or **all**) and by status. Selecting every
   status (or every tag in "any" mode) is the same as no filter.
 - Deleting a tag removes it from every task.
@@ -163,9 +165,12 @@ Today, Next week, Next month, Pick a date, Mark done.
   Active tag filters are added to the new task too.
 - **`#tag` in the side panel title** works the same way: picking a suggestion
   attaches the tag right away and strips the `#word`; the title saves on blur
-  or Enter. A tag that's already on the task (or rule) still shows, marked
+  or Enter. Suggestions are colored chips in a wrapping row (just `#` lists
+  every tag; each letter narrows it down), with "Create #…" on its own line.
+  A tag that's already on the task (or rule) still shows, marked
   "✓ Added", so it's clear why there's nothing to add; picking it just clears
-  the typed `#word`.
+  the typed `#word`. In the side panel, the title (without the `#word`) is
+  saved as soon as you pick, so the board row matches right away.
 - The suggestions open just below the text box (or above, if there's no
   room), on top of everything, so they're never cut off.
 

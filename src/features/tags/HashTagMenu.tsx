@@ -45,6 +45,9 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
       role="listbox"
       aria-label="Tag suggestions"
       style={{ top: position?.top ?? -9999, left: position?.left ?? -9999, visibility: position ? 'visible' : 'hidden' }}
+      // Clicks anywhere in the menu (even between chips) keep focus in the text
+      // box, so it doesn't blur and save the half-typed #word.
+      onMouseDown={(e) => e.preventDefault()}
     >
       {options.map((option, index) => (
         <li
@@ -60,11 +63,8 @@ export function HashTagMenu({ anchorRef, options, highlight, onPick }: HashTagMe
             .filter(Boolean)
             .join(' ')}
           style={option.kind === 'create' ? undefined : ({ '--tag': option.tag.color } as CSSProperties)}
-          // mousedown, not click: keep focus in the input so it doesn't blur-submit.
-          onMouseDown={(e) => {
-            e.preventDefault()
-            onPick(option)
-          }}
+          // mousedown, not click: picks before any blur (the list keeps focus too).
+          onMouseDown={() => onPick(option)}
         >
           {option.kind === 'create' ? (
             <>Create #{option.name}</>
