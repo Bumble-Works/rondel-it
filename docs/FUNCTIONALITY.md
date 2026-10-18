@@ -167,7 +167,16 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 - Settings: **morning review time** and **end-of-day rondel time**.
 - The nag opens once when the app opens, and again at each review time, if
-  any rondeled items are waiting for a decision. It closes when nothing is left.
+  anything needs a decision. It closes when nothing is left. It has two sections:
+  - **Left undone on past days:** todo/doing tasks on any day before today
+    (history copies, done tasks, rondeled and Bucket List items excluded), oldest first.
+  - **Rondeled items waiting:** rondeled items whose week/month has started.
+- Each item offers **Today, Next week, Next month, Pick a date, Done** (no
+  "doing"). Moving a past-day task off its day counts as a rondel (a doing task
+  leaves its history copy, as usual).
+- **Done on a past-day task** marks it done **on the day it was planned**, as
+  if you finished it then and forgot to check it off: it stays on that day,
+  completed that day. (Done on a rondeled item moves it to today, as before.)
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
 ## Sync (Mac app)
