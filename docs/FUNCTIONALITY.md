@@ -155,6 +155,8 @@ Today, Next week, Next month, Pick a date, Mark done.
 - "Start of week/month" rules keep only one unfinished task at a time. The
   next one isn't created until the current one is done.
 - Rule titles save on blur or Enter.
+- In the new-rule form, selected tags show a colored border and ✓; unselected
+  ones are plain outlines.
 
 ## Nag and review times
 

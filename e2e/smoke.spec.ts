@@ -1,0 +1,80 @@
+import { expect, test, type Page } from '@playwright/test'
+
+/** The row for a task title within the visible board. */
+const row = (page: Page, title: string) => page.locator('.task-row', { hasText: title })
+
+async function addTask(page: Page, title: string) {
+  const input = page.getByPlaceholder('Add a task')
+  await input.fill(title)
+  await input.press('Enter')
+  await expect(row(page, title)).toBeVisible()
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
+})
+
+test('adds a task, starts it, flags it, finishes it, and keeps it after reload', async ({ page }) => {
+  await addTask(page, 'Write the report')
+  const task = row(page, 'Write the report')
+
+  await task.getByRole('button', { name: 'Mark as doing' }).click()
+  await expect(task.getByRole('button', { name: 'Mark as done' })).toBeVisible()
+
+  await task.getByRole('button', { name: 'Flag as important' }).click()
+  await expect(task).toHaveClass(/is-flagged/)
+
+  await task.getByRole('button', { name: 'Mark as done' }).click()
+  await expect(task).toHaveClass(/is-done/)
+
+  await page.reload()
+  await expect(row(page, 'Write the report')).toHaveClass(/is-done/)
+  await expect(row(page, 'Write the report')).toHaveClass(/is-flagged/)
+})
+
+test('#tag while typing creates and attaches a tag, stripped from the title', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  await input.fill('Buy milk #errands')
+  await page.getByRole('option', { name: 'Create #errands' }).click()
+  await expect(input).toHaveValue('Buy milk')
+  await input.press('Enter')
+
+  const task = row(page, 'Buy milk')
+  await expect(task).toBeVisible()
+  await expect(task.locator('.chip', { hasText: 'errands' })).toBeVisible()
+  await expect(task.locator('.task-title')).toHaveText('Buy milk')
+})
+
+test('rondeling a doing task to tomorrow keeps today’s history and carries a doing copy', async ({ page }) => {
+  await addTask(page, 'Big refactor')
+  const today = row(page, 'Big refactor')
+  await today.getByRole('button', { name: 'Mark as doing' }).click()
+
+  await today.getByRole('button', { name: 'Rondel this task' }).click()
+  await page.getByRole('menuitem', { name: 'Tomorrow' }).click()
+
+  // Today keeps a greyed-out history copy that can't be rondeled again.
+  await expect(today).toHaveClass(/is-carried/)
+  await expect(today.getByRole('button', { name: 'Rondel this task' })).toBeDisabled()
+
+  // Tomorrow has the live copy, still in progress.
+  await page.getByRole('button', { name: 'Next day' }).click()
+  const tomorrow = row(page, 'Big refactor')
+  await expect(tomorrow).not.toHaveClass(/is-carried/)
+  await expect(tomorrow.getByRole('button', { name: 'Mark as done' })).toBeVisible()
+})
+
+test('prints one day as a clean sheet', async ({ page }) => {
+  await addTask(page, 'Prep slides')
+  await page.evaluate(() => {
+    window.print = () => document.body.setAttribute('data-printed', 'yes')
+  })
+  await page.locator('.board-section', { hasText: 'Prep slides' }).getByRole('button', { name: /^Print / }).click()
+
+  await expect(page.locator('body')).toHaveAttribute('data-printed', 'yes')
+  await page.emulateMedia({ media: 'print' })
+  await expect(page.locator('.print-sheet')).toBeVisible()
+  await expect(page.locator('.print-sheet')).toContainText('Prep slides — To do')
+  await expect(page.locator('.app')).toBeHidden()
+})

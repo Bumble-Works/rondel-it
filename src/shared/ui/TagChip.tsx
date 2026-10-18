@@ -30,10 +30,16 @@ export function TagChip({ name, color, size = 'md', onRemove, onClick, active }:
         }
       }}
       role={interactive ? 'button' : undefined}
+      aria-pressed={interactive ? Boolean(active) : undefined}
       tabIndex={interactive ? 0 : undefined}
     >
       <span className="chip-dot" />
       <span className="chip-name">{name}</span>
+      {interactive && active && (
+        <span className="chip-check" aria-hidden="true">
+          ✓
+        </span>
+      )}
       {onRemove && (
         <button
           type="button"

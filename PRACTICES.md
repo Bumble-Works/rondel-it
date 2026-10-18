@@ -75,5 +75,16 @@
 
 ## CI-enforced subset
 
-- `npm run check:practices` runs in CI on every PR/push.
+CI runs on every PR and push to `main`, as separate checks: **practices**,
+**lint**, **test**, **build**, **e2e** (plus the **Mac app** build when its files change).
+
+`npm run check:practices` (`scripts/check-practices.mjs`) enforces:
+- one stylesheet per component (`Foo.tsx` → `Foo.css`; a few style-less
+  components are listed as exempt)
+- components at most 250 lines (`App.tsx` has a temporary, capped exception
+  until it's split)
+- no duplicated 20-line blocks of code (DRY)
+
+`npm run test:e2e` runs the Playwright smoke tests in Chromium and WebKit
+(the Mac app's engine). Locally, run it only when debugging e2e (see Tests).
 
