@@ -109,3 +109,14 @@ test('prints the whole week from the top bar, skipping empty days', async ({ pag
   await expect(sheet).toContainText('○This week thing — To do')
 })
 
+test('sets a reminder on a task; the row shows it and it survives a reload', async ({ page }) => {
+  await addTask(page, 'Call the bank')
+  await row(page, 'Call the bank').locator('.task-title').click({ force: true })
+  const reminder = page.getByLabel('Reminder')
+  await reminder.fill('09:30')
+  await reminder.blur()
+  await expect(row(page, 'Call the bank').locator('.task-reminder')).toBeVisible()
+
+  await page.reload()
+  await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
+})

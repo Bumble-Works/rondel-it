@@ -178,6 +178,16 @@
   font-weight: 500;
 }
 
+.task-reminder {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--brand);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .task-note-text {
   min-width: 0;
   overflow: hidden;

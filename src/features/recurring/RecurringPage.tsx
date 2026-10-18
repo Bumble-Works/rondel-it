@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { ensureNotificationPermission } from '../../shared/notify'
 import { describeRecurrence } from '../../domain/recurrence'
-import { weekdayName } from '../../domain/dates'
+import { formatClock, weekdayName } from '../../domain/dates'
 import type { RecurrenceKind, RecurringRule, Tag } from '../../domain/types'
 import type { RecurringRuleInput } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
@@ -39,6 +40,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
   const [dayOfMonthText, setDayOfMonthText] = useState('1')
   const dayOfMonth = clampDayOfMonth(dayOfMonthText)
   const [tagIds, setTagIds] = useState<string[]>([])
+  const [reminderTime, setReminderTime] = useState('')
 
   const tagsById = new Map(tags.map((t) => [t.id, t]))
 
@@ -53,9 +55,11 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
       weekday: kind === 'weekly-on' ? weekday : null,
       dayOfMonth: kind === 'monthly-on' ? dayOfMonth : null,
       tagIds,
+      reminderTime: reminderTime || null,
     })
     setTitle('')
     setTagIds([])
+    setReminderTime('')
   }
 
   return (
@@ -133,6 +137,20 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
             </div>
           )}
 
+          <div className="recurring-row">
+            <label htmlFor="recur-reminder">Reminder</label>
+            <input
+              id="recur-reminder"
+              type="time"
+              className="field recurring-control"
+              value={reminderTime}
+              onChange={(e) => {
+                setReminderTime(e.target.value)
+                if (e.target.value) void ensureNotificationPermission()
+              }}
+            />
+          </div>
+
           {tags.length > 0 && (
             <div className="recurring-tags">
               {tags.map((tag) => (
@@ -175,6 +193,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
                     />
                     <span className="recurring-item-desc">
                       {describeRecurrence(rule.kind, rule.weekday, rule.dayOfMonth)}
+                      {rule.reminderTime && <span> · 🔔 {formatClock(rule.reminderTime)}</span>}
                       {rule.tagIds.length > 0 && (
                         <span className="recurring-item-tags">
                           {rule.tagIds
