@@ -792,12 +792,13 @@ function App() {
           onPickDate={() => setDateTaskId(selectedTask.id)}
           onDelete={() => removeTask(selectedTask.id)}
           onCreateTag={(name) => createTagForTask(selectedTask, name)}
+          createTag={createTagNamed}
           weekStartDay={weekStartDay}
         />
       )}
 
       <NoteModal
-        key={noteTaskId ?? 'closed'}
+        key={`note:${noteTaskId ?? 'closed'}`}
         open={Boolean(noteTask)}
         task={noteTask}
         onClose={() => setNoteTaskId(null)}
@@ -827,7 +828,7 @@ function App() {
         />
       )}
 
-      <DatePickModal key={dateTaskId ?? 'closed'} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
+      <DatePickModal key={`date:${dateTaskId ?? 'closed'}`} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
     </div>
   )
 }

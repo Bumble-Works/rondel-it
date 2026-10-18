@@ -95,6 +95,41 @@ test('a task left undone on a past day nags, and Done marks it done on that day'
 })
 
 
+test('#tag in the side panel title shows its suggestions on top and attaches the tag', async ({ page }) => {
+  await addTask(page, 'Plan offsite')
+  await page.getByRole('button', { name: /^Open Plan offsite/ }).click()
+  const title = page.getByLabel('Title')
+  await title.click()
+  await title.press('End')
+  await title.pressSequentially(' #team')
+  const create = page.getByRole('option', { name: 'Create #team' })
+  await expect(create).toBeVisible()
+  await create.click()
+  await expect(title).toHaveValue('Plan offsite')
+  await expect(page.locator('.detail-panel .chip', { hasText: 'team' })).toBeVisible()
+})
+
+test('#tag suggestions in "Add a task" are not cut off by the day section', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  await input.pressSequentially('Buy milk #err')
+  const option = page.getByRole('option', { name: 'Create #err' })
+  const box = (await option.boundingBox())!
+  const onTop = await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.textContent?.trim(), [box.x + box.width / 2, box.y + box.height / 2])
+  expect(onTop).toBe('Create #err')
+})
+
+test('#tag suggestions in the side panel title close when you click away', async ({ page }) => {
+  await addTask(page, 'Plan offsite')
+  await page.getByRole('button', { name: /^Open Plan offsite/ }).click()
+  const title = page.getByLabel('Title')
+  await title.click()
+  await title.press('End')
+  await title.pressSequentially(' #team')
+  await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeVisible()
+  await page.locator('#detail-note').click()
+  await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeHidden()
+})
+
 test('sets a reminder on a task; the row shows it and it survives a reload', async ({ page }) => {
   await addTask(page, 'Call the bank')
   await row(page, 'Call the bank').locator('.task-title').click({ force: true })

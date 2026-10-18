@@ -1,8 +1,7 @@
 .hashtag-menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 2rem;
-  z-index: 20;
+  /* Placed by HashTagMenu.tsx, over everything (side panel and modals too). */
+  position: fixed;
+  z-index: 120;
   min-width: 180px;
   margin: 0;
   padding: 0.3rem;

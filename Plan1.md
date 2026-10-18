@@ -120,7 +120,7 @@ Frontend:
 - [x] Reopened (back to todo) tasks move to the top
 - [x] Month view scrolls to today
 - [x] `#tag` autocomplete in "Add a task" (strip from title; create only on explicit pick)
-- [ ] `#tag` autocomplete when editing a title in the side panel
+- [x] `#tag` autocomplete when editing a title in the side panel
 - [x] Works in a narrow window (360px; sidebar drawer below 760px)
 - [x] Drag and drop: works now in the browser (fixed in PR #2)
 - [x] Flag items as important (bold + amber flag; no auto-reorder)
