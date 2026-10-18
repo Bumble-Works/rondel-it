@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import type { Tag, Task, TaskBucket } from '../../domain/types'
+import { IconButton } from '../../shared/ui/IconButton'
 import { BoardSection } from './BoardSection'
 import { InlineAdd } from './InlineAdd'
 import { TaskRow } from './TaskRow'
@@ -23,6 +24,8 @@ export interface BoardGroup {
   addTarget?: BoardGroupAddTarget
   emptyLabel?: string
   tasks: Task[]
+  /** Day sections can be printed (as filtered). */
+  onPrint?: () => void
 }
 
 interface WeekBoardProps {
@@ -94,6 +97,11 @@ export function WeekBoard({
           tone={group.kind}
           defaultCollapsed={group.defaultCollapsed}
           collapsible={group.collapsible}
+          headerRight={
+            group.onPrint && (
+              <IconButton icon="print" label={`Print ${group.title}`} size={17} onClick={group.onPrint} />
+            )
+          }
           empty={group.tasks.length === 0 && !group.addTarget}
           emptyLabel={group.emptyLabel}
           onDropAtEnd={

@@ -36,6 +36,8 @@ import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
 import { useSync } from './features/sync/useSync'
+import { PrintSheet } from './features/print/PrintSheet'
+import { printPage } from './features/print/printPage'
 import { startVisibleInterval } from './shared/visibleInterval'
 
 const dataSource = createDataSource()
@@ -97,6 +99,9 @@ function App() {
   const [page, setPage] = useState<'board' | 'settings' | 'recurring'>('board')
   // Narrow windows show the sidebar as a drawer (see App.css / Sidebar.css).
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  // The day being printed. The sheet stays mounted (hidden on screen) so the
+  // print dialog always has it, however long the dialog stays open.
+  const [printRequest, setPrintRequest] = useState<{ dayIso: string; at: number } | null>(null)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
@@ -218,6 +223,15 @@ function App() {
     )
     return () => cancelAnimationFrame(frame)
   }, [view, monthStart, today])
+
+  // Print once the sheet for the requested day has rendered.
+  useEffect(() => {
+    if (!printRequest) return
+    const frame = requestAnimationFrame(() => {
+      printPage().catch((e) => reportError('Couldn’t open the print dialog', e))
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [printRequest, reportError])
 
   /* ---- rondeled-items nag ---- */
 
@@ -459,6 +473,7 @@ function App() {
       addTarget: { dayDate: iso },
       tasks: dayTasks,
       emptyLabel: 'Nothing here yet — add your first task below',
+      onPrint: () => setPrintRequest({ dayIso: iso, at: Date.now() }),
     }
   }
 
@@ -509,6 +524,16 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, rangeTasks, buckets, containerItems, anchorWeekStart, anchorDate, monthStart, monthEnd, today, activeStatuses, activeTagIds, tagMatchMode])
+
+  const filterSummary = (): string | null => {
+    const parts: string[] = []
+    if (activeTagIds.length) {
+      const names = activeTagIds.map((id) => `#${tagsById.get(id)?.name ?? '?'}`)
+      parts.push(`Tags: ${names.join(tagMatchMode === 'all' ? ' and ' : ' or ')}`)
+    }
+    if (activeStatuses.length) parts.push(`Status: ${activeStatuses.map((s) => STATUS_LABEL[s]).join(', ')}`)
+    return parts.length ? parts.join(' · ') : null
+  }
 
   const canPage = view !== 'rondel'
   const shiftAnchor = (dir: -1 | 1) =>
@@ -786,6 +811,15 @@ function App() {
       />
 
       {/* After the nag so "Pick a date" from the nag opens on top of it. */}
+      {printRequest && (
+        <PrintSheet
+          dayIso={printRequest.dayIso}
+          tasks={dayGroup(printRequest.dayIso).tasks}
+          tagsById={tagsById}
+          filterSummary={filterSummary()}
+        />
+      )}
+
       <DatePickModal key={dateTaskId ?? 'closed'} open={Boolean(dateTaskId)} onClose={() => setDateTaskId(null)} onConfirm={confirmDate} />
     </div>
   )

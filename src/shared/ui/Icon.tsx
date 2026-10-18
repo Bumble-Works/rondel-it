@@ -24,6 +24,7 @@ export type IconName =
   | 'repeat'
   | 'filter'
   | 'menu'
+  | 'print'
   | 'flag'
   | 'flag-filled'
 
@@ -105,6 +106,15 @@ const PATHS: Record<IconName, ReactNode> = {
   ),
   flag: <path d="M5.5 16.5V4m0 .5h8.2a.5.5 0 0 1 .4.8L12.3 8l1.8 2.7a.5.5 0 0 1-.4.8H5.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
   'flag-filled': <path d="M5.5 16.5V4m0 .5h8.2a.5.5 0 0 1 .4.8L12.3 8l1.8 2.7a.5.5 0 0 1-.4.8H5.5" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+  print: (
+    <path
+      d="M6 8V3.5h8V8M6 14H4.5A1.5 1.5 0 0 1 3 12.5v-3A1.5 1.5 0 0 1 4.5 8h11A1.5 1.5 0 0 1 17 9.5v3a1.5 1.5 0 0 1-1.5 1.5H14M6 11.5h8v5H6v-5Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+  ),
   menu: <path d="M4 6h12M4 10h12M4 14h12" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />,
   filter: (
     <path
