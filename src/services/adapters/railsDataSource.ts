@@ -88,13 +88,13 @@ export const railsDataSource: DataSource = {
     return response.tasks.map(mapTask)
   },
 
-<<<<<<< HEAD
   async listUpcomingReminders(fromDate) {
     const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?reminders_from=${fromDate}`)
-=======
+    return response.tasks.map(mapTask)
+  },
+
   async listLeftUndone(date) {
     const response = await request<{ tasks: Record<string, unknown>[] }>(`/tasks?undone_before=${date}`)
->>>>>>> origin/main
     return response.tasks.map(mapTask)
   },
 

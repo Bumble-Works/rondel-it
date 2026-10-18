@@ -377,7 +377,6 @@ describe('mockDataSource recurring', () => {
     expect(task.id).toBe(`rec:${rule.id}:2026-09-14`)
   })
 
-<<<<<<< HEAD
   it('keeps reminder times on tasks and lists upcoming ones', async () => {
     const call = await mockDataSource.createTask({ title: 'Call dentist', dayDate: '2026-10-20' })
     expect(call.reminderTime).toBeNull()
@@ -408,7 +407,8 @@ describe('mockDataSource recurring', () => {
     expect((await mockDataSource.listRecurringRules())[0].reminderTime).toBe('09:15')
     const [updated] = await mockDataSource.listTasksInRange('2026-09-14', '2026-09-14')
     expect(updated.reminderTime).toBe('09:15')
-=======
+  })
+
   it('lists tasks left undone on past days, oldest first, and can mark them done on their day', async () => {
     const monday = await mockDataSource.createTask({ title: 'Forgot to check off', dayDate: '2026-10-12' })
     const tuesday = await mockDataSource.createTask({ title: 'Still doing', dayDate: '2026-10-13' })
@@ -424,6 +424,5 @@ describe('mockDataSource recurring', () => {
     expect(done.dayDate).toBe('2026-10-12')
     expect(new Date(done.completedAt!).getDate()).toBe(12) // completed that day, local time
     expect((await mockDataSource.listLeftUndone('2026-10-19')).map((t) => t.title)).toEqual(['Still doing'])
->>>>>>> origin/main
   })
 })

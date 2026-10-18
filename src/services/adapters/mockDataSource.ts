@@ -217,7 +217,6 @@ export const mockDataSource: DataSource = {
     return ordered(tasks)
   },
 
-<<<<<<< HEAD
   async listUpcomingReminders(fromDate) {
     return readTasks().filter(
       (t) =>
@@ -228,12 +227,12 @@ export const mockDataSource: DataSource = {
         !t.rondeled &&
         !isCarriedForward(t),
     )
-=======
+  },
+
   async listLeftUndone(date) {
     return readTasks()
       .filter((t) => isLeftUndone(t, date))
       .sort((a, b) => (a.dayDate ?? '').localeCompare(b.dayDate ?? '') || a.position - b.position)
->>>>>>> origin/main
   },
 
   async createTask(input: CreateTaskInput) {
