@@ -95,6 +95,8 @@
 .task-main {
   flex: 1;
   min-width: 0;
+  /* Safety net: nothing in the text area can draw over the buttons. */
+  overflow: hidden;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -107,7 +109,7 @@
 
 .task-main:focus-visible {
   outline: 2px solid var(--brand);
-  outline-offset: 2px;
+  outline-offset: -2px;
   border-radius: var(--r-sm);
 }
 
