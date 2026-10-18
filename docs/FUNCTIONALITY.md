@@ -245,15 +245,19 @@ Today, Next week, Next month, Pick a date, Mark done.
     time zone).
 - The sync folder choice and device id are per device and never synced.
 
-## Printing a day
+## Printing
 
-- Every day header (Day, Week and Month views) has a 🖨 button that prints
-  **that one day** (the system print dialog also offers *Save as PDF*).
-- It prints **what the day shows right now**: active tag/status filters apply,
-  and the page says which filters were on.
-- Each task shows its status box and label (☐ To do, ◐ Doing, ☑ Done; history
-  copies print as "Worked on, carried forward"), ⚑ if flagged, its tags, and
-  its full note. Only the sheet prints, not the app around it.
+- **A day:** every day header (Day, Week and Month views) has a 🖨 button that
+  prints that one day.
+- **A week or month:** in Week and Month view, the 🖨 in the top bar prints the
+  whole period ("Week of Oct 12 – Oct 18", "October 2026"): one heading per day,
+  in calendar order, leaving out days with no tasks.
+- It prints **what's shown right now**: active tag/status filters apply, and
+  the page says which filters were on. The system print dialog also offers
+  *Save as PDF*.
+- Each task shows a round status mark and label (○ To do, ◐ Doing, ● Done;
+  history copies print as "◐ Worked on, carried forward"), ⚑ if flagged, its
+  tags, and its full note. Only the sheet prints, not the app around it.
 
 ## Errors
 
