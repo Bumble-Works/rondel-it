@@ -498,35 +498,25 @@ export const mockDataSource: DataSource = {
       const occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
       if (occurrences.length === 0) continue
 
-      // Start-rules keep at most one outstanding (not-done) task. Don't spawn
-      // the next until the current one is completed — no duplicates.
-      if (isStartRule(rule.kind)) {
-        const hasPending = tasks.some(
-          (t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t),
-        )
-        if (hasPending) continue
-
-        const occ = occurrences[0]
-        tasks.push(taskFromRule(rule, occ, tasks.length))
-        changedTasks = true
-        if (!rule.lastRunDate || occ.date > rule.lastRunDate) {
-          rules[index] = { ...rule, lastRunDate: occ.date }
-          changedRules = true
+      // One open task per rule: the next isn't created until the previous one
+      // is finished. Todo and doing count as open, like in the nag. Ones
+      // missed meanwhile are skipped.
+      const isOpen = (t: Task) =>
+        t.recurringRuleId === rule.id && (t.status === 'todo' || t.status === 'doing') && !isCarriedForward(t)
+      const latest = occurrences[occurrences.length - 1]
+      let lastRunDate = latest.date
+      if (tasks.some(isOpen)) {
+        // Hold on to today's (or this week's/month's), so finishing the open one now still brings it in.
+        if (latest.rondeled || latest.date === horizonDate) {
+          if (occurrences.length === 1) continue
+          lastRunDate = occurrences[occurrences.length - 2].date
         }
-        continue
-      }
-
-      let last = rule.lastRunDate
-      for (const occ of occurrences) {
-        tasks.push(taskFromRule(rule, occ, tasks.length))
+      } else {
+        tasks.push(taskFromRule(rule, latest, tasks.length))
         changedTasks = true
-        if (!last || occ.date > last) last = occ.date
       }
-
-      if (last !== rule.lastRunDate) {
-        rules[index] = { ...rule, lastRunDate: last }
-        changedRules = true
-      }
+      rules[index] = { ...rule, lastRunDate }
+      changedRules = true
     }
 
     if (changedTasks) writeTasks(tasks)
