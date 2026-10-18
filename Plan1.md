@@ -213,8 +213,8 @@ Frontend:
 - Rondeled items don't record whether they're for a week or a month (both are
   just a date). Add a field, or simplify the UX into fixed "Next week" /
   "Next month" buckets.
-- "Today" uses the browser's time zone, but the recurring sync uses the
-  settings time zone. Use one everywhere (matters once Rails settings exist).
+- [x] One time zone everywhere: the device's (board, reviews, reminders,
+  recurring). The settings `timezone` field is unused; drop it with the Rails work.
 - Repo housekeeping: create `docs/TODO.md` (PRACTICES.md calls it the status source of truth).
 - Rails API (PR #3): rename categories → tags, and align endpoints with the
   frontend adapter.

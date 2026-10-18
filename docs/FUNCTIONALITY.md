@@ -283,5 +283,7 @@ Today, Next week, Next month, Pick a date, Mark done.
   fields are filled in on read, and nothing is reset.
 - Done items left in a rondel container by older versions are moved, on read,
   to the day they were completed.
-- Time zone: uses your computer's time zone. It isn't editable in Settings yet.
+- Time zone: everything (the board's "today", review times, reminders,
+  midnight and recurring tasks) uses **this device's** time zone, so it
+  follows you when you travel. The synced settings' `timezone` isn't used.
 - The Rails adapter (`VITE_DATA_SOURCE=rails`) sends snake_case and reads camelCase.

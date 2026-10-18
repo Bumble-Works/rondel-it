@@ -10,7 +10,6 @@ import {
   formatShort,
   fromIso,
   isToday,
-  nowInZone,
   relativeDayLabel,
   sameMonth,
   startOfMonth,
@@ -115,7 +114,6 @@ function App() {
 
   const today = todayIso()
   const weekStartDay = settings?.weekStartDay ?? 1
-  const timezone = settings?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
 
   const anchorWeekStart = useMemo(
     () => startOfWeek(anchorDate, weekStartDay),
@@ -145,7 +143,8 @@ function App() {
     try {
       // Recurring tasks appear on their own day, never ahead of time — browsing
       // forward must not pre-create them.
-      const recurringDay = nowInZone(timezone).date
+      // The device's own day, like the board, the review times and midnight.
+      const recurringDay = today
       if (recurringSyncedFor.current !== recurringDay) {
         await dataSource.syncRecurring(recurringDay)
         recurringSyncedFor.current = recurringDay
@@ -183,7 +182,7 @@ function App() {
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, timezone, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
+  }, [reportError, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
   /** Tags, settings and rules; the board reloads itself when settings change. */
   const loadAppData = useCallback(async () => {
