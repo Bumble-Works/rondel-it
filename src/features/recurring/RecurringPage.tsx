@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ensureNotificationPermission } from '../../shared/notify'
 import { describeRecurrence } from '../../domain/recurrence'
-import { weekdayName } from '../../domain/dates'
+import { formatClock, weekdayName } from '../../domain/dates'
 import type { RecurrenceKind, RecurringRule, Tag } from '../../domain/types'
 import type { RecurringRuleInput } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
@@ -193,7 +193,7 @@ export function RecurringPage({ rules, tags, onCreate, onUpdateTitle, onDelete, 
                     />
                     <span className="recurring-item-desc">
                       {describeRecurrence(rule.kind, rule.weekday, rule.dayOfMonth)}
-                      {rule.reminderTime && <span> · 🔔 {rule.reminderTime}</span>}
+                      {rule.reminderTime && <span> · 🔔 {formatClock(rule.reminderTime)}</span>}
                       {rule.tagIds.length > 0 && (
                         <span className="recurring-item-tags">
                           {rule.tagIds

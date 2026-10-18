@@ -139,3 +139,8 @@ export function formatMonthLabel(iso: string): string {
   return `${MONTH[date.getMonth()]} ${date.getFullYear()}`
 }
 
+/** "09:30" → "9:30 AM" (in the user's locale). */
+export function formatClock(time: string): string {
+  const [h, m] = time.split(':').map(Number)
+  return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
