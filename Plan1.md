@@ -214,9 +214,7 @@ Frontend:
   "Next month" buckets.
 - "Today" uses the browser's time zone, but the recurring sync uses the
   settings time zone. Use one everywhere (matters once Rails settings exist).
-- Repo housekeeping: replace the Vite boilerplate in README, add `src-tauri`
-  or drop `@tauri-apps/cli`, add the `check:practices` script PRACTICES.md
-  mentions, create `docs/TODO.md`.
+- Repo housekeeping: create `docs/TODO.md` (PRACTICES.md calls it the status source of truth).
 - Rails API (PR #3): rename categories → tags, and align endpoints with the
   frontend adapter.
 
