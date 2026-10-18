@@ -204,6 +204,7 @@ export function TaskRow({
           onPickDate={onPickDate}
           weekStartDay={weekStartDay}
           disabledReason={locked ? OPEN_IN_PANEL_HINT : rondelBlockedReason(task)}
+          inBucketList={task.bucket !== null}
         />
       </div>
     </div>

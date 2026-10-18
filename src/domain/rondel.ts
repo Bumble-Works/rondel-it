@@ -22,15 +22,16 @@ export function canRondel(task: Task): boolean {
 }
 
 /**
- * Giving a waiting item (in a rondel container or the Bucket List) a day is a
- * decision, not pushing it off again, so it doesn't count as a rondel.
+ * Moves that schedule work rather than push it off, so they don't count as a
+ * rondel: taking anything out of the Bucket List (it's being scheduled for the
+ * first time, even into next week/month), or giving a rondeled item a day.
  */
 export function isSchedulingDecision(
   task: Task,
   target: { dayDate: string | null; rondeled: boolean; bucket: TaskBucket | null },
 ): boolean {
-  const waiting = task.rondeled || task.bucket !== null
-  return waiting && target.dayDate !== null && !target.rondeled && target.bucket === null
+  if (task.bucket !== null) return target.bucket === null
+  return task.rondeled && target.dayDate !== null && !target.rondeled && target.bucket === null
 }
 
 /**
