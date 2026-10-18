@@ -374,3 +374,37 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
   await expect(page.locator('.recurring-item-title')).toHaveText('Gym')
   await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
 })
+
+test('tag filter: "Any selected" shows either tag, "All selected" only both', async ({ page }) => {
+  const input = page.getByPlaceholder('Add a task')
+  const add = async (title: string, tag?: string) => {
+    await input.fill(tag ? `${title} #${tag}` : title)
+    if (tag) {
+      const existing = page.getByRole('option', { name: new RegExp(`^#${tag}`) })
+      await ((await existing.count()) ? existing : page.getByRole('option', { name: `Create #${tag}` })).click()
+    }
+    await input.press('Enter')
+    await expect(row(page, title)).toBeVisible()
+  }
+  await add('Fix sink', 'home')
+  await add('Ship report', 'work')
+  await add('Plan offsite', 'work')
+  await add('Untagged')
+  // Both tags on one task.
+  await page.getByRole('button', { name: 'Open Plan offsite' }).click()
+  const panel = page.getByRole('complementary', { name: 'Task details' })
+  await panel.getByRole('button', { name: 'Tag' }).click()
+  await page.getByRole('menuitem', { name: 'home' }).click()
+  await panel.getByRole('button', { name: 'Close' }).click()
+
+  await page.locator('.sidebar-pill', { hasText: 'home' }).click()
+  await page.locator('.sidebar-pill', { hasText: 'work' }).click()
+  for (const title of ['Fix sink', 'Ship report', 'Plan offsite']) await expect(row(page, title)).toBeVisible()
+  await expect(row(page, 'Untagged')).toBeHidden()
+
+  await page.getByRole('button', { name: 'Any selected' }).click()
+  await page.getByRole('menuitem', { name: 'All selected' }).click()
+  await expect(row(page, 'Plan offsite')).toBeVisible()
+  await expect(row(page, 'Fix sink')).toBeHidden()
+  await expect(row(page, 'Ship report')).toBeHidden()
+})
