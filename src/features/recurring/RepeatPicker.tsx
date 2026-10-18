@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { fromIso, todayIso, weekdayName } from '../../domain/dates'
-import { defaultRepeat, describeRepeat, ordinal, REPEAT_PRESETS, type RepeatPresetId } from '../../domain/repeat'
+import { defaultRepeat, describeRepeat, ordinal, presetOf, REPEAT_PRESETS, type RepeatPresetId } from '../../domain/repeat'
 import type { MonthlyRepeat, RepeatSpec } from '../../domain/types'
 import './RepeatPicker.css'
 
@@ -19,13 +19,17 @@ const NTHS: Array<{ value: Nth; label: string }> = [
 ]
 
 interface RepeatPickerProps {
+  /** Where it opens (e.g. a rule being edited); daily from today otherwise. */
+  initial?: RepeatChoice
   onChange: (choice: RepeatChoice) => void
 }
 
 /** Repeat: daily, monthly, yearly, or custom (every N days/weeks/months/years). */
-export function RepeatPicker({ onChange }: RepeatPickerProps) {
-  const [mode, setMode] = useState<Mode>('daily')
-  const [spec, setSpec] = useState<RepeatSpec>(() => defaultRepeat(todayIso()))
+export function RepeatPicker({ initial, onChange }: RepeatPickerProps) {
+  const [mode, setMode] = useState<Mode>(() =>
+    !initial ? 'daily' : initial.kind === 'repeat' ? presetOf(initial.repeat) : initial.kind,
+  )
+  const [spec, setSpec] = useState<RepeatSpec>(() => (initial?.kind === 'repeat' ? initial.repeat : defaultRepeat(todayIso())))
 
   const emit = (nextMode: Mode, nextSpec: RepeatSpec) => {
     setMode(nextMode)

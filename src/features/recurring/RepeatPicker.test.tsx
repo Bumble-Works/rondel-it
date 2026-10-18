@@ -1,11 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { RepeatPicker, type RepeatChoice } from './RepeatPicker'
 
-function setup() {
+function setup(initial?: RepeatChoice) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 19, 9)) // Mon Oct 19
   const choices: RepeatChoice[] = []
-  render(<RepeatPicker onChange={(c) => choices.push(c)} />)
+  render(<RepeatPicker initial={initial} onChange={(c) => choices.push(c)} />)
   const last = () => choices[choices.length - 1]
   return { last }
 }
@@ -72,5 +72,18 @@ describe('RepeatPicker', () => {
     fireEvent.change(screen.getByLabelText('Repeats'), { target: { value: 'weekly-start' } })
     expect(last()).toEqual({ kind: 'weekly-start' })
     expect(screen.queryByLabelText('Starts')).not.toBeInTheDocument()
+  })
+
+  it('opens with a rule’s pattern when editing', () => {
+    setup({ kind: 'repeat', repeat: { unit: 'week', every: 2, weekdays: [1, 4], startDate: '2026-10-05', endDate: null } })
+    expect(screen.getByLabelText('Repeats')).toHaveValue('custom')
+    expect(screen.getByLabelText('Starts')).toHaveValue('2026-10-05')
+    expect(screen.getByRole('button', { name: 'Thursday' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Every 2 weeks on Mon, Thu')).toBeInTheDocument()
+  })
+
+  it('opens on a quick choice or a rondel rule', () => {
+    setup({ kind: 'monthly-start' })
+    expect(screen.getByLabelText('Repeats')).toHaveValue('monthly-start')
   })
 })
