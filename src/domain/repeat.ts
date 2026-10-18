@@ -118,10 +118,30 @@ export const REPEAT_PRESETS: Array<{ id: RepeatPresetId; label: string; make: (s
   { id: 'yearly', label: 'Yearly', make: (s) => ({ unit: 'year', every: 1, startDate: s, endDate: null }) },
 ]
 
-/** Which quick choice `spec` is (whatever its end date), or 'custom'. Same description = same pattern. */
+/**
+ * The fields that decide which days a spec repeats on, with defaults filled in
+ * and lists sorted (so field order and leftovers from another unit don't count).
+ */
+function patternKey(spec: RepeatSpec): string {
+  const start = parts(spec.startDate)
+  const sorted = (xs: number[]) => [...xs].sort((a, b) => a - b)
+  const monthly = spec.monthly ?? { type: 'date', days: [start.day] }
+  return JSON.stringify([
+    spec.unit,
+    Math.max(1, spec.every),
+    spec.unit === 'week' ? sorted(spec.weekdays?.length ? spec.weekdays : [start.weekday]) : null,
+    spec.unit === 'month'
+      ? monthly.type === 'date'
+        ? ['date', sorted(monthly.days)]
+        : ['weekday', monthly.nth, monthly.weekday]
+      : null,
+  ])
+}
+
+/** Which quick choice `spec` is (whatever its end date), or 'custom'. */
 export function presetOf(spec: RepeatSpec): RepeatPresetId | 'custom' {
-  const text = describeRepeat({ ...spec, endDate: null })
-  return REPEAT_PRESETS.find((p) => describeRepeat(p.make(spec.startDate)) === text)?.id ?? 'custom'
+  const key = patternKey(spec)
+  return REPEAT_PRESETS.find((p) => patternKey(p.make(spec.startDate)) === key)?.id ?? 'custom'
 }
 
 /** Where a new rule starts: daily, from the start date. */

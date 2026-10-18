@@ -93,5 +93,9 @@ describe('repeat patterns', () => {
     expect(presetOf(spec({ every: 3 }))).toBe('custom')
     // Built by hand in Custom, but the same pattern as Monthly.
     expect(presetOf(spec({ unit: 'month', monthly: { type: 'date', days: [19] } }))).toBe('monthly')
+    // Fields in another order, or left over from another unit, don't matter.
+    expect(presetOf({ endDate: null, startDate: '2026-10-19', every: 1, unit: 'day', weekdays: [1, 4] })).toBe('daily')
+    // Same wording isn't enough: monthly on the 19th from a start on the 5th is custom.
+    expect(presetOf(spec({ unit: 'month', startDate: '2026-10-05', monthly: { type: 'date', days: [19] } }))).toBe('custom')
   })
 })
