@@ -375,7 +375,6 @@ test('#tags in the recurring form work like the task title: pick, strip, attach'
   await expect(page.locator('.recurring-item .chip', { hasText: 'health' })).toBeVisible()
 })
 
-<<<<<<< HEAD
 test('tag filter: "Any selected" shows either tag, "All selected" only both', async ({ page }) => {
   const input = page.getByPlaceholder('Add a task')
   const add = async (title: string, tag?: string) => {
@@ -409,7 +408,7 @@ test('tag filter: "Any selected" shows either tag, "All selected" only both', as
   await expect(row(page, 'Fix sink')).toBeHidden()
   await expect(row(page, 'Ship report')).toBeHidden()
 })
-=======
+
 test('two quick #tag picks in the side panel title both stick', async ({ page }) => {
   await addTask(page, 'Plan trip')
   await page.getByRole('button', { name: 'Open Plan trip' }).click()
@@ -445,5 +444,3 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await expect(row(page, 'Morning stretch')).toBeVisible()
   await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
 })
-
->>>>>>> origin/main
