@@ -33,6 +33,8 @@ export interface BoardGroup {
 interface WeekBoardProps {
   groups: BoardGroup[]
   tagsById: Map<string, Tag>
+  /** Repeat pattern per recurring rule id. */
+  repeatLabels?: Map<string, string>
   selectedTaskId: string | null
   onOpen: (task: Task) => void
   onAdvance: (task: Task) => void
@@ -51,6 +53,7 @@ interface WeekBoardProps {
 export function WeekBoard({
   groups,
   tagsById,
+  repeatLabels,
   selectedTaskId,
   onOpen,
   onAdvance,
@@ -120,6 +123,7 @@ export function WeekBoard({
               key={task.id}
               task={task}
               tagsById={tagsById}
+              repeatLabel={task.recurringRuleId ? repeatLabels?.get(task.recurringRuleId) : undefined}
               selected={task.id === selectedTaskId}
               onOpen={() => onOpen(task)}
               onAdvance={() => onAdvance(task)}

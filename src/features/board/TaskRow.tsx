@@ -14,6 +14,8 @@ import './TaskRow.css'
 interface TaskRowProps {
   task: Task
   tagsById: Map<string, Tag>
+  /** For a recurring task: its rule's pattern, e.g. "Every day". */
+  repeatLabel?: string
   selected: boolean
   onOpen: () => void
   onAdvance: () => void
@@ -34,6 +36,7 @@ interface TaskRowProps {
 export function TaskRow({
   task,
   tagsById,
+  repeatLabel,
   selected,
   onOpen,
   onAdvance,
@@ -155,7 +158,12 @@ export function TaskRow({
             </span>
           )}
           {task.recurringRuleId && (
-            <span className="task-recur" title="Recurring task">
+            <span
+              className="task-recur"
+              role="img"
+              aria-label="Recurring task"
+              title={repeatLabel ? `Recurring: ${repeatLabel}` : 'Recurring task'}
+            >
               <Icon name="repeat" size={13} />
             </span>
           )}

@@ -198,6 +198,9 @@ function taskFromRule(rule: RecurringRule, occ: Occurrence, position: number): T
   })
 }
 
+/** How far ahead a new rule's first task can be (yearly rules, far start dates). */
+const FIRST_LOOKAHEAD_DAYS = 3660
+
 /* ---------- adapter ---------- */
 
 export const mockDataSource: DataSource = {
@@ -498,7 +501,12 @@ export const mockDataSource: DataSource = {
 
     for (const [index, rule] of rules.entries()) {
       const start = rule.lastRunDate ? addDays(rule.lastRunDate, 1) : rule.createdAt.slice(0, 10)
-      const occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
+      let occurrences = occurrencesBetween(rule, start, horizonDate, weekStartDay)
+      // A new rule always shows its first task right away, even if that day is
+      // still ahead, so it's clear the rule worked.
+      if (occurrences.length === 0 && !rule.lastRunDate) {
+        occurrences = occurrencesBetween(rule, start, addDays(horizonDate, FIRST_LOOKAHEAD_DAYS), weekStartDay).slice(0, 1)
+      }
       if (occurrences.length === 0) continue
 
       // One open task per rule: the next isn't created until the previous one

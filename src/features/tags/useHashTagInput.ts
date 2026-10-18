@@ -8,6 +8,9 @@ interface Options {
   tags: Tag[]
   /** Creates a tag the user explicitly chose to create; null if it failed. */
   onCreateTag: (name: string) => Promise<Tag | null>
+  /** Starting title and tags (e.g. when editing). */
+  initialText?: string
+  initialTagIds?: string[]
 }
 
 /**
@@ -15,11 +18,11 @@ interface Options {
  * from the title and attaches the tag. New tags are only created when the
  * user picks "Create"; an unpicked `#word` stays plain text.
  */
-export function useHashTagInput({ tags, onCreateTag }: Options) {
+export function useHashTagInput({ tags, onCreateTag, initialText = '', initialTagIds = [] }: Options) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [text, setText] = useState('')
-  const [caret, setCaret] = useState(0)
-  const [tagIds, setTagIds] = useState<string[]>([])
+  const [text, setText] = useState(initialText)
+  const [caret, setCaret] = useState(initialText.length)
+  const [tagIds, setTagIds] = useState<string[]>(initialTagIds)
   // null = not browsed yet: Enter only auto-picks an existing tag, never "Create".
   const [browsed, setBrowsed] = useState<number | null>(null)
   const [dismissed, setDismissed] = useState(false)
@@ -81,6 +84,7 @@ export function useHashTagInput({ tags, onCreateTag }: Options) {
     pick,
     handleKey,
     removeTag: (id: string) => setTagIds((ids) => ids.filter((x) => x !== id)),
+    toggleTag: (id: string) => setTagIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
     inputProps: {
       ref: inputRef,
       value: text,

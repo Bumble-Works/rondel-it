@@ -182,6 +182,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   on a weekday, every month on a day) keep working unchanged.
 - A task is created **on its own day, never ahead of time**: the sync only
   goes up to today in your time zone. Browsing forward creates nothing.
+  - Except a **new rule's first task**, which is always created right away,
+    even if its day is still ahead (e.g. rent on the 1st, made on the 19th),
+    so it's clear the rule worked. The next one then waits for its own day.
 - Recurring tasks are created once per day (and again when rules change), not
   on every action. While the app is open it catches the new day after
   midnight; otherwise on the next open.
@@ -194,11 +197,23 @@ Today, Next week, Next month, Pick a date, Mark done.
   - "Start of week/month" tasks wait in the current week's/month's container,
     so finishing last period's one brings in this period's (never a past one).
   - If the app wasn't opened for a few days, only the latest due one is created.
-  - The Recurring page explains this under its title.
-- After adding a rule the form starts over (empty title, Daily, no tags or reminder).
-- Rule titles save on blur or Enter.
-- In the new-rule form, selected tags show a colored border and ✓; unselected
-  ones are plain outlines.
+  - The Recurring page sums this up in one line under its title.
+- **The rule form** works like the task side panel: the title takes `#tags`
+  (same suggestions as adding a task), a "+ Tag" menu toggles or creates
+  tags, a flag button in the corner flags each task it creates, and a
+  **Note** (copied onto each task) lists its links underneath.
+- **Editing:** each rule in the list has Edit (pencil) and Delete. Edit fills
+  the form with the rule (title "Edit recurring task", Save changes /
+  Cancel) and highlights it in the list. Saving changes only tasks still to
+  come; ones already on your list stay put. Rules made before custom repeat
+  open as the same pattern (e.g. "every Monday" as weekly on Monday).
+- After adding or saving, the form starts over (empty, Daily, no tags, flag,
+  note or reminder).
+- Flagged rules show a flag before their title in the list.
+- **Spotting recurring tasks:** a task a rule created shows a purple repeat
+  icon before its title; hovering it shows the pattern ("Recurring: Every
+  day"). The side panel has a **Repeats** field with the same pattern, or
+  "Rule deleted" if the rule is gone (the task itself stays).
 
 ## Reminders
 
