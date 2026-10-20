@@ -23,8 +23,8 @@ concurrency:
 
 env:
   # Before the first vX.Y.Z tag, versions continue from the last per-merge build.
-  BASE_VERSION: 0.1.55
-  BASE_TAG: build-55
+  BASE_VERSION: 0.1.57
+  BASE_TAG: build-57
 
 jobs:
   version:
