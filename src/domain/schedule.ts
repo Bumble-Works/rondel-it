@@ -66,3 +66,14 @@ export function planEvents(
   const next = pending.find((e) => e.at > now) ?? null
   return { due, next }
 }
+
+/**
+ * The reminder time ('HH:mm') a snooze moves to: `minutes` from now, but never
+ * past 23:59, since a reminder belongs to its day.
+ */
+export function snoozedTime(now: Date, minutes = 10): string {
+  const later = new Date(now.getTime() + minutes * 60_000)
+  if (toIso(later) !== toIso(now)) return '23:59'
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(later.getHours())}:${pad(later.getMinutes())}`
+}

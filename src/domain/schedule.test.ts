@@ -1,4 +1,4 @@
-import { atLocal, planEvents, scheduledEvents } from './schedule'
+import { atLocal, planEvents, scheduledEvents, snoozedTime } from './schedule'
 import type { Task } from './types'
 
 const settings = { dayStartTime: '09:00', endOfDayTime: '17:00' }
@@ -45,5 +45,11 @@ describe('schedule', () => {
     const justAfter = new Date(2026, 9, 20, 0, 0, 1)
     const { due } = planEvents(scheduledEvents(justAfter, [], settings), justAfter, new Set())
     expect(due.map((e) => e.key)).toEqual(['midnight:2026-10-20'])
+  })
+
+  it('snoozes a reminder 10 minutes from now, kept on its day', () => {
+    expect(snoozedTime(new Date(2026, 9, 19, 12, 30, 40))).toBe('12:40')
+    expect(snoozedTime(new Date(2026, 9, 19, 9, 55))).toBe('10:05')
+    expect(snoozedTime(new Date(2026, 9, 19, 23, 55))).toBe('23:59')
   })
 })
