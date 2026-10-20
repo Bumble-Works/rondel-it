@@ -1,0 +1,27 @@
+# Dependabot: keep CI actions current, and fix vulnerable npm packages, with
+# as few PRs as possible. Which vulnerabilities get a PR at all (high and
+# critical only) is a repo setting: Settings → Advanced Security → Dependabot
+# rules (see PRACTICES.md → "Dependency updates").
+version: 2
+updates:
+  # GitHub Actions: one PR a month with every action that has a new version,
+  # so the runtime never falls behind again (as with the Node 20 warning).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
+
+  # npm: no routine version bumps. Security fixes only, all in one PR.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 0 turns off version updates; security updates still open.
+    open-pull-requests-limit: 0
+    groups:
+      security-fixes:
+        applies-to: security-updates
+        patterns: ['*']

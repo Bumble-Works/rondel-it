@@ -88,3 +88,13 @@ CI runs on every PR and push to `main`, as separate checks: **practices**,
 `npm run test:e2e` runs the Playwright smoke tests in Chromium and WebKit
 (the Mac app's engine). Locally, run it only when debugging e2e (see Tests).
 
+
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) keeps the noise down:
+- **GitHub Actions:** one grouped PR a month with every new action version.
+- **npm:** no routine version bumps; only security fixes, grouped into one PR.
+- **Which vulnerabilities count:** repo Settings → Advanced Security →
+  Dependabot rules auto-dismisses low and medium severity alerts, so only
+  high and critical ones open PRs. (Dependabot security updates must be on.)
+- Rust crates aren't covered: there's no committed `Cargo.lock` for it to read.
