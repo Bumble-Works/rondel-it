@@ -248,12 +248,11 @@ Today, Next week, Next month, Pick a date, Mark done.
   container and history copies can't have one ("Give it a day to set a reminder").
 - At that time a **notification** appears: Notification Center in the Mac
   app, the notification area in the Windows app (the browser version uses
-  browser notifications). Permission is asked
-  the first time you set a reminder.
-- It also **pops up**, showing just that task. In the Mac app it's a small
-  window that comes up **on top of whatever app you're in** (even when Rondel It
-  is hidden), without the board; the browser version shows it as a dialog. Several
-  reminders due together share one pop-up. Each offers:
+  browser notifications). Permission is asked the first time you set a reminder.
+- It also **pops up**, showing just that task. In the Mac and Windows apps it's
+  a small window that comes up **on top of whatever app you're in** (even when
+  Rondel It is hidden), without the board; the browser version shows it as a
+  dialog. Several reminders due together share one pop-up. Each offers:
   - **Snooze 10 min:** the task's reminder time moves to 10 minutes from now
     (never past 23:59), and it pops up again then.
   - **Done.**
@@ -273,9 +272,10 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Settings: **morning review time** and **end-of-day rondel time**.
 - At each review time, if anything needs a decision, the nag opens and a
   notification appears, **even while the window is hidden** (same rules as
-  reminders: the app must be running). In the Mac app the window comes **to the
-  front, on top of whatever app you're in**, with the nag open. Review times already past when the app
-  opens are covered by the nag shown on open.
+  reminders: the app must be running). In the Mac and Windows apps the window
+  comes **to the front, on top of whatever app you're in**, with the nag open.
+  Review times already past when the app opens are covered by the nag shown on
+  open.
 - The nag opens once when the app opens, and again at each review time, if
   anything needs a decision. It closes when nothing is left. A long list
   scrolls inside it (as in every dialog). It has two sections:

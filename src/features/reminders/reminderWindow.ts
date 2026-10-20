@@ -3,6 +3,7 @@ import { getCurrentWindow, Window } from '@tauri-apps/api/window'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import type { Task } from '../../domain/types'
 import { isDesktopApp } from '../../services/sync/folder'
+import { isWindows } from '../../shared/platform'
 
 /**
  * The Mac app's reminder pop-up: a small always-on-top window (label
@@ -84,7 +85,11 @@ export async function bringMainWindowToFront(): Promise<void> {
   const main = getCurrentWindow()
   await main.unminimize()
   await main.show()
+  // Windows won't let a background app take the foreground (the window would
+  // only flash in the taskbar), but a moment "always on top" lifts it there.
+  if (isWindows()) await main.setAlwaysOnTop(true)
   await main.setFocus()
+  if (isWindows()) await main.setAlwaysOnTop(false)
 }
 
 /* ---- pop-up side ---- */
