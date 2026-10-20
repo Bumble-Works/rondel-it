@@ -68,8 +68,8 @@ npm run build
 ```
 
 The Mac app wraps the same code with [Tauri](https://tauri.app) (`src-tauri/`).
-`npm run app:dev` runs it locally (needs Rust). CI builds and publishes it on
-every merge to `main`.
+`npm run app:dev` runs it locally (needs Rust). CI checks it builds on PRs;
+releases are run by hand (see [INSTALL.md](INSTALL.md)).
 
 The Mac app icon's source is `src-tauri/app-icon.svg`. To regenerate the
 icon set after editing it: render it to a 1024×1024 PNG, then run
