@@ -1,6 +1,7 @@
 import { firstDayOfNextMonth, firstDayOfNextWeek, formatDayLabel, todayIso } from '../../domain/dates'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import type { Task } from '../../domain/types'
+import { useAppBadge } from '../../shared/appBadge'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
 import { Modal } from '../../shared/ui/Modal'
@@ -27,6 +28,7 @@ interface NagModalProps extends NagActions {
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 export function NagModal({ open, waiting, leftUndone, onClose, ...actions }: NagModalProps) {
+  useAppBadge('nag', open)
   return (
     <Modal
       open={open}

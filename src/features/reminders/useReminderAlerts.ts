@@ -3,6 +3,7 @@ import type { Task } from '../../domain/types'
 import { snoozedTime } from '../../domain/schedule'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { isDesktopApp } from '../../services/sync/folder'
+import { useAppBadge } from '../../shared/appBadge'
 import { notify } from '../../shared/notify'
 import {
   hideReminderPopup,
@@ -51,6 +52,7 @@ export function useReminderAlerts({ reminderTasks, weekStartDay, onSnooze, onSet
     else onRondel(task, action.target)
   }
   const dismiss = useCallback(() => setFiredIds([]), [])
+  useAppBadge('reminders', alerts.length > 0)
 
   // The pop-up's choices arrive as events; answer with the latest list and actions.
   const latest = useRef({ alerts, weekStartDay, act })
