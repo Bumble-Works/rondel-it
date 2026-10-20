@@ -1,0 +1,110 @@
+name: Release
+
+# Run by hand (Actions → Release → Run workflow) to publish what's on main as a
+# new version: bumps the latest vX.Y.Z tag, builds the Mac app with that
+# version, and publishes it as the latest release (which install.sh installs).
+# The notes list every PR merged since the previous release.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Release the next version'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+permissions:
+  contents: read
+
+# One release at a time, so two runs can't pick the same version.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  # Before the first vX.Y.Z tag, versions continue from the last per-merge build.
+  BASE_VERSION: 0.1.55
+  BASE_TAG: build-55
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+      previous_tag: ${{ steps.next.outputs.previous_tag }}
+    steps:
+      - name: Only from main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Releases are made from main; this run is on ${{ github.ref_name }}."
+          exit 1
+
+      - name: Checkout (with tags)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Work out the next version
+        id: next
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          LATEST=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1)
+          if [ -n "$LATEST" ]; then
+            CURRENT="${LATEST#v}"
+            PREVIOUS_TAG="$LATEST"
+          else
+            CURRENT="$BASE_VERSION"
+            PREVIOUS_TAG="$BASE_TAG"
+          fi
+
+          if [ "$(git rev-list --count "$PREVIOUS_TAG..HEAD")" = "0" ]; then
+            echo "::error::Nothing new on main since $PREVIOUS_TAG; there's nothing to release."
+            exit 1
+          fi
+
+          IFS=. read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+            *) echo "::error::Unknown bump '$BUMP' (expected patch, minor or major)."; exit 1 ;;
+          esac
+          VERSION="$MAJOR.$MINOR.$PATCH"
+
+          echo "Releasing $VERSION ($BUMP bump from $CURRENT; notes since $PREVIOUS_TAG)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    uses: ./.github/workflows/mac-app.yml
+    with:
+      version: ${{ needs.version.outputs.version }}
+
+  publish:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the built app
+        uses: actions/download-artifact@v4
+        with:
+          name: RondelIt-macos
+
+      - name: Tag and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+          PREVIOUS_TAG: ${{ needs.version.outputs.previous_tag }}
+        run: |
+          gh release create "v$VERSION" RondelIt-macos.zip scripts/install.sh \
+            --target "$GITHUB_SHA" \
+            --title "Rondel It $VERSION" \
+            --generate-notes \
+            --notes-start-tag "$PREVIOUS_TAG" \
+            --latest

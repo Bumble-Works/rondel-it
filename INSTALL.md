@@ -29,7 +29,11 @@ What it does:
    **Applications**, clearing the "unidentified developer" block.
 5. Opens it.
 
-Every merge to `main` publishes a new build automatically (version `0.1.<build>`).
+New versions are released by hand, not on every merge: on GitHub, **Actions →
+Release → Run workflow**, then pick **patch**, **minor** or **major** (which part
+of `x.y.z` goes up). It tags `main` as `vX.Y.Z`, builds the app with that
+version and publishes it as the latest release, with every PR merged since the
+previous release in its notes. Running the installer again updates to it.
 
 ---
 
