@@ -290,6 +290,16 @@ Today, Next week, Next month, Pick a date, Mark done.
   completed that day. (Done on a rondeled item moves it to today, as before.)
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
+## Red dot on the app icon (Mac and Windows apps)
+
+- While a **reminder pop-up or the nag is prompting**, the app icon shows a red
+  dot: the Dock icon's badge on the Mac, the taskbar button on Windows. No
+  count, just the dot.
+- It clears once nothing is prompting: every item handled, or the prompt
+  closed ("Later", the close button).
+- Windows has no taskbar button while the app is hidden (started at login), so
+  no dot then; the reminder pop-up and the review still come to the front.
+
 ## Start at login (Mac and Windows apps)
 
 - Settings → Week & day rhythm → **Start Rondel It at login**. **Off by
