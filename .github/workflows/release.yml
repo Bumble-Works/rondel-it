@@ -1,8 +1,9 @@
 name: Release
 
 # Run by hand (Actions → Release → Run workflow) to publish what's on main as a
-# new version: bumps the latest vX.Y.Z tag, builds the Mac app with that
-# version, and publishes it as the latest release (which install.sh installs).
+# new version: bumps the latest vX.Y.Z tag, builds the Mac and Windows apps
+# with that version, and publishes them as the latest release (install.sh
+# installs the Mac app from it; Windows downloads RondelIt-windows-setup.exe).
 # The notes list every PR merged since the previous release.
 on:
   workflow_dispatch:
@@ -78,7 +79,7 @@ jobs:
 
   build:
     needs: version
-    uses: ./.github/workflows/mac-app.yml
+    uses: ./.github/workflows/desktop-apps.yml
     with:
       version: ${{ needs.version.outputs.version }}
 
@@ -91,10 +92,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download the built app
+      - name: Download the built apps
         uses: actions/download-artifact@v4
         with:
-          name: RondelIt-macos
+          pattern: RondelIt-*
+          merge-multiple: true
 
       - name: Tag and publish the release
         env:
@@ -102,7 +104,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.version }}
           PREVIOUS_TAG: ${{ needs.version.outputs.previous_tag }}
         run: |
-          gh release create "v$VERSION" RondelIt-macos.zip scripts/install.sh \
+          gh release create "v$VERSION" RondelIt-macos.zip RondelIt-windows-setup.exe scripts/install.sh \
             --target "$GITHUB_SHA" \
             --title "Rondel It $VERSION" \
             --generate-notes \

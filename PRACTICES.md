@@ -76,7 +76,7 @@
 ## CI-enforced subset
 
 CI runs on every PR and push to `main`, as separate checks: **practices**,
-**lint**, **test**, **build**, **e2e** (plus the **Mac app** build when its files change).
+**lint**, **test**, **build**, **e2e** (plus the **Mac and Windows app** builds when their files change).
 
 `npm run check:practices` (`scripts/check-practices.mjs`) enforces:
 - one stylesheet per component (`Foo.tsx` → `Foo.css`; a few style-less

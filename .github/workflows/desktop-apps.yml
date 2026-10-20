@@ -1,0 +1,103 @@
+name: Desktop apps
+
+# Builds the Mac and Windows apps. On PRs, only checks they build. The Release
+# workflow calls it with a version and publishes what it built.
+on:
+  # Any base branch, so stacked PRs are checked too.
+  pull_request:
+    paths:
+      - '.github/workflows/desktop-apps.yml'
+      - '.github/workflows/release.yml'
+      - 'scripts/install.sh'
+      - 'src-tauri/**'
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version to stamp into the apps (x.y.z)'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-apps-${{ github.ref }}-${{ inputs.version || 'check' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing shouldn't hide whether the other builds.
+      fail-fast: false
+      matrix:
+        include:
+          - name: Mac
+            os: macos-latest
+            # Universal: Apple Silicon + Intel.
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+            tauri-args: --target universal-apple-darwin --bundles app
+            artifact: RondelIt-macos.zip
+          - name: Windows
+            os: windows-latest
+            rust-targets: x86_64-pc-windows-msvc
+            tauri-args: --bundles nsis
+            artifact: RondelIt-windows-setup.exe
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          VERSION: ${{ inputs.version }}
+          TAURI_ARGS: ${{ matrix.tauri-args }}
+        # A release stamps its version into the app; a PR check uses the one in tauri.conf.json.
+        run: |
+          if [ -n "$VERSION" ]; then
+            npx tauri build $TAURI_ARGS --config "{\"version\":\"$VERSION\"}"
+          else
+            npx tauri build $TAURI_ARGS
+          fi
+
+      - name: Package (Mac)
+        if: runner.os == 'macOS'
+        run: |
+          APP="src-tauri/target/universal-apple-darwin/release/bundle/macos/Rondel It.app"
+          ditto -c -k --keepParent "$APP" "${{ matrix.artifact }}"
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        # A fixed name, so the "latest release" download link never changes.
+        run: cp src-tauri/target/release/bundle/nsis/*-setup.exe "${{ matrix.artifact }}"
+
+      - name: Hand the app to the Release workflow
+        if: inputs.version != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 7

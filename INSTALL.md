@@ -1,10 +1,10 @@
 # Installing Rondel It
 
-Rondel It is a native macOS app (built with Tauri). Your data lives **only on your machine**: no account, no server. (Optional sync to your own Google Drive / OneDrive / Box folder is planned.)
+Rondel It is a native Mac and Windows app (built with Tauri). Your data lives **only on your machine**: no account, no server. (Optional sync through your own Google Drive / OneDrive / Box / Dropbox folder: Settings → Sync.)
 
 ---
 
-## Option A — One command (install or update)
+## Mac, option A — One command (install or update)
 
 Paste this into Terminal. It installs the latest build, or updates the one you have:
 
@@ -37,7 +37,27 @@ previous release in its notes. Running the installer again updates to it.
 
 ---
 
-## Option B — Build it yourself from source
+## Windows
+
+1. Download **[RondelIt-windows-setup.exe](https://github.com/Bumble-Works/rondel-it/releases/latest/download/RondelIt-windows-setup.exe)**
+   (always the latest release; Windows 10 or 11).
+2. Run it. The app isn't signed yet, so Windows shows **"Windows protected
+   your PC"**: click **More info → Run anyway**.
+3. It installs for your user only (no admin password) and adds Rondel It to the
+   Start menu.
+
+**To update**, download and run the newest setup the same way. Your data is
+kept: it lives in `%LOCALAPPDATA%\com.bumbleworks.rondelit`, and is only removed
+if you uninstall with **"Delete the application data"** ticked.
+
+To build it yourself on Windows: install [Node 22+](https://nodejs.org), [Rust](https://rustup.rs)
+and the [Tauri prerequisites](https://tauri.app/start/prerequisites/#windows), then
+`npm install` and `npx tauri build --bundles nsis`. The installer lands in
+`src-tauri/target/release/bundle/nsis/`.
+
+---
+
+## Mac, option B — Build it yourself from source
 
 Use this on any Mac to produce your own app.
 
