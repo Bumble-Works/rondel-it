@@ -4,6 +4,7 @@ import { ReminderField, type ReminderScope } from '../reminders/ReminderField'
 import { TaskLinks } from './TaskLinks'
 import { TaskTitleField } from './TaskTitleField'
 import type { RondelTarget } from '../../services/adapters/DataSource'
+import { NEXT_STATUS_LABEL, nextStatus } from '../../domain/status'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
@@ -171,8 +172,9 @@ export function TaskDetailPanel({
 
       <footer className="detail-foot">
         {!statusLocked && (
-          <Button variant="secondary" size="sm" onClick={onAdvance}>
-            {task.status === 'todo' ? 'Start' : task.status === 'doing' ? 'Complete' : 'Reopen'}
+          <Button variant="secondary" size="sm" className="detail-advance" onClick={onAdvance}>
+            <StatusCircle status={nextStatus(task.status)} presentational size={14} />
+            {NEXT_STATUS_LABEL[task.status]}
           </Button>
         )}
         <div className="detail-foot-rondel">

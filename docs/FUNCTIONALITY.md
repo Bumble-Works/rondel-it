@@ -127,6 +127,9 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 - Clicking a task opens the side panel: title, note, tags, scheduled day,
   rondel count, first scheduled day, created date.
+- The panel's status button is named for the status it moves the task to,
+  with that status's circle: **Mark as doing**, **Mark as done**, **Mark as
+  to-do** (the same as the row's circle tooltip).
 - **One editor per task:** while a task is open in the panel, its row's
   controls (status, note, rondel, ⋯, drag) are disabled, with the hint
   "Open in the side panel — edit it there".

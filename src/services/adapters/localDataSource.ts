@@ -1,6 +1,7 @@
 import { addDays, fromIso, toIso, todayIso } from '../../domain/dates'
 import { nextTagColor } from '../../domain/hashTags'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
+import { nextStatus } from '../../domain/status'
 import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
 import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
@@ -90,12 +91,6 @@ function ordered(tasks: Task[]): Task[] {
     if (ra !== rb) return ra - rb
     return a.position - b.position
   })
-}
-
-function nextStatus(status: TaskStatus): TaskStatus {
-  if (status === 'todo') return 'doing'
-  if (status === 'doing') return 'done'
-  return 'todo'
 }
 
 function byTag(tasks: Task[], tagId?: string): Task[] {

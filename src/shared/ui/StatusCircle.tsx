@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { NEXT_STATUS_LABEL } from '../../domain/status'
 import type { TaskStatus } from '../../domain/types'
 import './StatusCircle.css'
 
@@ -15,13 +16,6 @@ interface StatusCircleProps {
   disabled?: boolean
   /** Tooltip explaining why it's disabled. */
   disabledTitle?: string
-}
-
-const NEXT_LABEL: Record<TaskStatus, string> = {
-  todo: 'Mark as doing',
-  doing: 'Mark as done',
-  done: 'Mark as to-do',
-  canceled: 'Mark as to-do',
 }
 
 export function StatusCircle({
@@ -56,8 +50,8 @@ export function StatusCircle({
       type="button"
       className={`status-circle status-circle--${status}`}
       style={style}
-      aria-label={NEXT_LABEL[status]}
-      title={disabled ? disabledTitle : NEXT_LABEL[status]}
+      aria-label={NEXT_STATUS_LABEL[status]}
+      title={disabled ? disabledTitle : NEXT_STATUS_LABEL[status]}
       aria-pressed={status === 'done'}
       disabled={disabled}
       onClick={(e) => {
