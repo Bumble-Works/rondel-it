@@ -249,13 +249,13 @@ Today, Next week, Next month, Pick a date, Mark done.
   time: the task's day is the date. The row shows 🔔 and the time.
 - A reminder needs a day: Bucket List items, rondeled items waiting in a
   container and history copies can't have one ("Give it a day to set a reminder").
-- At that time a **notification** appears: Mac Notification Center in the Mac
-  app (the browser version uses browser notifications). Permission is asked
-  the first time you set a reminder.
-- It also **pops up**, showing just that task. In the Mac app it's a small
-  window that comes up **on top of whatever app you're in** (even when Rondel It
-  is hidden), without the board; the browser version shows it as a dialog. Several
-  reminders due together share one pop-up. Each offers:
+- At that time a **notification** appears: Notification Center in the Mac
+  app, the notification area in the Windows app (the browser version uses
+  browser notifications). Permission is asked the first time you set a reminder.
+- It also **pops up**, showing just that task. In the Mac and Windows apps it's
+  a small window that comes up **on top of whatever app you're in** (even when
+  Rondel It is hidden), without the board; the browser version shows it as a
+  dialog. Several reminders due together share one pop-up. Each offers:
   - **Snooze 10 min:** the task's reminder time moves to 10 minutes from now
     (never past 23:59), and it pops up again then.
   - **Done.**
@@ -264,7 +264,7 @@ Today, Next week, Next month, Pick a date, Mark done.
   - Closing the pop-up lets all its reminders go (they already fired).
 - Reminders fire **while the app is running, even if its window is hidden or
   minimized**, but not while it's fully quit. A reminder missed earlier today
-  (app closed, Mac asleep) fires when the app opens; earlier days don't.
+  (app closed, computer asleep) fires when the app opens; earlier days don't.
   Each fires once, even across restarts. Done tasks don't remind.
 - **Recurring rules** can have a reminder time; each task they create gets it.
   Changing the reminder on a recurring task asks **"Only this one"** or
@@ -275,9 +275,10 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Settings: **morning review time** and **end-of-day rondel time**.
 - At each review time, if anything needs a decision, the nag opens and a
   notification appears, **even while the window is hidden** (same rules as
-  reminders: the app must be running). In the Mac app the window comes **to the
-  front, on top of whatever app you're in**, with the nag open. Review times already past when the app
-  opens are covered by the nag shown on open.
+  reminders: the app must be running). In the Mac and Windows apps the window
+  comes **to the front, on top of whatever app you're in**, with the nag open.
+  Review times already past when the app opens are covered by the nag shown on
+  open.
 - The nag opens once when the app opens, and again at each review time, if
   anything needs a decision. It closes when nothing is left. A long list
   scrolls inside it (as in every dialog). It has two sections:
@@ -292,26 +293,40 @@ Today, Next week, Next month, Pick a date, Mark done.
   completed that day. (Done on a rondeled item moves it to today, as before.)
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
-## Start at login (Mac app)
+## Red dot on the app icon (Mac and Windows apps)
+
+- While a **reminder pop-up or the nag is prompting**, the app icon shows a red
+  dot: the Dock icon's badge on the Mac, the taskbar button on Windows. No
+  count, just the dot.
+- It clears once nothing is prompting: every item handled, or the prompt
+  closed ("Later", the close button).
+- Windows has no taskbar button while the app is hidden (started at login), so
+  no dot then; the reminder pop-up and the review still come to the front.
+
+## Start at login (Mac and Windows apps)
 
 - Settings → Week & day rhythm → **Start Rondel It at login**. **Off by
-  default.** It's this Mac's login item, so it's per device and never synced
-  (the browser version doesn't show it).
+  default.** It's this computer's login item, so it's per device and never
+  synced (the browser version doesn't show it).
 - Started at login, the app opens **hidden** in the background, so reminders
-  and review times still arrive; clicking it in the Dock shows the window.
-- While it's on, a **menu-bar icon** (one-color logo, tinted for light/dark
-  menu bars) shows the app is running, with **Open Rondel It** and **Quit
-  Rondel It**. Turning the setting off removes the icon.
+  and review times still arrive. Clicking it in the Dock (Mac), or opening it
+  again from the Start menu (Windows), shows the window; it never starts a
+  second copy.
+- While it's on, an icon shows the app is running, with **Open Rondel It** and
+  **Quit Rondel It**: in the Mac **menu bar** (one-color logo, tinted for
+  light/dark menu bars), or the Windows **system tray** (the color logo).
+  Turning the setting off removes the icon.
 
-## Sync (Mac app)
+## Sync (Mac and Windows apps)
 
 - **Off by default.** Settings → Sync → *Choose folder…* picks a folder in a
   cloud drive's desktop folder (Google Drive, OneDrive, Box, Dropbox). Rondel
   It creates `Rondel It/` there with a `README.txt` and a `devices/` folder.
   Picking a folder that's already named "Rondel It" uses it as-is.
 - Settings shows where it is (e.g. "Google Drive › My Drive › Rondel It"),
-  when it last synced, and *Sync now*, *Show in Finder*, *Change folder…*,
-  *Turn off*. In the browser version it says sync needs the Mac app.
+  when it last synced, and *Sync now*, *Show in Finder* (*Show in File
+  Explorer* on Windows), *Change folder…*, *Turn off*. In the browser version
+  it says sync needs the Mac or Windows app.
 - **When:** on open, when the window regains focus, ~2 seconds after any
   change, and every 2 minutes while the window is visible (paused while hidden).
 - **How:** each device writes its full data to `devices/<device-id>.json` and
@@ -375,11 +390,14 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 - Today the app runs on the local adapter: data lives in the web view's
   storage (`rondel.v6.*` keys). In the browser that's per origin
-  (`localhost:1420`); in the Mac app it's per app identifier
-  (`com.bumbleworks.rondelit`). The two don't share data.
+  (`localhost:1420`); in the Mac and Windows apps it's per app identifier
+  (`com.bumbleworks.rondelit`). They don't share data (sync aside).
 - **Installing/updating the Mac app** (`scripts/install.sh`, see INSTALL.md)
   always backs up existing data first, carries data over from an older
   identifier, and moves the old app to the Trash. It never deletes data.
+- **Installing/updating the Windows app** (`RondelIt-windows-setup.exe`)
+  installs for the current user (no admin needed) and keeps existing data;
+  only uninstalling with "Delete the application data" ticked removes it.
 - Changes must stay **backward compatible** with existing saved data. New
   fields are filled in on read, and nothing is reset.
 - Done items left in a rondel container by older versions are moved, on read,

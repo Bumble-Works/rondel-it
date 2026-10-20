@@ -1,4 +1,5 @@
 import type { useSync } from '../sync/useSync'
+import { platformWords } from '../../shared/platform'
 import { Button } from '../../shared/ui/Button'
 import './SyncSettings.css'
 
@@ -13,7 +14,8 @@ function friendlyPath(path: string): string {
     const provider = cloud[1].replace(/-.*/, '').replace('GoogleDrive', 'Google Drive')
     return `${provider} › ${cloud[2].split('/').join(' › ')}`
   }
-  return path.replace(/^\/Users\/[^/]+/, '~')
+  // Your home folder as ~ (Mac: /Users/<name>, Windows: C:\Users\<name>).
+  return path.replace(/^\/Users\/[^/]+/, '~').replace(/^[A-Za-z]:\\Users\\[^\\]+/, '~')
 }
 
 function formatTime(iso: string): string {
@@ -27,13 +29,13 @@ export function SyncSettings({ sync }: SyncSettingsProps) {
     <section className="settings-card">
       <h2>Sync</h2>
       <p className="settings-hint">
-        Keep your Macs (and later your iPhone) in sync through a folder in Google Drive, OneDrive, Box or
+        Keep your computers in sync through a folder in Google Drive, OneDrive, Box or
         Dropbox. Install that service’s desktop app, then choose a folder inside it. Rondel It creates a
         “Rondel It” folder there. Every device keeps its own full copy, so nothing is lost if the folder is.
       </p>
 
       {!available ? (
-        <p className="sync-status">Sync works in the Mac app. You’re using the browser version.</p>
+        <p className="sync-status">Sync works in the Mac and Windows apps. You’re using the browser version.</p>
       ) : !folder ? (
         <div className="sync-actions">
           <span className="sync-status">Sync is off.</span>
@@ -55,7 +57,7 @@ export function SyncSettings({ sync }: SyncSettingsProps) {
               Sync now
             </Button>
             <Button variant="secondary" size="sm" onClick={() => void sync.showInFinder()}>
-              Show in Finder
+              Show in {platformWords().fileManager}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => void sync.chooseFolder()}>
               Change folder…

@@ -26,6 +26,7 @@ describe('StartAtLoginSetting', () => {
     const box = screen.getByRole('checkbox', { name: /Start Rondel It at login/ })
     await waitFor(() => expect(box).toBeEnabled())
     expect(box).not.toBeChecked()
+    expect(box.closest('label')).toHaveTextContent('A menu-bar icon shows it’s running')
 
     fireEvent.click(box)
     await waitFor(() => expect(box).toBeChecked())

@@ -30,18 +30,26 @@ existing data first**, moves any old version to the Trash, and opens the app.
 Your data stays on your Mac. More detail, and the version for a private repo:
 [`INSTALL.md`](INSTALL.md).
 
+## Install the Windows app
+
+Download **[RondelIt-windows-setup.exe](https://github.com/Bumble-Works/rondel-it/releases/latest/download/RondelIt-windows-setup.exe)**
+and run it. To update, run the newest one; your data is kept. The app isn't
+signed yet, so Windows says "Windows protected your PC": click **More info →
+Run anyway**. Details in [`INSTALL.md`](INSTALL.md).
+
 ## Sync between devices (optional)
 
 Rondel It syncs through a folder in a cloud drive you already use, so there's
 no account and no Rondel server.
 
 1. Install your cloud drive's desktop app: **Google Drive for desktop**,
-   OneDrive, Box or Dropbox. It appears in Finder.
+   OneDrive, Box or Dropbox. It appears in Finder (Mac) or File Explorer
+   (Windows).
 2. In Rondel It, open **Settings → Sync → Choose folder…** and pick a folder
    inside that drive (for example *Google Drive › My Drive*). Rondel It
    creates a **Rondel It** folder there.
-3. On your other Mac, install Rondel It, then choose **the same Rondel It
-   folder** (or the folder that contains it).
+3. On your other computer (Mac or Windows), install Rondel It, then choose
+   **the same Rondel It folder** (or the folder that contains it).
 
 It syncs when the app opens, when you switch back to it, a moment after each
 change, and every couple of minutes. If the same task is edited on two
@@ -51,7 +59,7 @@ devices, the most recent edit wins.
 with the sync folder never deletes your tasks; Rondel It rebuilds the folder
 and ignores files it can't read. Please don't edit the files inside it.
 
-Sync works in the Mac app (not in the browser version). iPhone is planned.
+Sync works in the Mac and Windows apps (not in the browser version).
 
 ---
 
@@ -67,7 +75,7 @@ npm test
 npm run build
 ```
 
-The Mac app wraps the same code with [Tauri](https://tauri.app) (`src-tauri/`).
+The Mac and Windows apps wrap the same code with [Tauri](https://tauri.app) (`src-tauri/`).
 `npm run app:dev` runs it locally (needs Rust). CI checks it builds on PRs;
 releases are run by hand (see [INSTALL.md](INSTALL.md)).
 

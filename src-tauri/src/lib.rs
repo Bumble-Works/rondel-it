@@ -1,6 +1,6 @@
 use tauri::Manager;
 
-/// Passed when macOS starts the app at login, so it starts quietly in the background.
+/// Passed when the app is started at login (macOS or Windows), so it starts quietly in the background.
 const LAUNCHED_AT_LOGIN: &str = "--at-login";
 
 /// Opens the print dialog for the page (with "Save as PDF"). The Mac web view
@@ -19,7 +19,13 @@ fn show_main_window(app: &tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  let builder = tauri::Builder::default();
+  // Opening the app while it already runs (e.g. hidden after starting at login)
+  // shows that window instead of starting a second copy. macOS does this
+  // itself; Windows needs the plugin. It must be the first plugin.
+  #[cfg(desktop)]
+  let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main_window(app)));
+  builder
     // Sync: pick a folder, read/write its files, and reveal it in Finder.
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())

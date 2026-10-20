@@ -1,8 +1,9 @@
 import { isDesktopApp } from '../services/sync/folder'
+import { isWindows } from './platform'
 
 const TRAY_ID = 'rondel-it'
 
-/** Is "Start Rondel It at login" on (this Mac's login item)? */
+/** Is "Start Rondel It at login" on (this computer's login item)? */
 export async function isStartAtLoginOn(): Promise<boolean> {
   if (!isDesktopApp()) return false
   const { isEnabled } = await import('@tauri-apps/plugin-autostart')
@@ -24,8 +25,8 @@ export async function restoreMenuBarIcon(): Promise<void> {
 }
 
 /**
- * The menu-bar icon (Open / Quit), shown while the app may be running out of
- * sight, i.e. only when it starts at login.
+ * The menu-bar (Mac) or system tray (Windows) icon (Open / Quit), shown while
+ * the app may be running out of sight, i.e. only when it starts at login.
  */
 async function showMenuBarIcon(visible: boolean): Promise<void> {
   if (!isDesktopApp()) return
@@ -57,12 +58,14 @@ async function showMenuBarIcon(visible: boolean): Promise<void> {
       await PredefinedMenuItem.new({ item: 'Quit', text: 'Quit Rondel It' }),
     ],
   })
-  const iconBytes = await fetch('/tray-icon.png').then((r) => r.arrayBuffer())
+  // Mac: a one-color "template" image that macOS tints for light and dark menu
+  // bars. Windows doesn't tint, so it gets the color app icon.
+  const windows = isWindows()
+  const iconBytes = await fetch(windows ? '/tray-icon-color.png' : '/tray-icon.png').then((r) => r.arrayBuffer())
   await TrayIcon.new({
     id: TRAY_ID,
-    // One-color "template" image: macOS tints it for light and dark menu bars.
     icon: await Image.fromBytes(iconBytes),
-    iconAsTemplate: true,
+    iconAsTemplate: !windows,
     tooltip: 'Rondel It',
     menu,
     showMenuOnLeftClick: true,

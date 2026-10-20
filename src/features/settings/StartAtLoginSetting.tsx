@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { isDesktopApp } from '../../services/sync/folder'
+import { platformWords } from '../../shared/platform'
 import { isStartAtLoginOn, setStartAtLogin } from '../../shared/startAtLogin'
 import './StartAtLoginSetting.css'
 
@@ -8,7 +9,7 @@ interface StartAtLoginSettingProps {
 }
 
 /**
- * "Start Rondel It at login". Off by default; it's this Mac's login item, so
+ * "Start Rondel It at login". Off by default; it's this computer's login item, so
  * it's per device and never synced. Started at login, the app opens hidden.
  */
 export function StartAtLoginSetting({ reportError }: StartAtLoginSettingProps) {
@@ -42,8 +43,8 @@ export function StartAtLoginSetting({ reportError }: StartAtLoginSettingProps) {
       <span>
         <strong>Start Rondel It at login</strong>
         <small>
-          Opens quietly in the background, so reminders and reviews arrive on time. A menu-bar icon shows
-          it’s running (Open / Quit).
+          Opens quietly in the background, so reminders and reviews arrive on time. A{' '}
+          {platformWords().trayIcon} shows it’s running (Open / Quit).
         </small>
       </span>
     </label>

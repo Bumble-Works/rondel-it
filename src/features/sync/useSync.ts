@@ -50,7 +50,7 @@ export function useSync({ onRemoteChange, reportError }: Options) {
       lastFailure.current = null
       setWarning(
         result.rebuilt
-          ? 'The sync folder was missing, so it was rebuilt from this Mac’s data.'
+          ? 'The sync folder was missing, so it was rebuilt from this computer’s data.'
           : result.unreadable.length
             ? `Ignored ${result.unreadable.length} unreadable sync file(s); nothing was changed from them.`
             : result.droppedRecords
