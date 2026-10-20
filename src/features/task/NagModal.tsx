@@ -4,7 +4,8 @@ import type { Task } from '../../domain/types'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
 import { Modal } from '../../shared/ui/Modal'
-import { StatusCircle } from '../../shared/ui/StatusCircle'
+import { PillButton } from '../../shared/ui/PillButton'
+import { TaskActionItem, TaskActionList } from '../../shared/ui/TaskActionItem'
 import './NagModal.css'
 
 interface NagActions {
@@ -64,55 +65,24 @@ export function NagModal({ open, waiting, leftUndone, onClose, ...actions }: Nag
 function NagList({ items, weekStartDay, onRondel, onSetDone, onPickDate }: NagActions & { items: Task[] }) {
   const today = todayIso()
   return (
-    <ul className="nag-list">
+    <TaskActionList>
       {items.map((task) => (
-        <li key={task.id} className="nag-item">
-          <div className="nag-item-main">
-            <StatusCircle status={task.status} presentational size={16} />
-            <div className="nag-item-text">
-              <span className="nag-item-title">{task.title}</span>
-              {task.dayDate && <span className="nag-item-date">{formatDayLabel(task.dayDate)}</span>}
-            </div>
-          </div>
-          <div className="nag-item-actions">
-            <button type="button" className="nag-action" onClick={() => onRondel(task, { toDate: today })}>
-              Today
-            </button>
-            <button
-              type="button"
-              className="nag-action"
-              onClick={() => onRondel(task, { toDate: firstDayOfNextWeek(today, weekStartDay), rondeled: true })}
-            >
-              Next week
-            </button>
-            <button
-              type="button"
-              className="nag-action"
-              onClick={() => onRondel(task, { toDate: firstDayOfNextMonth(today), rondeled: true })}
-            >
-              Next month
-            </button>
-            <button
-              type="button"
-              className="nag-action"
-              aria-label="Pick a date"
-              title="Pick a date"
-              onClick={() => onPickDate(task)}
-            >
-              <Icon name="calendar" size={15} />
-            </button>
-            <button
-              type="button"
-              className="nag-action nag-action--done"
-              aria-label="Mark done"
-              title="Mark done"
-              onClick={() => onSetDone(task)}
-            >
-              <Icon name="check" size={15} />
-            </button>
-          </div>
-        </li>
+        <TaskActionItem key={task.id} task={task} detail={task.dayDate && formatDayLabel(task.dayDate)}>
+          <PillButton onClick={() => onRondel(task, { toDate: today })}>Today</PillButton>
+          <PillButton onClick={() => onRondel(task, { toDate: firstDayOfNextWeek(today, weekStartDay), rondeled: true })}>
+            Next week
+          </PillButton>
+          <PillButton onClick={() => onRondel(task, { toDate: firstDayOfNextMonth(today), rondeled: true })}>
+            Next month
+          </PillButton>
+          <PillButton aria-label="Pick a date" title="Pick a date" onClick={() => onPickDate(task)}>
+            <Icon name="calendar" size={15} />
+          </PillButton>
+          <PillButton tone="done" aria-label="Mark done" title="Mark done" onClick={() => onSetDone(task)}>
+            <Icon name="check" size={15} />
+          </PillButton>
+        </TaskActionItem>
       ))}
-    </ul>
+    </TaskActionList>
   )
 }

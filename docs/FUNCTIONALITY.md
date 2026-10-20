@@ -250,6 +250,16 @@ Today, Next week, Next month, Pick a date, Mark done.
   app, the notification area in the Windows app (the browser version uses
   browser notifications). Permission is asked
   the first time you set a reminder.
+- It also **pops up**, showing just that task. In the Mac app it's a small
+  window that comes up **on top of whatever app you're in** (even when Rondel It
+  is hidden), without the board; the browser version shows it as a dialog. Several
+  reminders due together share one pop-up. Each offers:
+  - **Snooze 10 min:** the task's reminder time moves to 10 minutes from now
+    (never past 23:59), and it pops up again then.
+  - **Done.**
+  - **Reschedule:** Tomorrow, Next week, Next month, Pick a date, as in the
+    rondel menu (it counts as a rondel; the reminder time goes with the task).
+  - Closing the pop-up lets all its reminders go (they already fired).
 - Reminders fire **while the app is running, even if its window is hidden or
   minimized**, but not while it's fully quit. A reminder missed earlier today
   (app closed, computer asleep) fires when the app opens; earlier days don't.
@@ -263,10 +273,12 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Settings: **morning review time** and **end-of-day rondel time**.
 - At each review time, if anything needs a decision, the nag opens and a
   notification appears, **even while the window is hidden** (same rules as
-  reminders: the app must be running). Review times already past when the app
+  reminders: the app must be running). In the Mac app the window comes **to the
+  front, on top of whatever app you're in**, with the nag open. Review times already past when the app
   opens are covered by the nag shown on open.
 - The nag opens once when the app opens, and again at each review time, if
-  anything needs a decision. It closes when nothing is left. It has two sections:
+  anything needs a decision. It closes when nothing is left. A long list
+  scrolls inside it (as in every dialog). It has two sections:
   - **Left undone on past days:** todo/doing tasks on any day before today
     (history copies, done tasks, rondeled and Bucket List items excluded), oldest first.
   - **Rondeled items waiting:** rondeled items whose week/month has started.

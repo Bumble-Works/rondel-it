@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Rondel It",
         "width": 1100,
         "height": 760,
@@ -19,7 +20,25 @@
         "minHeight": 480,
         "resizable": true,
         "fullscreen": false,
+        "backgroundThrottling": "disabled",
         "dragDropEnabled": false
+      },
+      {
+        "label": "reminder",
+        "title": "Reminder",
+        "width": 460,
+        "height": 300,
+        "minWidth": 360,
+        "minHeight": 200,
+        "resizable": true,
+        "minimizable": false,
+        "maximizable": false,
+        "center": true,
+        "visible": false,
+        "alwaysOnTop": true,
+        "visibleOnAllWorkspaces": true,
+        "skipTaskbar": true,
+        "backgroundThrottling": "disabled"
       }
     ],
     "security": {

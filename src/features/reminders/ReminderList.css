@@ -1,0 +1,13 @@
+.reminder-list-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.reminder-list-label {
+  margin-right: 0.1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}

@@ -1,0 +1,5 @@
+.reminder-popup {
+  min-height: 100vh;
+  padding: 0.9rem;
+  background: var(--surface);
+}
