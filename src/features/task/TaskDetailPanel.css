@@ -149,3 +149,9 @@
 .detail-flag.is-on {
   color: var(--accent-amber);
 }
+
+.detail-advance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
