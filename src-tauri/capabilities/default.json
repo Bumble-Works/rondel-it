@@ -3,7 +3,8 @@
   "identifier": "default",
   "description": "Core app permissions. File access is limited to the sync folder the user picks (granted by the folder picker, remembered by persisted-scope).",
   "windows": [
-    "main"
+    "main",
+    "reminder"
   ],
   "permissions": [
     "core:default",
@@ -28,6 +29,8 @@
     "notification:default",
     "autostart:default",
     "core:window:allow-show",
-    "core:window:allow-set-focus"
+    "core:window:allow-set-focus",
+    "core:window:allow-hide",
+    "core:window:allow-unminimize"
   ]
 }

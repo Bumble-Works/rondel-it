@@ -34,6 +34,13 @@ pub fn run() {
       Some(vec![LAUNCHED_AT_LOGIN]),
     ))
     .invoke_handler(tauri::generate_handler![print_page])
+    // Closing the main window quits, as before: the hidden reminder pop-up
+    // window mustn't keep the app running with nothing to show.
+    .on_window_event(|window, event| {
+      if window.label() == "main" && matches!(event, tauri::WindowEvent::Destroyed) {
+        window.app_handle().exit(0);
+      }
+    })
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(

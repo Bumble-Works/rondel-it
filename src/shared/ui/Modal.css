@@ -12,7 +12,11 @@
 }
 
 .modal-card {
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  /* A long list scrolls inside the body instead of running off screen. */
+  max-height: 100%;
   background: var(--surface);
   border-radius: var(--r-xl);
   box-shadow: var(--shadow-lg);
@@ -21,6 +25,7 @@
 }
 
 .modal-head {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -33,10 +38,14 @@
 }
 
 .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   padding: 1.3rem;
 }
 
 .modal-foot {
+  flex: none;
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;

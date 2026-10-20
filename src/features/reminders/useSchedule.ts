@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { toIso } from '../../domain/dates'
 import { planEvents, scheduledEvents, type ScheduledEvent } from '../../domain/schedule'
 import type { Task, UserSetting } from '../../domain/types'
-import { notify } from '../../shared/notify'
 
 const FIRED_KEY = 'rondel.schedule.fired'
 // Look again at least hourly, so sleep or a clock change can't strand a timer.
@@ -26,6 +25,8 @@ interface Options {
   /** Active tasks with a reminder, today or later. */
   reminders: Task[]
   settings: UserSetting | null
+  /** A task's reminder time arrived. */
+  onReminder: (task: Task) => void
   /** A review time arrived. */
   onReview: (slot: 'start' | 'end') => void
   /** A new day started. */
@@ -33,15 +34,15 @@ interface Options {
 }
 
 /**
- * Fires task reminders (as notifications), review times and midnight on time,
+ * Fires task reminders, review times and midnight on time,
  * even while the window is hidden: one timer, set for the next event.
  */
-export function useSchedule({ reminders, settings, onReview, onNewDay }: Options) {
-  const handlers = useRef({ onReview, onNewDay })
+export function useSchedule({ reminders, settings, onReminder, onReview, onNewDay }: Options) {
+  const handlers = useRef({ onReminder, onReview, onNewDay })
   // What has fired. Set up once per app open, then kept across re-plans.
   const firedRef = useRef<Set<string> | null>(null)
   useEffect(() => {
-    handlers.current = { onReview, onNewDay }
+    handlers.current = { onReminder, onReview, onNewDay }
   })
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export function useSchedule({ reminders, settings, onReview, onNewDay }: Options
     const fired = firedRef.current
 
     const fire = (event: ScheduledEvent) => {
-      if (event.kind === 'reminder') void notify('Rondel It reminder', event.task.title)
+      if (event.kind === 'reminder') handlers.current.onReminder(event.task)
       else if (event.kind === 'review') handlers.current.onReview(event.slot)
       else handlers.current.onNewDay()
     }

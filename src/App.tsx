@@ -43,7 +43,9 @@ import { PrintSheet } from './features/print/PrintSheet'
 import { printView } from './features/print/printView'
 import { printPage } from './features/print/printPage'
 import { useSchedule } from './features/reminders/useSchedule'
-import { notify } from './shared/notify'
+import { useReminderAlerts } from './features/reminders/useReminderAlerts'
+import { ReminderModal } from './features/reminders/ReminderModal'
+import { announceReview } from './features/reminders/announceReview'
 
 const dataSource = createDataSource()
 
@@ -254,21 +256,6 @@ function App() {
     nagCountRef.current = nagCount
   }, [nagCount])
 
-  // Review times, task reminders and midnight fire on time, even while hidden.
-  useSchedule({
-    reminders: reminderTasks,
-    settings,
-    onReview: (slot) => {
-      const count = nagCountRef.current
-      if (count === 0) return
-      setNagOpen(true)
-      const name = slot === 'start' ? 'Morning review' : 'End-of-day review'
-      void notify(name, `${count} ${count === 1 ? 'thing needs' : 'things need'} a decision`)
-    },
-    // The new day's recurring tasks are created when the board reloads.
-    onNewDay: () => void loadBoard(),
-  })
-
   const allTasks = useMemo(
     () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...undecided, ...leftUndone],
     [rangeTasks, containerItems, buckets, undecided, leftUndone],
@@ -436,6 +423,28 @@ function App() {
     if (datePurpose === 'copy') copyTask(task, dateIso)
     else void run(() => dataSource.moveTask(task.id, { dayDate: dateIso }, { rondel: true }))
   }
+
+  // Review times, task reminders and midnight fire on time, even while hidden.
+  const reminderAlerts = useReminderAlerts({
+    reminderTasks,
+    weekStartDay,
+    onSnooze: (task, reminderTime) => run(() => dataSource.updateTask(task.id, { reminderTime })),
+    onSetDone: (task) => setDone(task),
+    onRondel: rondel,
+  })
+  useSchedule({
+    reminders: reminderTasks,
+    settings,
+    onReminder: reminderAlerts.add,
+    onReview: (slot) => {
+      const count = nagCountRef.current
+      if (count === 0) return
+      setNagOpen(true)
+      announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
+    },
+    // The new day's recurring tasks are created when the board reloads.
+    onNewDay: () => void loadBoard(),
+  })
 
   /* ---- settings actions ---- */
 
@@ -848,7 +857,7 @@ function App() {
         onSave={(note) => noteTask && saveNote(noteTask.id, note)}
       />
 
-
+      <ReminderModal {...reminderAlerts.modal} weekStartDay={weekStartDay} />
       <NagModal
         open={nagOpen && nagCount > 0}
         waiting={undecided}
