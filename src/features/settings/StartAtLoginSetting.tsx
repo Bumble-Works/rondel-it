@@ -43,8 +43,8 @@ export function StartAtLoginSetting({ reportError }: StartAtLoginSettingProps) {
       <span>
         <strong>Start Rondel It at login</strong>
         <small>
-          Opens quietly in the background, so reminders and reviews arrive on time. A {platformWords().trayIcon}
-          shows it’s running (Open / Quit).
+          Opens quietly in the background, so reminders and reviews arrive on time. A{' '}
+          {platformWords().trayIcon} shows it’s running (Open / Quit).
         </small>
       </span>
     </label>
