@@ -1,5 +1,5 @@
 import { useRef, useState, type DragEvent } from 'react'
-import { acceptTaskDrop, droppedTaskId, startTaskDrag } from './taskDrag'
+import { acceptTaskDrop, droppedTaskId, endTaskDrag, startTaskDrag } from './taskDrag'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { formatClock } from '../../domain/dates'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
@@ -73,14 +73,17 @@ export function TaskRow({
   const locked = selected
 
   const startDrag = (e: DragEvent<HTMLElement>) => {
-    startTaskDrag(e, task.id)
+    startTaskDrag(e, task)
     if (rowRef.current) e.dataTransfer.setDragImage(rowRef.current, 16, 16)
     // Defer the state update: mutating the dragged node's render synchronously
     // in onDragStart causes Chrome to abort the drag before it begins.
     requestAnimationFrame(() => onDragStartTask())
   }
 
-  const endDrag = () => onDragEndTask()
+  const endDrag = () => {
+    endTaskDrag()
+    onDragEndTask()
+  }
 
   const calcDropPosition = (clientY: number): 'before' | 'after' => {
     const rect = rowRef.current?.getBoundingClientRect()
@@ -109,7 +112,7 @@ export function TaskRow({
       }}
       onDragLeave={() => setDropPosition(null)}
       onDrop={(e) => {
-        const draggedId = droppedTaskId(e)
+        const draggedId = droppedTaskId()
         if (!draggedId) return
         e.preventDefault()
         // Swallow drops on the dragged row itself, so they don't bubble up to
