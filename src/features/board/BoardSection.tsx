@@ -38,7 +38,7 @@ export function BoardSection({
 }: BoardSectionProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
   const isCollapsed = collapsible && collapsed
-  const { setNodeRef: setDropRef } = useDroppable({ id: dropId ?? '', disabled: !dropId })
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: dropId ?? '', disabled: !dropId })
 
   return (
     <section
@@ -84,7 +84,7 @@ export function BoardSection({
       </header>
 
       {!isCollapsed && (
-        <div ref={setDropRef} className="board-section-body">
+        <div ref={setDropRef} className={`board-section-body ${isOver ? 'is-drop-target' : ''}`.trim()}>
           {empty ? <p className="board-section-empty">{emptyLabel}</p> : children}
         </div>
       )}
