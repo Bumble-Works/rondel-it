@@ -1,30 +1,31 @@
 import type { DragEvent } from 'react'
 
-/**
- * Dragging a task carries its id in the drag itself, so drops never depend on
- * React state set after the drag started: WebKit (the Mac app) can deliver a
- * drop before that state has rendered, and the drop would do nothing.
- */
-const TASK_DRAG_TYPE = 'application/x-rondel-task'
+// Set at drag start, so drops never wait on React state or the drag's data,
+// neither of which the Mac app's web view delivers in time.
+let draggedId: string | null = null
 
-export function startTaskDrag(e: DragEvent<HTMLElement>, taskId: string): void {
+export function startTaskDrag(e: DragEvent<HTMLElement>, task: { id: string; title: string }): void {
+  draggedId = task.id
   e.dataTransfer.effectAllowed = 'move'
-  e.dataTransfer.setData(TASK_DRAG_TYPE, taskId)
+  // WebKit won't start a drag without data.
+  e.dataTransfer.setData('text/plain', task.title)
 }
 
-/**
- * On drag-over: accepts a dragged task here, as a move. Returns whether it did.
- * Saying "move" keeps WebKit from picking "copy" (the green plus cursor),
- * which a move-only drag would then refuse.
- */
+export function endTaskDrag(): void {
+  draggedId = null
+}
+
+/** On drag-over: accepts a dragged task, as a move (not WebKit's default copy). */
 export function acceptTaskDrop(e: DragEvent<HTMLElement>): boolean {
-  if (!e.dataTransfer.types.includes(TASK_DRAG_TYPE)) return false
+  if (!draggedId) return false
   e.preventDefault()
   e.dataTransfer.dropEffect = 'move'
   return true
 }
 
-/** On drop: the dragged task's id, or null if this isn't a task drag. */
-export function droppedTaskId(e: DragEvent<HTMLElement>): string | null {
-  return e.dataTransfer.getData(TASK_DRAG_TYPE) || null
+/** On drop: the dragged task, used up (a task moved elsewhere may never get its drag end). */
+export function droppedTaskId(): string | null {
+  const id = draggedId
+  draggedId = null
+  return id
 }

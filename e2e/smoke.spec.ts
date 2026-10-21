@@ -453,8 +453,7 @@ test('drags a task into another section, and reorders within a day', async ({ pa
   await row(page, 'First').locator('.task-grip').dragTo(row(page, 'Second'), { targetPosition: { x: 200, y: 30 } })
   await expect(page.locator('.task-row .task-title')).toHaveText(['Second', 'First'])
 
-  // Move to another section (the same drop path as another day). WebKit, the
-  // Mac app's engine, used to snap it back.
+  // Into another section: the same drop path as another day.
   const unassigned = page.locator('.board-section', { hasText: 'Unassigned' })
   await row(page, 'First').locator('.task-grip').dragTo(unassigned.locator('.board-section-body'))
   await expect(unassigned.locator('.task-row', { hasText: 'First' })).toBeVisible()

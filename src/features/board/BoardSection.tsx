@@ -89,7 +89,7 @@ export function BoardSection({
           onDrop={
             onDropAtEnd
               ? (e) => {
-                  const draggedId = droppedTaskId(e)
+                  const draggedId = droppedTaskId()
                   if (!draggedId) return
                   e.preventDefault()
                   onDropAtEnd(draggedId)
