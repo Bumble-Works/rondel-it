@@ -450,12 +450,12 @@ test('editing a recurring rule updates the task already on the list', async ({ p
  * and lets go once `ready` shows the drop has registered.
  */
 async function dragTask(page: Page, title: string, target: Locator, ready: Locator, at: 'bottom' | 'center' = 'center') {
-  const grip = await row(page, title).locator('.task-grip').boundingBox()
-  const box = await target.boundingBox()
-  if (!grip || !box) throw new Error(`Can't drag ${title}: grip or target isn't on screen`)
-  const y = at === 'bottom' ? box.y + box.height - 4 : box.y + box.height / 2
-  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+  // Hovering waits for the grip to stop moving (the list may still be settling).
+  await row(page, title).locator('.task-grip').hover()
   await page.mouse.down()
+  const box = await target.boundingBox()
+  if (!box) throw new Error(`Can't drag ${title}: the target isn't on screen`)
+  const y = at === 'bottom' ? box.y + box.height - 4 : box.y + box.height / 2
   await page.mouse.move(box.x + box.width / 2, y, { steps: 12 })
   await expect(ready).toBeVisible()
   await page.mouse.up()
