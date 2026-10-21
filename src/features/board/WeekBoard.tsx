@@ -6,7 +6,7 @@ import { IconButton } from '../../shared/ui/IconButton'
 import { BoardSection } from './BoardSection'
 import { InlineAdd } from './InlineAdd'
 import { TaskRow } from './TaskRow'
-import { rowDropId, sectionDropId } from './boardDrop'
+import { sectionDropId } from './boardDrop'
 import { useBoardDrag } from './useBoardDrag'
 import './WeekBoard.css'
 
@@ -130,7 +130,7 @@ export function WeekBoard({
                 onPickCopyDate={() => onPickCopyDate(task)}
                 onOpenReminder={() => onOpenReminder(task)}
                 isDragged={draggingId === task.id}
-                dropPosition={dropPositionFor(rowDropId(task.id))}
+                dropPosition={dropPositionFor(task.id)}
                 weekStartDay={weekStartDay}
               />
             ))}

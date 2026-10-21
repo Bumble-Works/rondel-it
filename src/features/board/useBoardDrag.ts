@@ -47,8 +47,8 @@ export function useBoardDrag(
 
   return {
     draggingId,
-    /** The drop line to show on a row: before or after it, or none. */
-    dropPositionFor: (rowDropId: string) => (dropHint?.overId === rowDropId ? dropHint.position : null),
+    /** The drop line to show on a task's row: before or after it, or none. */
+    dropPositionFor: (taskId: string) => (dropHint?.overId === rowDropId(taskId) ? dropHint.position : null),
     dndContext: {
       sensors,
       collisionDetection: rowsFirst,
