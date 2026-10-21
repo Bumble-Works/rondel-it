@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 /** The row for a task title within the visible board. */
 const row = (page: Page, title: string) => page.locator('.task-row', { hasText: title })
@@ -445,17 +445,28 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
 })
 
+/** Drags a task by its grip onto `target`, moving in steps like a person would. */
+async function dragTask(page: Page, title: string, target: Locator, at: 'top' | 'bottom' | 'center' = 'center') {
+  const grip = await row(page, title).locator('.task-grip').boundingBox()
+  const box = await target.boundingBox()
+  if (!grip || !box) throw new Error(`Can't drag ${title}: grip or target isn't on screen`)
+  const y = at === 'top' ? box.y + 4 : at === 'bottom' ? box.y + box.height - 4 : box.y + box.height / 2
+  await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2, y, { steps: 12 })
+  await page.mouse.up()
+}
+
 test('drags a task into another section, and reorders within a day', async ({ page }) => {
   await addTask(page, 'First')
   await addTask(page, 'Second')
 
-  // Reorder: drop "First" on the lower half of "Second".
-  await row(page, 'First').locator('.task-grip').dragTo(row(page, 'Second'), { targetPosition: { x: 200, y: 30 } })
+  await dragTask(page, 'First', row(page, 'Second'), 'bottom')
   await expect(page.locator('.task-row .task-title')).toHaveText(['Second', 'First'])
 
   // Into another section: the same drop path as another day.
   const unassigned = page.locator('.board-section', { hasText: 'Unassigned' })
-  await row(page, 'First').locator('.task-grip').dragTo(unassigned.locator('.board-section-body'))
+  await dragTask(page, 'First', unassigned.locator('.board-section-body'))
   await expect(unassigned.locator('.task-row', { hasText: 'First' })).toBeVisible()
 
   await page.reload()

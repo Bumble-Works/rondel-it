@@ -1,5 +1,5 @@
-import { useRef, useState, type DragEvent } from 'react'
-import { acceptTaskDrop, droppedTaskId, endTaskDrag, startTaskDrag } from './taskDrag'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
+import { rowDropId, type DropPosition } from './boardDrop'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { formatClock } from '../../domain/dates'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
@@ -37,9 +37,8 @@ interface TaskRowProps {
   onPickCopyDate: () => void
   onOpenReminder: () => void
   isDragged: boolean
-  onDragStartTask: () => void
-  onDragEndTask: () => void
-  onDropOnRow: (taskId: string, position: 'before' | 'after') => void
+  /** Where a task being dragged over this row would land. */
+  dropPosition: DropPosition | null
   weekStartDay?: number
 }
 
@@ -60,40 +59,25 @@ export function TaskRow({
   onPickCopyDate,
   onOpenReminder,
   isDragged,
-  onDragStartTask,
-  onDragEndTask,
-  onDropOnRow,
+  dropPosition,
   weekStartDay,
 }: TaskRowProps) {
-  const rowRef = useRef<HTMLDivElement>(null)
-  const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const carried = isCarriedForward(task)
   // While a task is open in the detail panel, the panel is its only editor.
   const locked = selected
-
-  const startDrag = (e: DragEvent<HTMLElement>) => {
-    startTaskDrag(e, task)
-    if (rowRef.current) e.dataTransfer.setDragImage(rowRef.current, 16, 16)
-    // Defer the state update: mutating the dragged node's render synchronously
-    // in onDragStart causes Chrome to abort the drag before it begins.
-    requestAnimationFrame(() => onDragStartTask())
-  }
-
-  const endDrag = () => {
-    endTaskDrag()
-    onDragEndTask()
-  }
-
-  const calcDropPosition = (clientY: number): 'before' | 'after' => {
-    const rect = rowRef.current?.getBoundingClientRect()
-    if (!rect) return 'before'
-    return clientY < rect.top + rect.height / 2 ? 'before' : 'after'
+  const draggable = task.status !== 'done' && !carried && !locked
+  // The row is what's dragged and what's dropped on; only its grip starts a drag.
+  const { setNodeRef: setDragRef, setActivatorNodeRef, listeners } = useDraggable({ id: task.id, disabled: !draggable })
+  const { setNodeRef: setDropRef } = useDroppable({ id: rowDropId(task.id) })
+  const setRowRef = (el: HTMLDivElement | null) => {
+    setDragRef(el)
+    setDropRef(el)
   }
 
   return (
     <div
-      ref={rowRef}
+      ref={setRowRef}
       className={[
         'task-row',
         selected ? 'is-selected' : '',
@@ -107,31 +91,16 @@ export function TaskRow({
       ]
         .filter(Boolean)
         .join(' ')}
-      onDragOver={(e) => {
-        if (!isDragged && acceptTaskDrop(e)) setDropPosition(calcDropPosition(e.clientY))
-      }}
-      onDragLeave={() => setDropPosition(null)}
-      onDrop={(e) => {
-        const draggedId = droppedTaskId()
-        if (!draggedId) return
-        e.preventDefault()
-        // Swallow drops on the dragged row itself, so they don't bubble up to
-        // the section's "drop at end" and move the task to the bottom.
-        e.stopPropagation()
-        setDropPosition(null)
-        if (draggedId !== task.id) onDropOnRow(draggedId, calcDropPosition(e.clientY))
-      }}
     >
-      {task.status === 'done' || carried || locked ? (
+      {!draggable ? (
         <span className="task-grip task-grip--empty" aria-hidden="true" />
       ) : (
         <span
+          ref={setActivatorNodeRef}
           className="task-grip"
-          draggable
           aria-label="Drag to move or reorder"
           title="Drag to move or reorder"
-          onDragStart={startDrag}
-          onDragEnd={endDrag}
+          {...listeners}
         >
           <Icon name="grip" size={16} />
         </span>

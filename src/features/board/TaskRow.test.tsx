@@ -51,9 +51,7 @@ function renderRow(
       onPickCopyDate={copies.onPickCopyDate}
       onOpenReminder={noop}
       isDragged={false}
-      onDragStartTask={noop}
-      onDragEndTask={noop}
-      onDropOnRow={noop}
+      dropPosition={null}
     />,
   )
 }
@@ -114,9 +112,7 @@ describe('TaskRow', () => {
         onPickCopyDate={() => {}}
         onOpenReminder={() => {}}
         isDragged={false}
-        onDragStartTask={() => {}}
-        onDragEndTask={() => {}}
-        onDropOnRow={() => {}}
+        dropPosition={null}
       />,
     )
     const open = screen.getByRole('button', { name: 'Open Read https://example.com/doc' })
