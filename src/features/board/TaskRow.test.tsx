@@ -113,7 +113,7 @@ describe('TaskRow', () => {
         onCopy={() => {}}
         onPickCopyDate={() => {}}
         onOpenReminder={() => {}}
-          isDragged={false}
+        isDragged={false}
         onDragStartTask={() => {}}
         onDragEndTask={() => {}}
         onDropOnRow={() => {}}
