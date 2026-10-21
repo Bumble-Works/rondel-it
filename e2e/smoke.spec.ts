@@ -444,3 +444,21 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await expect(row(page, 'Morning stretch')).toBeVisible()
   await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
 })
+
+test('drags a task into another section, and reorders within a day', async ({ page }) => {
+  await addTask(page, 'First')
+  await addTask(page, 'Second')
+
+  // Reorder: drop "First" on the lower half of "Second".
+  await row(page, 'First').locator('.task-grip').dragTo(row(page, 'Second'), { targetPosition: { x: 200, y: 30 } })
+  await expect(page.locator('.task-row .task-title')).toHaveText(['Second', 'First'])
+
+  // Move to another section (the same drop path as another day). WebKit, the
+  // Mac app's engine, used to snap it back.
+  const unassigned = page.locator('.board-section', { hasText: 'Unassigned' })
+  await row(page, 'First').locator('.task-grip').dragTo(unassigned.locator('.board-section-body'))
+  await expect(unassigned.locator('.task-row', { hasText: 'First' })).toBeVisible()
+
+  await page.reload()
+  await expect(page.locator('.board-section', { hasText: 'Unassigned' }).locator('.task-row', { hasText: 'First' })).toBeVisible()
+})

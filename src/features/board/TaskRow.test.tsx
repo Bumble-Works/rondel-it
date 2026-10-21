@@ -50,7 +50,6 @@ function renderRow(
       onCopy={copies.onCopy}
       onPickCopyDate={copies.onPickCopyDate}
       onOpenReminder={noop}
-      dragging={false}
       isDragged={false}
       onDragStartTask={noop}
       onDragEndTask={noop}
@@ -114,7 +113,6 @@ describe('TaskRow', () => {
         onCopy={() => {}}
         onPickCopyDate={() => {}}
         onOpenReminder={() => {}}
-        dragging={false}
         isDragged={false}
         onDragStartTask={() => {}}
         onDragEndTask={() => {}}

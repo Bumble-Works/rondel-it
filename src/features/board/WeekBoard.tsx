@@ -126,9 +126,7 @@ export function WeekBoard({
           emptyLabel={group.emptyLabel}
           onDropAtEnd={
             group.addTarget
-              ? () => {
-                  if (draggingId) onMove(draggingId, group.addTarget as BoardGroupAddTarget, null)
-                }
+              ? (draggedId) => onMove(draggedId, group.addTarget as BoardGroupAddTarget, null)
               : undefined
           }
         >
@@ -150,19 +148,13 @@ export function WeekBoard({
               onCopy={(dayIso) => onCopy(task, dayIso)}
               onPickCopyDate={() => onPickCopyDate(task)}
               onOpenReminder={() => onOpenReminder(task)}
-              dragging={Boolean(draggingId)}
               isDragged={draggingId === task.id}
               onDragStartTask={() => setDraggingId(task.id)}
               onDragEndTask={() => setDraggingId(null)}
-              onDropOnRow={(position) => {
-                if (!draggingId || !group.addTarget) return
-                const beforeId = beforeIdForDrop(
-                  group.tasks.map((t) => t.id),
-                  draggingId,
-                  index,
-                  position,
-                )
-                onMove(draggingId, group.addTarget, beforeId)
+              onDropOnRow={(draggedId, position) => {
+                if (!group.addTarget) return
+                const beforeId = beforeIdForDrop(group.tasks.map((t) => t.id), draggedId, index, position)
+                onMove(draggedId, group.addTarget, beforeId)
               }}
               weekStartDay={weekStartDay}
             />
