@@ -21,3 +21,20 @@
     opacity: 1;
   }
 }
+
+/* Follows the pointer while a task is dragged. */
+.task-drag-preview {
+  max-width: 360px;
+  padding: 0.55rem 0.8rem;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: grabbing;
+}

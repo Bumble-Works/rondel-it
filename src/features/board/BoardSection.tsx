@@ -1,6 +1,6 @@
+import { useDroppable } from '@dnd-kit/core'
 import { useState, type ReactNode } from 'react'
 import { Icon } from '../../shared/ui/Icon'
-import { acceptTaskDrop, droppedTaskId } from './taskDrag'
 import './BoardSection.css'
 
 interface BoardSectionProps {
@@ -14,8 +14,8 @@ interface BoardSectionProps {
   children: ReactNode
   empty?: boolean
   emptyLabel?: string
-  /** A task dropped below the rows (or on an empty section) goes last. */
-  onDropAtEnd?: (taskId: string) => void
+  /** Set when tasks can be dropped here: below the rows (or on an empty section) goes last. */
+  dropId?: string
   collapsible?: boolean
   /** Hide the title when the page header already says it (Day, Bucket List views). */
   hideTitle?: boolean
@@ -32,12 +32,13 @@ export function BoardSection({
   children,
   empty,
   emptyLabel = 'Nothing here',
-  onDropAtEnd,
+  dropId,
   collapsible = true,
   hideTitle = false,
 }: BoardSectionProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
   const isCollapsed = collapsible && collapsed
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: dropId ?? '', disabled: !dropId })
 
   return (
     <section
@@ -83,20 +84,7 @@ export function BoardSection({
       </header>
 
       {!isCollapsed && (
-        <div
-          className="board-section-body"
-          onDragOver={onDropAtEnd ? (e) => void acceptTaskDrop(e) : undefined}
-          onDrop={
-            onDropAtEnd
-              ? (e) => {
-                  const draggedId = droppedTaskId()
-                  if (!draggedId) return
-                  e.preventDefault()
-                  onDropAtEnd(draggedId)
-                }
-              : undefined
-          }
-        >
+        <div ref={setDropRef} className={`board-section-body ${isOver ? 'is-drop-target' : ''}`.trim()}>
           {empty ? <p className="board-section-empty">{emptyLabel}</p> : children}
         </div>
       )}

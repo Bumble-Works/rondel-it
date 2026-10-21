@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 /** The row for a task title within the visible board. */
 const row = (page: Page, title: string) => page.locator('.task-row', { hasText: title })
@@ -445,17 +445,33 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
 })
 
+/**
+ * Drags a task by its grip onto `target`, moving in steps like a person would,
+ * and lets go once `ready` shows the drop has registered.
+ */
+async function dragTask(page: Page, title: string, target: Locator, ready: Locator, at: 'bottom' | 'center' = 'center') {
+  // Hovering waits for the grip to stop moving (the list may still be settling).
+  await row(page, title).locator('.task-grip').hover()
+  await page.mouse.down()
+  const box = await target.boundingBox()
+  if (!box) throw new Error(`Can't drag ${title}: the target isn't on screen`)
+  const y = at === 'bottom' ? box.y + box.height - 4 : box.y + box.height / 2
+  await page.mouse.move(box.x + box.width / 2, y, { steps: 12 })
+  await expect(ready).toBeVisible()
+  await page.mouse.up()
+}
+
 test('drags a task into another section, and reorders within a day', async ({ page }) => {
   await addTask(page, 'First')
   await addTask(page, 'Second')
 
-  // Reorder: drop "First" on the lower half of "Second".
-  await row(page, 'First').locator('.task-grip').dragTo(row(page, 'Second'), { targetPosition: { x: 200, y: 30 } })
+  await dragTask(page, 'First', row(page, 'Second'), page.locator('.task-row.is-drop-after'), 'bottom')
   await expect(page.locator('.task-row .task-title')).toHaveText(['Second', 'First'])
 
   // Into another section: the same drop path as another day.
   const unassigned = page.locator('.board-section', { hasText: 'Unassigned' })
-  await row(page, 'First').locator('.task-grip').dragTo(unassigned.locator('.board-section-body'))
+  const unassignedBody = unassigned.locator('.board-section-body')
+  await dragTask(page, 'First', unassignedBody, unassigned.locator('.board-section-body.is-drop-target'))
   await expect(unassigned.locator('.task-row', { hasText: 'First' })).toBeVisible()
 
   await page.reload()

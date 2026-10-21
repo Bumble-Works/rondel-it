@@ -116,6 +116,11 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Drag and drop
 
+- Drag a task by its **grip** (⠿, left of the status circle), with a mouse,
+  trackpad or touch. A preview follows the pointer and the task's row stays put,
+  dimmed. A blue line shows where it'll land: before or after the task under
+  the pointer. Over a section's empty space, the section is highlighted and the
+  task goes last there.
 - Dragging between days or containers is a **plain move**: no rondel, no count
   change, no history copy. It's for reorganizing.
 - Dragging within a day reorders it (the done / history grouping still applies).
