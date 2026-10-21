@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Icon } from '../../shared/ui/Icon'
+import { acceptTaskDrop, droppedTaskId } from './taskDrag'
 import './BoardSection.css'
 
 interface BoardSectionProps {
@@ -13,7 +14,8 @@ interface BoardSectionProps {
   children: ReactNode
   empty?: boolean
   emptyLabel?: string
-  onDropAtEnd?: () => void
+  /** A task dropped below the rows (or on an empty section) goes last. */
+  onDropAtEnd?: (taskId: string) => void
   collapsible?: boolean
   /** Hide the title when the page header already says it (Day, Bucket List views). */
   hideTitle?: boolean
@@ -83,12 +85,14 @@ export function BoardSection({
       {!isCollapsed && (
         <div
           className="board-section-body"
-          onDragOver={onDropAtEnd ? (e) => e.preventDefault() : undefined}
+          onDragOver={onDropAtEnd ? (e) => void acceptTaskDrop(e) : undefined}
           onDrop={
             onDropAtEnd
               ? (e) => {
+                  const draggedId = droppedTaskId(e)
+                  if (!draggedId) return
                   e.preventDefault()
-                  onDropAtEnd()
+                  onDropAtEnd(draggedId)
                 }
               : undefined
           }

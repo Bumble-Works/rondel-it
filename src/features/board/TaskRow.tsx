@@ -1,4 +1,5 @@
 import { useRef, useState, type DragEvent } from 'react'
+import { acceptTaskDrop, droppedTaskId, startTaskDrag } from './taskDrag'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { formatClock } from '../../domain/dates'
 import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
@@ -35,11 +36,10 @@ interface TaskRowProps {
   onCopy: (dayIso: string) => void
   onPickCopyDate: () => void
   onOpenReminder: () => void
-  dragging: boolean
   isDragged: boolean
   onDragStartTask: () => void
   onDragEndTask: () => void
-  onDropOnRow: (position: 'before' | 'after') => void
+  onDropOnRow: (taskId: string, position: 'before' | 'after') => void
   weekStartDay?: number
 }
 
@@ -59,7 +59,6 @@ export function TaskRow({
   onCopy,
   onPickCopyDate,
   onOpenReminder,
-  dragging,
   isDragged,
   onDragStartTask,
   onDragEndTask,
@@ -69,14 +68,12 @@ export function TaskRow({
   const rowRef = useRef<HTMLDivElement>(null)
   const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
-  const canDrop = dragging && !isDragged
   const carried = isCarriedForward(task)
   // While a task is open in the detail panel, the panel is its only editor.
   const locked = selected
 
   const startDrag = (e: DragEvent<HTMLElement>) => {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', task.id)
+    startTaskDrag(e, task.id)
     if (rowRef.current) e.dataTransfer.setDragImage(rowRef.current, 16, 16)
     // Defer the state update: mutating the dragged node's render synchronously
     // in onDragStart causes Chrome to abort the drag before it begins.
@@ -107,25 +104,19 @@ export function TaskRow({
       ]
         .filter(Boolean)
         .join(' ')}
-      onDragOver={
-        canDrop
-          ? (e) => {
-              e.preventDefault()
-            setDropPosition(calcDropPosition(e.clientY))
-            }
-          : undefined
-      }
-      onDragLeave={canDrop ? () => setDropPosition(null) : undefined}
+      onDragOver={(e) => {
+        if (!isDragged && acceptTaskDrop(e)) setDropPosition(calcDropPosition(e.clientY))
+      }}
+      onDragLeave={() => setDropPosition(null)}
       onDrop={(e) => {
-        if (!dragging) return
+        const draggedId = droppedTaskId(e)
+        if (!draggedId) return
         e.preventDefault()
         // Swallow drops on the dragged row itself, so they don't bubble up to
         // the section's "drop at end" and move the task to the bottom.
         e.stopPropagation()
-        if (!canDrop) return
-        const position = calcDropPosition(e.clientY)
         setDropPosition(null)
-        onDropOnRow(position)
+        if (draggedId !== task.id) onDropOnRow(draggedId, calcDropPosition(e.clientY))
       }}
     >
       {task.status === 'done' || carried || locked ? (
