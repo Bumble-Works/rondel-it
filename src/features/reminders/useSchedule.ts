@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { toIso } from '../../domain/dates'
-import { planEvents, scheduledEvents, type ScheduledEvent } from '../../domain/schedule'
+import { handledBeforeOpen, planEvents, scheduledEvents, type ScheduledEvent } from '../../domain/schedule'
 import type { Task, UserSetting } from '../../domain/types'
 
+// Ledger of events already handled today (fired, or suppressed on open), so
+// nothing prompts twice — across re-plans and app restarts on the same day.
 const FIRED_KEY = 'rondel.schedule.fired'
 // Look again at least hourly, so sleep or a clock change can't strand a timer.
 const MAX_WAIT_MS = 60 * 60 * 1000
@@ -50,9 +52,8 @@ export function useSchedule({ reminders, settings, onReminder, onReview, onNewDa
     if (!firedRef.current) {
       const opened = new Date()
       firedRef.current = loadFired(toIso(opened))
-      // Review times (and midnight) already past when the app opens are covered
-      // by the nag shown on open; only reminders catch up.
-      for (const e of scheduledEvents(opened, [], settings)) if (e.at <= opened) firedRef.current.add(e.key)
+      // Only genuine catch-ups fire on open; the rest count as already handled.
+      for (const key of handledBeforeOpen(opened, settings)) firedRef.current.add(key)
     }
     const fired = firedRef.current
 

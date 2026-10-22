@@ -95,9 +95,7 @@ function App() {
   const [buckets, setBuckets] = useState<Buckets>(EMPTY_BUCKETS)
   const [containerItems, setContainerItems] = useState<Task[]>([])
   const [undecided, setUndecided] = useState<Task[]>([])
-  // Active tasks with a reminder, today or later (for the reminder schedule).
   const [reminderTasks, setReminderTasks] = useState<Task[]>([])
-  // Todo/doing tasks left on past days: nag alongside rondeled items.
   const [leftUndone, setLeftUndone] = useState<Task[]>([])
   const [nagOpen, setNagOpen] = useState(false)
 
@@ -108,15 +106,11 @@ function App() {
   const [activeStatuses, setActiveStatuses] = useState<TaskStatus[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [page, setPage] = useState<'board' | 'settings' | 'recurring'>('board')
-  // Narrow windows show the sidebar as a drawer (see App.css / Sidebar.css).
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  // The last Print: the whole view, or one day of it. The sheet stays mounted
-  // (hidden on screen) so the print dialog always has it, however long it stays open.
   const [printRequest, setPrintRequest] = useState<{ dayIso: string | null; at: number } | null>(null)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
-  // What the date picker is for: rondel the task there, or copy it there.
   const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
   const [error, setError] = useState<string | null>(null)
 
@@ -136,12 +130,7 @@ function App() {
   const todayInRange = today >= rangeStart && today <= rangeEnd
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
-  // "Every day", "Every month on the 1st"… per rule, for recurring tasks' icon and side panel.
   const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
-  const naggedRef = useRef<Set<string>>(new Set())
-  // The day recurring tasks were last created for. Browsing (which reloads the
-  // board a lot) reuses it; any change resets it, since finishing a "start of
-  // week/month" task is what lets the next one be created.
   const recurringSyncedFor = useRef<string | null>(null)
 
   const reportError = useCallback((context: string, e: unknown) => {
@@ -149,11 +138,19 @@ function App() {
     setError(`${context}: ${errorMessage(e)}`)
   }, [])
 
+  const loadedRef = useRef(false)
+  const pendingReviewRef = useRef<'start' | 'end' | null>(null)
+
+  const openReview = useCallback(
+    (slot: 'start' | 'end', count: number) => {
+      setNagOpen(true)
+      announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
+    },
+    [reportError],
+  )
+
   const loadBoard = useCallback(async () => {
     try {
-      // Recurring tasks appear on their own day, never ahead of time — browsing
-      // forward must not pre-create them.
-      // The device's own day, like the board, the review times and midnight.
       const recurringDay = today
       if (recurringSyncedFor.current !== recurringDay) {
         await dataSource.syncRecurring(recurringDay)
@@ -180,21 +177,22 @@ function App() {
       setUndecided(undecidedItems)
       setLeftUndone(leftItems)
 
-      // Nag once per app open if anything is waiting; auto-close when nothing is.
-      if (undecidedItems.length + leftItems.length === 0) {
-        setNagOpen(false)
-      } else if (!naggedRef.current.has('open')) {
-        naggedRef.current.add('open')
-        setNagOpen(true)
+      const nagTotal = undecidedItems.length + leftItems.length
+      if (nagTotal === 0) setNagOpen(false)
+
+      loadedRef.current = true
+      if (pendingReviewRef.current) {
+        const slot = pendingReviewRef.current
+        pendingReviewRef.current = null
+        if (nagTotal > 0) openReview(slot, nagTotal)
       }
 
       setError(null)
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
+  }, [reportError, openReview, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
-  /** Tags, settings and rules; the board reloads itself when settings change. */
   const loadAppData = useCallback(async () => {
     try {
       const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
@@ -211,12 +209,10 @@ function App() {
   }, [reportError])
 
   useEffect(() => {
-    // Sets state only after awaiting the data source (same as loadBoard below).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAppData()
   }, [loadAppData])
 
-  // The menu-bar icon shows while "Start at login" is on.
   useEffect(() => {
     restoreMenuBarIcon().catch((e) => reportError('Couldn’t show the menu-bar icon', e))
   }, [reportError])
@@ -231,15 +227,12 @@ function App() {
   const { scheduleSync } = sync
 
   useEffect(() => {
-    // loadBoard only sets state after awaiting the data source; the rule can't
-    // see through the async call.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (settings) void loadBoard()
   }, [settings, loadBoard])
 
   useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
-  // Print once the sheet has rendered.
   useEffect(() => {
     if (!printRequest) return
     const frame = requestAnimationFrame(() => {
@@ -437,10 +430,15 @@ function App() {
     settings,
     onReminder: reminderAlerts.add,
     onReview: (slot) => {
+      // Before the first board load we don't know the count yet; resolve it once
+      // the board loads, so a missed morning review still opens the nag.
+      if (!loadedRef.current) {
+        pendingReviewRef.current = slot
+        return
+      }
       const count = nagCountRef.current
       if (count === 0) return
-      setNagOpen(true)
-      announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
+      openReview(slot, count)
     },
     // The new day's recurring tasks are created when the board reloads.
     onNewDay: () => void loadBoard(),
@@ -521,7 +519,8 @@ function App() {
     title: 'Unassigned',
     eyebrow: 'Rondeled',
     defaultCollapsed: false,
-    addTarget: { dayDate: view === 'month' ? monthStart : anchorWeekStart, rondeled: true },
+    // In today's period, dragging into the container should not backdate.
+    addTarget: { dayDate: todayInRange ? today : view === 'month' ? monthStart : anchorWeekStart, rondeled: true },
     tasks: containerItems.filter(visible),
     emptyLabel: 'Nothing rondeled here',
   })
