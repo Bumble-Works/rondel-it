@@ -83,24 +83,20 @@ test('prints one day as a clean sheet', async ({ page }) => {
 test('a task left undone on a past day nags, and Done marks it done on that day', async ({ page }) => {
   await page.getByRole('button', { name: 'Previous day' }).click()
   await addTask(page, 'Forgot to check off')
-  // Force a deterministic missed-morning catch-up on reload.
-  await page.evaluate(() => {
-    const current = JSON.parse(localStorage.getItem('rondel.v6.settings') ?? '{}') as Record<string, unknown>
+  // The morning review is a once-a-day catch-up, keyed in rondel.schedule.fired.
+  // Reloading is a second open of the same day, so make it behave like the first
+  // open: widen the review window (so "now" is inside the day) and clear the
+  // fired-set before the app boots. addInitScript runs before app JS on reload,
+  // so the first load's saved keys can't leak in and suppress the nag.
+  await page.addInitScript(() => {
+    const s = JSON.parse(localStorage.getItem('rondel.v6.settings') ?? '{}') as Record<string, unknown>
     localStorage.setItem(
       'rondel.v6.settings',
-      JSON.stringify({ ...current, dayStartTime: '00:00', endOfDayTime: '23:59' }),
+      JSON.stringify({ ...s, dayStartTime: '00:00', endOfDayTime: '23:59' }),
     )
-    localStorage.setItem('rondel.schedule.fired', JSON.stringify([]))
+    localStorage.setItem('rondel.schedule.fired', '[]')
   })
   await page.reload()
-
-  // CI timing can miss the first catch-up tick; force one deterministic
-  // scheduler pass now that the board is loaded.
-  await page.evaluate(() => {
-    localStorage.setItem('rondel.schedule.fired', JSON.stringify([]))
-    window.dispatchEvent(new Event('focus'))
-    document.dispatchEvent(new Event('visibilitychange'))
-  })
 
   const nag = page.getByRole('dialog')
   const section = nag.getByRole('region', { name: 'Left undone on past days' })
