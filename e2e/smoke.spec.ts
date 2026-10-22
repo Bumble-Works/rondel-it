@@ -94,6 +94,14 @@ test('a task left undone on a past day nags, and Done marks it done on that day'
   })
   await page.reload()
 
+  // CI timing can miss the first catch-up tick; force one deterministic
+  // scheduler pass now that the board is loaded.
+  await page.evaluate(() => {
+    localStorage.setItem('rondel.schedule.fired', JSON.stringify([]))
+    window.dispatchEvent(new Event('focus'))
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+
   const nag = page.getByRole('dialog')
   const section = nag.getByRole('region', { name: 'Left undone on past days' })
   await expect(section).toContainText('Forgot to check off')
