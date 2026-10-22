@@ -50,9 +50,28 @@ export function scheduledEvents(
 }
 
 /**
+ * Keys of events earlier today that are treated as already handled the moment
+ * the app opens, so they don't fire on open. Only genuine catch-ups fire:
+ *
+ * - **Morning review** and **reminders** do catch up (a slot/reminder missed
+ *   while the app was closed still prompts), so they're not here.
+ * - **End-of-day review** and **midnight** don't: the evening review waits for
+ *   its own time, and midnight's job (loading the new day) already happens on
+ *   open. Both are suppressed here.
+ */
+export function handledBeforeOpen(
+  now: Date,
+  settings: Pick<UserSetting, 'dayStartTime' | 'endOfDayTime'>,
+): string[] {
+  return scheduledEvents(now, [], settings)
+    .filter((e) => e.at <= now && (e.kind === 'midnight' || (e.kind === 'review' && e.slot === 'end')))
+    .map((e) => e.key)
+}
+
+/**
  * What to fire now, and when to look again. Reminders missed earlier today
- * (app closed or asleep) still fire. Review catch-up policy is decided by the
- * caller by pre-marking review keys as fired when needed.
+ * (app closed or asleep) still fire. The on-open catch-up policy for reviews
+ * and midnight lives in `handledBeforeOpen`.
  */
 export function planEvents(
   events: ScheduledEvent[],
