@@ -50,9 +50,15 @@ export function useSchedule({ reminders, settings, onReminder, onReview, onNewDa
     if (!firedRef.current) {
       const opened = new Date()
       firedRef.current = loadFired(toIso(opened))
-      // Review times (and midnight) already past when the app opens are covered
-      // by the nag shown on open; only reminders catch up.
-      for (const e of scheduledEvents(opened, [], settings)) if (e.at <= opened) firedRef.current.add(e.key)
+      // Catch up only the slot that already passed today at open:
+      // morning review can catch up; end-of-day still waits for its time.
+      for (const e of scheduledEvents(opened, [], settings)) {
+        if (e.kind !== 'review') {
+          if (e.at <= opened) firedRef.current.add(e.key)
+          continue
+        }
+        if (e.slot === 'end' && e.at <= opened) firedRef.current.add(e.key)
+      }
     }
     const fired = firedRef.current
 

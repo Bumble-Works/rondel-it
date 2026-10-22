@@ -51,9 +51,8 @@ export function scheduledEvents(
 
 /**
  * What to fire now, and when to look again. Reminders missed earlier today
- * (app closed or asleep) still fire; review times already past when the app
- * opened don't (the nag shown on open covers them), which the caller handles
- * by marking those as fired.
+ * (app closed or asleep) still fire. Review catch-up policy is decided by the
+ * caller by pre-marking review keys as fired when needed.
  */
 export function planEvents(
   events: ScheduledEvent[],

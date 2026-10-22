@@ -138,7 +138,6 @@ function App() {
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   // "Every day", "Every month on the 1st"… per rule, for recurring tasks' icon and side panel.
   const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
-  const naggedRef = useRef<Set<string>>(new Set())
   // The day recurring tasks were last created for. Browsing (which reloads the
   // board a lot) reuses it; any change resets it, since finishing a "start of
   // week/month" task is what lets the next one be created.
@@ -148,6 +147,20 @@ function App() {
     console.error(`[rondel] ${context}`, e)
     setError(`${context}: ${errorMessage(e)}`)
   }, [])
+
+  // Whether the board has loaded once, so a review that fires on open knows
+  // whether anything needs a decision before opening the nag.
+  const loadedRef = useRef(false)
+  // A review slot that arrived before the nag data was ready (catch-up on open).
+  const pendingReviewRef = useRef<'start' | 'end' | null>(null)
+
+  const openReview = useCallback(
+    (slot: 'start' | 'end', count: number) => {
+      setNagOpen(true)
+      announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
+    },
+    [reportError],
+  )
 
   const loadBoard = useCallback(async () => {
     try {
@@ -180,19 +193,24 @@ function App() {
       setUndecided(undecidedItems)
       setLeftUndone(leftItems)
 
-      // Nag once per app open if anything is waiting; auto-close when nothing is.
-      if (undecidedItems.length + leftItems.length === 0) {
-        setNagOpen(false)
-      } else if (!naggedRef.current.has('open')) {
-        naggedRef.current.add('open')
-        setNagOpen(true)
+      const nagTotal = undecidedItems.length + leftItems.length
+      // Auto-close when nothing is waiting; opening is handled by review times.
+      if (nagTotal === 0) setNagOpen(false)
+
+      loadedRef.current = true
+      // A review that arrived before the board was ready (e.g. a missed morning
+      // review when opening later in the day) opens now that we know the count.
+      if (pendingReviewRef.current) {
+        const slot = pendingReviewRef.current
+        pendingReviewRef.current = null
+        if (nagTotal > 0) openReview(slot, nagTotal)
       }
 
       setError(null)
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
+  }, [reportError, openReview, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
 
   /** Tags, settings and rules; the board reloads itself when settings change. */
   const loadAppData = useCallback(async () => {
@@ -437,10 +455,15 @@ function App() {
     settings,
     onReminder: reminderAlerts.add,
     onReview: (slot) => {
+      // Before the first board load we don't know the count yet; resolve it once
+      // the board loads, so a missed morning review still opens the nag.
+      if (!loadedRef.current) {
+        pendingReviewRef.current = slot
+        return
+      }
       const count = nagCountRef.current
       if (count === 0) return
-      setNagOpen(true)
-      announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
+      openReview(slot, count)
     },
     // The new day's recurring tasks are created when the board reloads.
     onNewDay: () => void loadBoard(),
@@ -521,7 +544,8 @@ function App() {
     title: 'Unassigned',
     eyebrow: 'Rondeled',
     defaultCollapsed: false,
-    addTarget: { dayDate: view === 'month' ? monthStart : anchorWeekStart, rondeled: true },
+    // In today's period, dragging into the container should not backdate.
+    addTarget: { dayDate: todayInRange ? today : view === 'month' ? monthStart : anchorWeekStart, rondeled: true },
     tasks: containerItems.filter(visible),
     emptyLabel: 'Nothing rondeled here',
   })
