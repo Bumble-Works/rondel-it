@@ -28,6 +28,7 @@ import { SettingsPage } from './features/settings/SettingsPage'
 import { Sidebar, type ViewKey } from './features/sidebar/Sidebar'
 import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
+import { QuickAddModal } from './features/task/QuickAddModal'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
 import { IconButton } from './shared/ui/IconButton'
@@ -118,6 +119,7 @@ function App() {
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
   // What the date picker is for: rondel the task there, or copy it there.
   const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const today = todayIso()
@@ -247,6 +249,19 @@ function App() {
     })
     return () => cancelAnimationFrame(frame)
   }, [printRequest, reportError])
+
+  // "n" opens the quick-add composer, unless you're typing or it's already open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'n' || e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
+      e.preventDefault()
+      setQuickAddOpen(true)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   /* ---- nag: rondeled items waiting + tasks left undone on past days ---- */
 
@@ -762,6 +777,12 @@ function App() {
               </Menu>
             ) : null}
             <IconButton
+              icon="plus"
+              label="Add a task"
+              title="Add a task (n)"
+              onClick={() => setQuickAddOpen(true)}
+            />
+            <IconButton
               icon="print"
               label={view === 'rondel' ? 'Print the Bucket List' : `Print this ${view}`}
               title={`Print ${printTitle}${view === 'week' || view === 'month' ? ', every day with tasks' : ''}`}
@@ -890,6 +911,16 @@ function App() {
         purpose={datePurpose}
         onClose={() => setDateTaskId(null)}
         onConfirm={confirmDate}
+      />
+
+      <QuickAddModal
+        key={`quickadd:${quickAddOpen ? 'open' : 'closed'}`}
+        open={quickAddOpen}
+        tags={tags}
+        weekStartDay={weekStartDay}
+        onCreateTag={createTagNamed}
+        onAdd={(title, tagIds, target) => quickAdd(target, title, tagIds)}
+        onClose={() => setQuickAddOpen(false)}
       />
     </div>
   )
