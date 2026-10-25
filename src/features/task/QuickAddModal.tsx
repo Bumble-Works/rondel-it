@@ -33,7 +33,8 @@ interface QuickAddModalProps {
   tags: Tag[]
   weekStartDay: number
   onCreateTag: (name: string) => Promise<Tag | null>
-  onAdd: (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav) => void
+  /** Files the task; resolves true on success, false on failure (keep the draft). */
+  onAdd: (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav) => Promise<boolean>
   onClose: () => void
 }
 
@@ -71,17 +72,21 @@ function resolve(
 export function QuickAddModal({ open, tags, weekStartDay, onCreateTag, onAdd, onClose }: QuickAddModalProps) {
   const [dest, setDest] = useState<Dest>('today')
   const [date, setDate] = useState(() => addDays(todayIso(), 1))
+  const [busy, setBusy] = useState(false)
   const input = useHashTagInput({ tags, onCreateTag })
   const picked = input.tagIds.map((id) => tags.find((t) => t.id === id)).filter((t): t is Tag => Boolean(t))
 
   const dateValid = dest !== 'date' || (date !== '' && date >= todayIso())
-  const canAdd = input.text.trim() !== '' && dateValid
+  const canAdd = input.text.trim() !== '' && dateValid && !busy
   const { target, nav, hint } = resolve(dest, date, weekStartDay)
 
-  const submit = () => {
+  const submit = async () => {
     if (!canAdd) return
-    onAdd(input.text.trim(), input.tagIds, target, nav)
-    onClose()
+    setBusy(true)
+    // Close only once the task is filed; a failed save keeps the draft to retry.
+    const ok = await onAdd(input.text.trim(), input.tagIds, target, nav)
+    setBusy(false)
+    if (ok) onClose()
   }
 
   return (
@@ -108,8 +113,13 @@ export function QuickAddModal({ open, tags, weekStartDay, onCreateTag, onAdd, on
           placeholder="What needs doing?"
           autoFocus
           onKeyDown={(e) => {
-            if (input.handleKey(e)) return
-            if (e.key === 'Enter') submit()
+            // A key the suggestions used (incl. Escape to dismiss them) must not
+            // reach the Modal, or Escape would also close the whole composer.
+            if (input.handleKey(e)) {
+              e.stopPropagation()
+              return
+            }
+            if (e.key === 'Enter') void submit()
           }}
         />
         {input.open && <HashTagMenu anchorRef={input.inputRef} options={input.options} highlight={input.highlight} onPick={input.pick} />}

@@ -3,6 +3,7 @@ import type { Tag } from '../../domain/types'
 import type { BoardGroupAddTarget } from '../board/WeekBoard'
 import { createDataSource } from '../../services/adapters/dataSourceFactory'
 import { IconButton } from '../../shared/ui/IconButton'
+import { anyModalOpen } from '../../shared/ui/modalStack'
 import { QuickAddModal, type QuickAddNav } from './QuickAddModal'
 
 export type { QuickAddNav } from './QuickAddModal'
@@ -29,12 +30,18 @@ interface QuickAddProps {
 export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdded, onError }: QuickAddProps) {
   const [open, setOpen] = useState(false)
 
+  // Don't open behind another dialog (e.g. the review nag), which would steal focus.
+  const openComposer = () => {
+    if (!anyModalOpen()) setOpen(true)
+  }
+
   // "n" opens the composer, unless you're typing or it's already open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'n' || e.metaKey || e.ctrlKey || e.altKey) return
       const el = e.target as HTMLElement | null
       if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
+      if (anyModalOpen()) return
       e.preventDefault()
       setOpen(true)
     }
@@ -42,8 +49,8 @@ export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdde
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const add = (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav) =>
-    void (async () => {
+  const add = (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav): Promise<boolean> =>
+    (async () => {
       try {
         const created = await dataSource.createTask({
           title,
@@ -53,14 +60,16 @@ export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdde
           tagIds: [...new Set([...activeTagIds, ...tagIds])],
         })
         onAdded(created.id, nav)
+        return true
       } catch (e) {
         onError('Unable to add a task', e)
+        return false
       }
     })()
 
   return (
     <>
-      <IconButton icon="plus" label="Add a task" title="Add a task (n)" onClick={() => setOpen(true)} />
+      <IconButton icon="plus" label="Add a task" title="Add a task (n)" onClick={openComposer} />
       <QuickAddModal
         key={open ? 'open' : 'closed'}
         open={open}

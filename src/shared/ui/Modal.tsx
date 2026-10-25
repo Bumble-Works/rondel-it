@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { IconButton } from './IconButton'
+import { isTopModal, pushModal, removeModal } from './modalStack'
 import './Modal.css'
 
 interface ModalProps {
@@ -11,21 +12,18 @@ interface ModalProps {
   width?: number
 }
 
-// Open modals, oldest first, so Escape only closes the one on top.
-const openModals: symbol[] = []
-
 export function Modal({ open, title, onClose, children, footer, width = 440 }: ModalProps) {
   useEffect(() => {
     if (!open) return
     const id = Symbol('modal')
-    openModals.push(id)
+    pushModal(id)
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && openModals[openModals.length - 1] === id) onClose()
+      if (e.key === 'Escape' && isTopModal(id)) onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => {
       window.removeEventListener('keydown', onKey)
-      openModals.splice(openModals.indexOf(id), 1)
+      removeModal(id)
     }
   }, [open, onClose])
 

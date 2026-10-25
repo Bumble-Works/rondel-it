@@ -294,6 +294,7 @@ function App() {
 
   // Quick-add created a task: go to where it landed, open it, and reload once.
   const onQuickAdded = (id: string, nav: QuickAddNav) => {
+    setPage('board')
     setSelectedTaskId(id)
     setView(nav.view)
     setAnchorDate(nav.anchorDate)
@@ -601,10 +602,15 @@ function App() {
 
   const printTitle = view === 'week' ? `Week of ${subtitle}` : view === 'rondel' ? 'Bucket List' : subtitle
 
+  const quickAddEl = (
+    <QuickAdd tags={tags} weekStartDay={weekStartDay} activeTagIds={activeTagIds} onCreateTag={createTagNamed} onAdded={onQuickAdded} onError={reportError} />
+  )
+
   if (page === 'settings' && settings) {
     return (
       <div className="app">
         {error && <p className="app-error">{error}</p>}
+        <div className="app-float-add">{quickAddEl}</div>
         <SettingsPage
           settings={settings}
           tags={tags}
@@ -624,6 +630,7 @@ function App() {
     return (
       <div className="app">
         {error && <p className="app-error">{error}</p>}
+        <div className="app-float-add">{quickAddEl}</div>
         <RecurringPage
           rules={rules}
           tags={tags}
@@ -754,14 +761,7 @@ function App() {
                 )}
               </Menu>
             ) : null}
-            <QuickAdd
-              tags={tags}
-              weekStartDay={weekStartDay}
-              activeTagIds={activeTagIds}
-              onCreateTag={createTagNamed}
-              onAdded={onQuickAdded}
-              onError={reportError}
-            />
+            {quickAddEl}
             <IconButton
               icon="print"
               label={view === 'rondel' ? 'Print the Bucket List' : `Print this ${view}`}

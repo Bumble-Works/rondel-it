@@ -5,6 +5,14 @@
   background: var(--bg);
 }
 
+/* Quick Add's + button on pages without the board top bar (Settings, Recurring). */
+.app-float-add {
+  position: fixed;
+  top: 1rem;
+  right: 1.2rem;
+  z-index: 20;
+}
+
 .app-main {
   flex: 1;
   min-width: 0;
