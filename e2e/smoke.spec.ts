@@ -83,6 +83,19 @@ test('prints one day as a clean sheet', async ({ page }) => {
 test('a task left undone on a past day nags, and Done marks it done on that day', async ({ page }) => {
   await page.getByRole('button', { name: 'Previous day' }).click()
   await addTask(page, 'Forgot to check off')
+  // The morning review is a once-a-day catch-up, keyed in rondel.schedule.fired.
+  // Reloading is a second open of the same day, so make it behave like the first
+  // open: widen the review window (so "now" is inside the day) and clear the
+  // fired-set before the app boots. addInitScript runs before app JS on reload,
+  // so the first load's saved keys can't leak in and suppress the nag.
+  await page.addInitScript(() => {
+    const s = JSON.parse(localStorage.getItem('rondel.v6.settings') ?? '{}') as Record<string, unknown>
+    localStorage.setItem(
+      'rondel.v6.settings',
+      JSON.stringify({ ...s, dayStartTime: '00:00', endOfDayTime: '23:59' }),
+    )
+    localStorage.setItem('rondel.schedule.fired', '[]')
+  })
   await page.reload()
 
   const nag = page.getByRole('dialog')
@@ -169,9 +182,9 @@ test('prints the whole week from the top bar, skipping empty days and rondeled i
   await container.fill('Rondeled for later')
   await container.press('Enter')
   await expect(row(page, 'Rondeled for later')).toBeVisible()
-  // It's in the current week, so the "Don't lose these" nag opens over the
-  // page. Close it to reach the Print button (the nag itself never prints).
-  await page.getByRole('dialog').getByRole('button', { name: 'Later' }).click()
+  // The nag may or may not be open here, depending on review timing.
+  const later = page.getByRole('dialog').getByRole('button', { name: 'Later' })
+  if (await later.count()) await later.click()
   await page.evaluate(() => {
     window.print = () => document.body.setAttribute('data-printed', 'yes')
   })

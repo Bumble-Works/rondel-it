@@ -70,6 +70,8 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - The container for the period that includes today also shows anything still
   rondeled to earlier periods, so nothing is lost. Nothing moves on its own:
   an item rondeled to Nov 1 that's never acted on is still nagging on Dec 1.
+- Dragging a task into the current period's rondel container anchors it to
+  **today** (not back to the period's first day).
 - **Starting or finishing a rondeled item** (status circle, or "Mark done" in the
   nag) turns it into a regular task **on today**, with that status. Its rondel
   count, first scheduled day and created date are kept.
@@ -282,9 +284,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   notification appears, **even while the window is hidden** (same rules as
   reminders: the app must be running). In the Mac and Windows apps the window
   comes **to the front, on top of whatever app you're in**, with the nag open.
-  Review times already past when the app opens are covered by the nag shown on
-  open.
-- The nag opens once when the app opens, and again at each review time, if
+- If the app opens after today's morning review time and that review hasn't
+  fired yet, it catches up once on open. End-of-day does not catch up early.
+- The nag opens at review times (plus that missed-morning catch-up), if
   anything needs a decision. It closes when nothing is left. A long list
   scrolls inside it (as in every dialog). It has two sections:
   - **Left undone on past days:** todo/doing tasks on any day before today

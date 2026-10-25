@@ -7,6 +7,7 @@ const reminder = { id: 'call', title: 'Call the bank', dayDate: '2026-10-19', re
 
 describe('useSchedule', () => {
   beforeEach(() => {
+    localStorage.clear()
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 9, 19, 10, 29)) // Mon 10:29 local
   })
@@ -16,7 +17,7 @@ describe('useSchedule', () => {
     const onReview = vi.fn()
     const onNewDay = vi.fn()
     const { unmount } = renderHook(() => useSchedule({ reminders: [reminder], settings, onReminder, onReview, onNewDay }))
-    expect(onReview).not.toHaveBeenCalled() // 09:00 had passed when the app opened
+    expect(onReview).toHaveBeenCalledWith('start') // 09:00 had passed when the app opened
 
     vi.advanceTimersByTime(60_000) // 10:30
     expect(onReminder).toHaveBeenCalledWith(reminder)
@@ -42,5 +43,17 @@ describe('useSchedule', () => {
     const onReminder = vi.fn()
     renderHook(() => useSchedule({ reminders: [reminder], settings, onReminder, onReview: () => {}, onNewDay: () => {} }))
     expect(onReminder).toHaveBeenCalledWith(reminder)
+  })
+
+  it('catches up a missed morning review once on open, but not end-of-day before its time', () => {
+    vi.setSystemTime(new Date(2026, 9, 19, 14, 0))
+    const onReview = vi.fn()
+    renderHook(() =>
+      useSchedule({ reminders: [], settings, onReminder: () => {}, onReview, onNewDay: () => {} }),
+    )
+
+    expect(onReview).toHaveBeenCalledTimes(1)
+    expect(onReview).toHaveBeenCalledWith('start')
+    expect(onReview).not.toHaveBeenCalledWith('end')
   })
 })

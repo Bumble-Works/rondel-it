@@ -1,4 +1,4 @@
-import { canRemind, canRondel, isCarriedForward, isLeftUndone, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
+import { canRemind, canRondel, containerDropDay, isCarriedForward, isLeftUndone, isWaitingForDecision, keepsHistoryOnRondel, showsInRondelContainer } from './rondel'
 import type { Task } from './types'
 
 function task(fields: Partial<Task> = {}): Task {
@@ -67,6 +67,15 @@ describe('rondel rules', () => {
     const november = { start: '2026-11-01', end: '2026-11-30' }
     expect(showsInRondelContainer(weekOfSep28, november, '2026-10-01')).toBe(false)
     expect(showsInRondelContainer(task({ rondeled: true, dayDate: '2026-11-01' }), november, '2026-10-01')).toBe(true)
+  })
+
+  it('drops into the container on today when the period holds today, else the period start', () => {
+    const thisWeek = { start: '2026-10-19', end: '2026-10-25' } // Mon–Sun, today inside
+    expect(containerDropDay(thisWeek, '2026-10-21')).toBe('2026-10-21') // not backdated to Monday
+    const nextWeek = { start: '2026-10-26', end: '2026-11-01' } // wholly ahead of today
+    expect(containerDropDay(nextWeek, '2026-10-21')).toBe('2026-10-26') // the period's start
+    const lastWeek = { start: '2026-10-12', end: '2026-10-18' } // wholly behind today
+    expect(containerDropDay(lastWeek, '2026-10-21')).toBe('2026-10-12')
   })
 
   it('counts todo/doing tasks on past days as left undone', () => {

@@ -56,19 +56,34 @@ export function isWaitingForDecision(task: Task, today: string): boolean {
   return active && task.rondeled && task.dayDate !== null && task.dayDate <= today
 }
 
+/** A date range, inclusive, as 'YYYY-MM-DD' strings. */
+export interface Period {
+  start: string
+  end: string
+}
+
+/** Whether a day falls within a period (inclusive). */
+export function periodContainsDay(period: Period, day: string): boolean {
+  return day >= period.start && day <= period.end
+}
+
+/**
+ * The day a task dropped into a period's rondel container takes: the current
+ * day when the period includes it (so it isn't backdated to the period's first
+ * day), otherwise the period's start.
+ */
+export function containerDropDay(period: Period, today: string): string {
+  return periodContainsDay(period, today) ? today : period.start
+}
+
 /**
  * Rondeled items shown in the viewed period's container. The period containing
  * today also shows items rondeled to earlier periods, so they aren't lost.
  */
-export function showsInRondelContainer(
-  task: Task,
-  period: { start: string; end: string },
-  today: string,
-): boolean {
+export function showsInRondelContainer(task: Task, period: Period, today: string): boolean {
   if (!task.rondeled || !task.dayDate) return false
-  const inPeriod = task.dayDate >= period.start && task.dayDate <= period.end
-  const containsToday = today >= period.start && today <= period.end
-  return inPeriod || (containsToday && task.dayDate < period.start)
+  const inPeriod = periodContainsDay(period, task.dayDate)
+  return inPeriod || (periodContainsDay(period, today) && task.dayDate < period.start)
 }
 
 /**
