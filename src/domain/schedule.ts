@@ -50,14 +50,10 @@ export function scheduledEvents(
 }
 
 /**
- * Keys of events earlier today that are treated as already handled the moment
- * the app opens, so they don't fire on open. Only genuine catch-ups fire:
- *
- * - **Morning review** and **reminders** do catch up (a slot/reminder missed
- *   while the app was closed still prompts), so they're not here.
- * - **End-of-day review** and **midnight** don't: the evening review waits for
- *   its own time, and midnight's job (loading the new day) already happens on
- *   open. Both are suppressed here.
+ * Event keys to treat as already handled the instant the app opens, so they
+ * don't fire on open: the past end-of-day review (it waits for its own time)
+ * and the past midnight (its new-day load already runs on open). The morning
+ * review and reminders are left to catch up.
  */
 export function handledBeforeOpen(
   now: Date,

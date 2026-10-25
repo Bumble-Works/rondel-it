@@ -57,7 +57,7 @@ describe('schedule', () => {
     expect(handled).not.toContain('review:2026-10-19:start')
   })
 
-  it('suppresses nothing when the app opens before any review time', () => {
+  it('suppresses only the past midnight when the app opens before any review time', () => {
     const opened = new Date(2026, 9, 19, 7, 0) // before 09:00
     expect(handledBeforeOpen(opened, settings)).toEqual(['midnight:2026-10-19'])
   })

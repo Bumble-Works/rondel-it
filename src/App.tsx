@@ -33,7 +33,7 @@ import { Icon } from './shared/ui/Icon'
 import { IconButton } from './shared/ui/IconButton'
 import { Menu } from './shared/ui/Menu'
 import { TagChip } from './shared/ui/TagChip'
-import { isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
+import { containerDropDay, isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import { describeRecurrence } from './domain/recurrence'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { createDataSource } from './services/adapters/dataSourceFactory'
@@ -125,6 +125,10 @@ function App() {
   const monthStart = useMemo(() => startOfMonth(anchorDate), [anchorDate])
   const monthEnd = useMemo(() => endOfMonth(anchorDate), [anchorDate])
 
+  // The week/month the Unassigned container represents (shared with the drop target).
+  const containerStart = view === 'month' ? monthStart : anchorWeekStart
+  const containerEnd = view === 'month' ? monthEnd : anchorWeekEnd
+
   const rangeStart = view === 'day' ? anchorDate : view === 'week' ? anchorWeekStart : monthStart
   const rangeEnd = view === 'day' ? anchorDate : view === 'week' ? anchorWeekEnd : monthEnd
   const todayInRange = today >= rangeStart && today <= rangeEnd
@@ -138,7 +142,7 @@ function App() {
     setError(`${context}: ${errorMessage(e)}`)
   }, [])
 
-  const loadedRef = useRef(false)
+  const loadedDayRef = useRef<string | null>(null)
   const pendingReviewRef = useRef<'start' | 'end' | null>(null)
 
   const openReview = useCallback(
@@ -167,11 +171,7 @@ function App() {
       setRangeTasks(range)
       setBuckets({ 'bucket-list': bl })
 
-      const period = {
-        start: view === 'month' ? monthStart : anchorWeekStart,
-        end: view === 'month' ? monthEnd : anchorWeekEnd,
-      }
-      setContainerItems(rondelItems.filter((t) => showsInRondelContainer(t, period, today)))
+      setContainerItems(rondelItems.filter((t) => showsInRondelContainer(t, { start: containerStart, end: containerEnd }, today)))
 
       const undecidedItems = rondelItems.filter((t) => isWaitingForDecision(t, today))
       setUndecided(undecidedItems)
@@ -180,8 +180,9 @@ function App() {
       const nagTotal = undecidedItems.length + leftItems.length
       if (nagTotal === 0) setNagOpen(false)
 
-      loadedRef.current = true
-      if (pendingReviewRef.current) {
+      loadedDayRef.current = today
+      // Open a queued review only once the board is on the real current day.
+      if (pendingReviewRef.current && today === todayIso()) {
         const slot = pendingReviewRef.current
         pendingReviewRef.current = null
         if (nagTotal > 0) openReview(slot, nagTotal)
@@ -191,7 +192,7 @@ function App() {
     } catch (e) {
       reportError('Unable to load tasks', e)
     }
-  }, [reportError, openReview, rangeStart, rangeEnd, view, anchorWeekStart, anchorWeekEnd, monthStart, monthEnd, today])
+  }, [reportError, openReview, rangeStart, rangeEnd, containerStart, containerEnd, today])
 
   const loadAppData = useCallback(async () => {
     try {
@@ -430,9 +431,9 @@ function App() {
     settings,
     onReminder: reminderAlerts.add,
     onReview: (slot) => {
-      // Before the first board load we don't know the count yet; resolve it once
-      // the board loads, so a missed morning review still opens the nag.
-      if (!loadedRef.current) {
+      // After overnight sleep the count can be stale until the board reloads for
+      // the new day. Queue the review; loadBoard opens it when that data lands.
+      if (loadedDayRef.current !== todayIso()) {
         pendingReviewRef.current = slot
         return
       }
@@ -519,8 +520,8 @@ function App() {
     title: 'Unassigned',
     eyebrow: 'Rondeled',
     defaultCollapsed: false,
-    // In today's period, dragging into the container should not backdate.
-    addTarget: { dayDate: todayInRange ? today : view === 'month' ? monthStart : anchorWeekStart, rondeled: true },
+    // Current period anchors to today (no backdating); otherwise the period's start.
+    addTarget: { dayDate: containerDropDay({ start: containerStart, end: containerEnd }, today), rondeled: true },
     tasks: containerItems.filter(visible),
     emptyLabel: 'Nothing rondeled here',
   })
