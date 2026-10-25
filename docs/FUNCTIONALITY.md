@@ -22,8 +22,13 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - **Cancel** (⋯ menu, detail panel, or the nag) sets a task to `canceled`
   instead of deleting it: its title is **crossed out** and the status circle
   shows a **red ×**. A canceled task sinks to the very bottom of its day.
-  Clicking its circle reopens it as todo. Canceling replaced deleting as the
-  way to let a task go, so finished work and abandoned work both stay on record.
+  Canceling replaced deleting as the way to let a task go, so finished work and
+  abandoned work both stay on record.
+- A canceled task is **settled**: it keeps the day it was canceled on and its
+  controls are turned off — no flag, reminder, reschedule/rondel, drag, or
+  copy. Its circle doesn't advance; reopening is a deliberate **Reopen task**
+  (the only ⋯ item left, and a button in the detail panel), which brings it
+  back as todo at the **top** of its day.
 - Reopening a done task (back to todo) moves it to the **top** of its day.
 - **Flag (important):** one flag per task, toggled from the row's ⋯ menu
   or the detail panel. A flagged task's title is bold with a small amber flag.

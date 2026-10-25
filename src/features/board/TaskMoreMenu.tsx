@@ -50,19 +50,20 @@ export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onT
         return (
           <>
             {showReopen && (
+              <MenuItem icon={<Icon name="rotate-ccw" size={16} />} onClick={pick(onReopen)}>
+                Reopen task
+              </MenuItem>
+            )}
+            {!showReopen && (
               <>
-                <MenuItem icon={<Icon name="rotate-ccw" size={16} />} onClick={pick(onReopen)}>
-                  Reopen task
+                <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(() => onCopy(addDays(todayIso(), 1)))}>
+                  Copy to tomorrow
                 </MenuItem>
-                <MenuSeparator />
+                <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(onPickCopyDate)}>
+                  Copy to a date…
+                </MenuItem>
               </>
             )}
-            <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(() => onCopy(addDays(todayIso(), 1)))}>
-              Copy to tomorrow
-            </MenuItem>
-            <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(onPickCopyDate)}>
-              Copy to a date…
-            </MenuItem>
             {hasBelowCopy && <MenuSeparator />}
             {canFlag && (
               <MenuItem icon={<Icon name={task.flagged ? 'flag-filled' : 'flag'} size={16} />} onClick={pick(onToggleFlag)}>
