@@ -46,7 +46,7 @@ function renderRow(
       onPickDate={noop}
       onOpenNote={noop}
       onToggleFlag={noop}
-      onDelete={noop}
+      onCancel={noop}
       onCopy={copies.onCopy}
       onPickCopyDate={copies.onPickCopyDate}
       onOpenReminder={noop}
@@ -106,7 +106,7 @@ describe('TaskRow', () => {
         onRondel={() => {}}
         onPickDate={() => {}}
         onOpenNote={() => {}}
-        onDelete={() => {}}
+        onCancel={() => {}}
         onToggleFlag={() => {}}
         onCopy={() => {}}
         onPickCopyDate={() => {}}

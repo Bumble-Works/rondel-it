@@ -13,6 +13,7 @@ interface NagActions {
   weekStartDay: number
   onRondel: (task: Task, target: RondelTarget) => void
   onSetDone: (task: Task) => void
+  onCancel: (task: Task) => void
   onPickDate: (task: Task) => void
 }
 
@@ -64,7 +65,7 @@ export function NagModal({ open, waiting, leftUndone, onClose, ...actions }: Nag
   )
 }
 
-function NagList({ items, weekStartDay, onRondel, onSetDone, onPickDate }: NagActions & { items: Task[] }) {
+function NagList({ items, weekStartDay, onRondel, onSetDone, onCancel, onPickDate }: NagActions & { items: Task[] }) {
   const today = todayIso()
   return (
     <TaskActionList>
@@ -79,6 +80,9 @@ function NagList({ items, weekStartDay, onRondel, onSetDone, onPickDate }: NagAc
           </PillButton>
           <PillButton aria-label="Pick a date" title="Pick a date" onClick={() => onPickDate(task)}>
             <Icon name="calendar" size={15} />
+          </PillButton>
+          <PillButton tone="cancel" aria-label="Cancel" title="Cancel" onClick={() => onCancel(task)}>
+            <Icon name="close" size={15} />
           </PillButton>
           <PillButton tone="done" aria-label="Mark done" title="Mark done" onClick={() => onSetDone(task)}>
             <Icon name="check" size={15} />
