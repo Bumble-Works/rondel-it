@@ -5,7 +5,7 @@ import { TaskLinks } from './TaskLinks'
 import { TaskTitleField } from './TaskTitleField'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { NEXT_STATUS_LABEL, nextStatus } from '../../domain/status'
-import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
+import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { Button } from '../../shared/ui/Button'
@@ -68,7 +68,8 @@ export function TaskDetailPanel({
   const [note, setNote] = useState(task.note)
 
   const carried = isCarriedForward(task)
-  const statusLocked = carried || (!task.dayDate && task.status !== 'canceled')
+  const taskIsCanceled = task.status === 'canceled'
+  const statusLocked = carried || (!task.dayDate && !taskIsCanceled)
   const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
   const created = task.createdAt ? formatDayLabel(task.createdAt.slice(0, 10)) : '—'
   const where = task.dayDate
@@ -85,8 +86,8 @@ export function TaskDetailPanel({
           status={task.status}
           onClick={onAdvance}
           onDoubleClick={onSetDone}
-          disabled={statusLocked}
-          disabledTitle={carried ? CARRIED_FORWARD_HINT : undefined}
+          disabled={statusLocked || taskIsCanceled}
+          disabledTitle={carried ? CARRIED_FORWARD_HINT : taskIsCanceled ? CANCELED_REOPEN_HINT : undefined}
         />
         <span className="detail-head-spacer" />
         <IconButton
@@ -94,7 +95,7 @@ export function TaskDetailPanel({
           label={task.flagged ? 'Remove flag' : 'Flag as important'}
           className={task.flagged ? 'detail-flag is-on' : 'detail-flag'}
           aria-pressed={task.flagged}
-          disabled={carried}
+          disabled={carried || taskIsCanceled}
           onClick={onToggleFlag}
         />
         <IconButton icon="close" label="Close" onClick={onClose} />
@@ -171,11 +172,17 @@ export function TaskDetailPanel({
       </div>
 
       <footer className="detail-foot">
-        {!statusLocked && (
+        {taskIsCanceled ? (
           <Button variant="secondary" size="sm" className="detail-advance" onClick={onAdvance}>
-            <StatusCircle status={nextStatus(task.status)} presentational size={14} />
-            {NEXT_STATUS_LABEL[task.status]}
+            <Icon name="rotate-ccw" size={14} /> Reopen task
           </Button>
+        ) : (
+          !statusLocked && (
+            <Button variant="secondary" size="sm" className="detail-advance" onClick={onAdvance}>
+              <StatusCircle status={nextStatus(task.status)} presentational size={14} />
+              {NEXT_STATUS_LABEL[task.status]}
+            </Button>
+          )
         )}
         <div className="detail-foot-rondel">
           <RondelMenu
@@ -187,7 +194,7 @@ export function TaskDetailPanel({
             inBucketList={task.bucket !== null}
           />
         </div>
-        {!carried && task.status !== 'canceled' && (
+        {!carried && !taskIsCanceled && (
           <Button variant="secondary" size="sm" onClick={onCancel}>
             <Icon name="close" size={14} /> Cancel task
           </Button>

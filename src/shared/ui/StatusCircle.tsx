@@ -34,13 +34,22 @@ export function StatusCircle({
     ...(accent ? ({ '--circle-accent': accent } as CSSProperties) : {}),
   } as CSSProperties
 
+  const marks = (
+    <>
+      <span className="status-circle-dot" />
+      <svg className="status-circle-check" viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M5 10.5l3.2 3.2L15 6.8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <svg className="status-circle-x" viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M6 6l8 8M14 6l-8 8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    </>
+  )
+
   if (presentational) {
     return (
       <span className={`status-circle status-circle--${status} status-circle--static`} style={style} aria-hidden="true">
-        <span className="status-circle-dot" />
-        <svg className="status-circle-check" viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M5 10.5l3.2 3.2L15 6.8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        {marks}
       </span>
     )
   }
@@ -63,10 +72,7 @@ export function StatusCircle({
         onDoubleClick?.()
       }}
     >
-      <span className="status-circle-dot" />
-      <svg className="status-circle-check" viewBox="0 0 20 20" aria-hidden="true">
-        <path d="M5 10.5l3.2 3.2L15 6.8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+      {marks}
     </button>
   )
 }

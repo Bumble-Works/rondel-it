@@ -2,7 +2,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { rowDropId, type DropPosition } from './boardDrop'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { formatClock } from '../../domain/dates'
-import { CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
+import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
@@ -64,6 +64,7 @@ export function TaskRow({
 }: TaskRowProps) {
   const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const carried = isCarriedForward(task)
+  const taskIsCanceled = task.status === 'canceled'
   // While a task is open in the detail panel, the panel is its only editor.
   const locked = selected
   const draggable = (task.status === 'todo' || task.status === 'doing') && !carried && !locked
@@ -82,7 +83,7 @@ export function TaskRow({
         'task-row',
         selected ? 'is-selected' : '',
         task.status === 'done' ? 'is-done' : '',
-        task.status === 'canceled' ? 'is-canceled' : '',
+        taskIsCanceled ? 'is-canceled' : '',
         task.flagged ? 'is-flagged' : '',
         carried ? 'is-carried' : '',
         isDragged ? 'is-dragged' : '',
@@ -110,8 +111,10 @@ export function TaskRow({
         status={task.status}
         onClick={onAdvance}
         onDoubleClick={onSetDone}
-        disabled={locked || carried || (!task.dayDate && task.status !== 'canceled')}
-        disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
+        disabled={locked || carried || taskIsCanceled || (!task.dayDate && !taskIsCanceled)}
+        disabledTitle={
+          locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : taskIsCanceled ? CANCELED_REOPEN_HINT : undefined
+        }
       />
 
       {/*
@@ -194,6 +197,7 @@ export function TaskRow({
           onPickCopyDate={onPickCopyDate}
           onToggleFlag={onToggleFlag}
           onOpenReminder={onOpenReminder}
+          onReopen={onAdvance}
           onCancel={onCancel}
         />
       </div>
