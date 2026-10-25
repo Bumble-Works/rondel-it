@@ -75,7 +75,7 @@ describe('TaskRow', () => {
       'Copy to a date…',
       'Flag as important',
       'Add reminder',
-      'Delete task',
+      'Cancel task',
     ])
   })
 
