@@ -2,86 +2,117 @@
 
 **Don't lose it. Rondel it.**
 
-A daily task app built around one idea: unfinished work shouldn't silently
-disappear at the end of the day. You **rondel** it: deliberately push it to
-tomorrow, a date, next week, next month or your Bucket List, and Rondel It
-remembers how many times you did.
+Rondel It was built to help you plan your day without losing track of unfinished work.
+Rondel it to tomorrow, next week or your Bucket List, and keep a record of what you actually worked on.
 
-- Tasks move **todo → doing → done**.
-- Rondeling something you'd started leaves a history copy on the original day,
-  so your week shows what you actually worked on.
-- Rondeled items nag you until you decide, because a to-do list should be conquerable.
-- Tags (`#tag` while typing), flags, notes, recurring tasks, Day / Week / Month views.
+## Get the app
 
-How everything is meant to behave: [`docs/FUNCTIONALITY.md`](docs/FUNCTIONALITY.md).
+Download the latest release for your computer:
 
----
+| Platform | Download | Install |
+| --- | --- | --- |
+| **Mac** (Apple Silicon and Intel) | [RondelIt-macos.zip](https://github.com/Bumble-Works/rondel-it/releases/latest/download/RondelIt-macos.zip) | Unzip it and move **Rondel It.app** into **Applications**. |
+| **Windows** (10 / 11, x64) | [RondelIt-windows-setup.exe](https://github.com/Bumble-Works/rondel-it/releases/latest/download/RondelIt-windows-setup.exe) | Run the installer, then open Rondel It from the Start menu. |
 
-## Install the Mac app
+The builds aren't signed yet. On Windows, choose **More info → Run anyway** if
+SmartScreen blocks it. On Mac, if macOS blocks the app, open **System Settings → Privacy
+& Security → Open Anyway** after trying to launch it.
 
-Paste this into Terminal. The same command **installs or updates**:
+On Mac, you can also install or update from Terminal:
 
 ```bash
 curl -fsSL https://github.com/Bumble-Works/rondel-it/releases/latest/download/install.sh | bash
 ```
 
-It downloads the latest build (Apple Silicon and Intel), **backs up your
-existing data first**, moves any old version to the Trash, and opens the app.
-Your data stays on your Mac. More detail, and the version for a private repo:
-[`INSTALL.md`](INSTALL.md).
+This downloads the app, backs up any existing app data, replaces the old version and
+opens it. On Windows, download and run the latest installer to update. Both keep your
+existing tasks.
 
-## Install the Windows app
+Once you're in, add a task and click its circle to move it through **to do → doing →
+done**. If you start a task today and rondel it to tomorrow, today's work stays in your
+history. The app also counts how many times you've pushed it forward. You can add notes,
+`#tags`, reminders and recurring tasks, drag tasks between days, and switch between Day,
+Week and Month views.
 
-Download **[RondelIt-windows-setup.exe](https://github.com/Bumble-Works/rondel-it/releases/latest/download/RondelIt-windows-setup.exe)**
-and run it. To update, run the newest one; your data is kept. The app isn't
-signed yet, so Windows says "Windows protected your PC": click **More info →
-Run anyway**. Details in [`INSTALL.md`](INSTALL.md).
+## Run it locally
 
-## Sync between devices (optional)
-
-Rondel It syncs through a folder in a cloud drive you already use, so there's
-no account and no Rondel server.
-
-1. Install your cloud drive's desktop app: **Google Drive for desktop**,
-   OneDrive, Box or Dropbox. It appears in Finder (Mac) or File Explorer
-   (Windows).
-2. In Rondel It, open **Settings → Sync → Choose folder…** and pick a folder
-   inside that drive (for example *Google Drive › My Drive*). Rondel It
-   creates a **Rondel It** folder there.
-3. On your other computer (Mac or Windows), install Rondel It, then choose
-   **the same Rondel It folder** (or the folder that contains it).
-
-It syncs when the app opens, when you switch back to it, a moment after each
-change, and every couple of minutes. If the same task is edited on two
-devices, the most recent edit wins.
-
-**Safe by design:** every device keeps its own full copy. Deleting or messing
-with the sync folder never deletes your tasks; Rondel It rebuilds the folder
-and ignores files it can't read. Please don't edit the files inside it.
-
-Sync works in the Mac and Windows apps (not in the browser version).
-
----
-
-## Develop
-
-Requires Node 22+ (`nvm use`).
+Use **Node 26**, the version pinned in `.nvmrc`. With
+[nvm](https://github.com/nvm-sh/nvm) installed:
 
 ```bash
-npm install
-npm run dev        # browser version at http://localhost:1420
+git clone https://github.com/Bumble-Works/rondel-it.git
+cd rondel-it
+nvm install
+nvm use
+npm ci
+npm run dev
+```
+
+Open **http://localhost:1420**. The browser version saves data locally and works without
+a backend, database or API keys. Folder sync and native desktop features need the Mac or
+Windows app.
+
+To run the desktop app from source, also install [Rust and the Tauri prerequisites for
+your OS](https://v2.tauri.app/start/prerequisites/), then run:
+
+```bash
+npm run app:dev
+```
+
+`npm run app:build` builds the desktop app. The older `bootstrap` and `start` scripts
+refer to a Rails backend that's on hold; use `npm run dev` for the browser version.
+
+## Your data belongs to you
+
+At a time when it feels like nothing belongs to you and everything is for sale,
+you can rest assured: your data in Rondel It belongs to you.
+
+Rondel It works offline, with no account to create or server collecting your tasks.
+Sync is off by default. Your tasks live in local storage on your device. The browser
+version and installed app each have their own separate copy.
+
+If you want the same tasks on another computer, use a cloud drive you already have:
+
+1. Install **Google Drive for desktop, OneDrive, Box or Dropbox** on both computers.
+2. In Rondel It, go to **Settings → Sync → Choose folder…** and pick a folder inside that drive. The app creates a **Rondel It** folder there.
+3. On the other computer, choose that same **Rondel It** folder in Settings.
+
+Each device keeps its own copy and exchanges changes through that folder. Sync runs on
+open, when you return to the app, shortly after an edit, and every two minutes while the
+window is visible. If you edit the same task on both computers, the most recent edit
+wins once the files reach both devices.
+
+The sync files are ordinary, unencrypted JSON, so your cloud provider and anyone you
+give access to that folder can read them. Use a private folder. Task data doesn't pass
+through a Rondel It server.
+
+Removing a sync file doesn't delete your tasks: deletions only travel through sync when
+you explicitly delete an item in the app. Unreadable files are skipped and reported.
+
+## Under the hood
+
+The browser and desktop apps share a **React + TypeScript** interface built with
+**Vite**. **Tauri 2 / Rust** wraps it for Mac and Windows and provides native
+notifications, reminder windows and access to the sync folder.
+
+Task rules live in `src/domain/`, separate from the UI. Data access sits behind an
+adapter in `src/services/adapters/`; the app currently uses the local adapter backed by
+`localStorage`. Sync writes one JSON snapshot per device and merges changes per task,
+tag or recurring rule. Deletion markers distinguish an intentional delete from a missing
+file.
+
+To check a change:
+
+```bash
 npm run lint
+npm run check:practices
 npm test
 npm run build
 ```
 
-The Mac and Windows apps wrap the same code with [Tauri](https://tauri.app) (`src-tauri/`).
-`npm run app:dev` runs it locally (needs Rust). CI checks it builds on PRs;
-releases are run by hand (see [INSTALL.md](INSTALL.md)).
+Tests use **Vitest + React Testing Library**. CI also runs **Playwright** smoke tests in
+Chromium and WebKit; Mac and Windows builds are checked when desktop files change.
+Releases are published manually through GitHub Actions.
 
-The Mac app icon's source is `src-tauri/app-icon.svg`. To regenerate the
-icon set after editing it: render it to a 1024×1024 PNG, then run
-`npx tauri icon <that.png> -o src-tauri/icons` (keep only the files already there).
-
-Working rules for people and AI agents: [`AGENTS.md`](AGENTS.md) and
-[`PRACTICES.md`](PRACTICES.md).
+The full behavior is documented in [FUNCTIONALITY.md](docs/FUNCTIONALITY.md). Working
+conventions are in [AGENTS.md](AGENTS.md) and [PRACTICES.md](PRACTICES.md).
