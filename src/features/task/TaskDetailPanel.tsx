@@ -38,7 +38,7 @@ interface TaskDetailPanelProps {
   onSetDone: () => void
   onRondel: (target: RondelTarget) => void
   onPickDate: () => void
-  onDelete: () => void
+  onCancel: () => void
   onCreateTag: (name: string) => void
   /** Creates a tag (without attaching it), for #tag in the title. */
   createTag: (name: string) => Promise<Tag | null>
@@ -60,7 +60,7 @@ export function TaskDetailPanel({
   onSetDone,
   onRondel,
   onPickDate,
-  onDelete,
+  onCancel,
   onCreateTag,
   createTag,
   weekStartDay,
@@ -68,7 +68,7 @@ export function TaskDetailPanel({
   const [note, setNote] = useState(task.note)
 
   const carried = isCarriedForward(task)
-  const statusLocked = carried || !task.dayDate
+  const statusLocked = carried || (!task.dayDate && task.status !== 'canceled')
   const firstScheduled = task.originDate ? formatDayLabel(task.originDate) : '—'
   const created = task.createdAt ? formatDayLabel(task.createdAt.slice(0, 10)) : '—'
   const where = task.dayDate
@@ -187,9 +187,11 @@ export function TaskDetailPanel({
             inBucketList={task.bucket !== null}
           />
         </div>
-        <Button variant="danger" size="sm" onClick={onDelete}>
-          <Icon name="trash" size={14} /> Delete
-        </Button>
+        {!carried && task.status !== 'canceled' && (
+          <Button variant="secondary" size="sm" onClick={onCancel}>
+            <Icon name="close" size={14} /> Cancel task
+          </Button>
+        )}
       </footer>
     </aside>
   )

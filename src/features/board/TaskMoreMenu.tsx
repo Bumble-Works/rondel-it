@@ -14,11 +14,11 @@ interface TaskMoreMenuProps {
   onToggleFlag: () => void
   /** Opens the task's reminder (in the side panel). */
   onOpenReminder: () => void
-  onDelete: () => void
+  onCancel: () => void
 }
 
-/** The row's "⋯": copy, flag, reminder and delete, so the row itself stays calm. */
-export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onToggleFlag, onOpenReminder, onDelete }: TaskMoreMenuProps) {
+/** The row's "⋯": copy, flag, reminder and cancel, so the row itself stays calm. */
+export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onToggleFlag, onOpenReminder, onCancel }: TaskMoreMenuProps) {
   // A history copy is a memory: it can't be flagged.
   const canFlag = !isCarriedForward(task)
 
@@ -30,7 +30,7 @@ export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onT
           className={`task-more-btn ${expanded ? 'is-open' : ''}`.trim()}
           aria-label="More actions"
           aria-expanded={expanded}
-          title={disabledReason ?? 'More: copy, flag, reminder, delete'}
+          title={disabledReason ?? 'More: copy, flag, reminder, cancel'}
           disabled={disabledReason !== null}
           onClick={onClick}
         >
@@ -63,9 +63,11 @@ export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onT
               </MenuItem>
             )}
             {(canFlag || canRemind(task)) && <MenuSeparator />}
-            <MenuItem tone="danger" icon={<Icon name="trash" size={16} />} onClick={pick(onDelete)}>
-              Delete task
-            </MenuItem>
+            {!isCarriedForward(task) && task.status !== 'canceled' && (
+              <MenuItem icon={<Icon name="close" size={16} />} onClick={pick(onCancel)}>
+                Cancel task
+              </MenuItem>
+            )}
           </>
         )
       }}

@@ -46,7 +46,7 @@ interface WeekBoardProps {
   onPickDate: (task: Task) => void
   onOpenNote: (task: Task) => void
   onToggleFlag: (task: Task) => void
-  onDelete: (task: Task) => void
+  onCancel: (task: Task) => void
   onCopy: (task: Task, dayIso: string) => void
   onPickCopyDate: (task: Task) => void
   onOpenReminder: (task: Task) => void
@@ -68,7 +68,7 @@ export function WeekBoard({
   onPickDate,
   onOpenNote,
   onToggleFlag,
-  onDelete,
+  onCancel,
   onCopy,
   onPickCopyDate,
   onOpenReminder,
@@ -125,7 +125,7 @@ export function WeekBoard({
                 onPickDate={() => onPickDate(task)}
                 onOpenNote={() => onOpenNote(task)}
                 onToggleFlag={() => onToggleFlag(task)}
-                onDelete={() => onDelete(task)}
+                onCancel={() => onCancel(task)}
                 onCopy={(dayIso) => onCopy(task, dayIso)}
                 onPickCopyDate={() => onPickCopyDate(task)}
                 onOpenReminder={() => onOpenReminder(task)}

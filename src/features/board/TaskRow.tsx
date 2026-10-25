@@ -31,7 +31,7 @@ interface TaskRowProps {
   onPickDate: () => void
   onOpenNote: () => void
   onToggleFlag: () => void
-  onDelete: () => void
+  onCancel: () => void
   /** Makes a fresh to-do copy on that day. */
   onCopy: (dayIso: string) => void
   onPickCopyDate: () => void
@@ -54,7 +54,7 @@ export function TaskRow({
   onPickDate,
   onOpenNote,
   onToggleFlag,
-  onDelete,
+  onCancel,
   onCopy,
   onPickCopyDate,
   onOpenReminder,
@@ -66,7 +66,7 @@ export function TaskRow({
   const carried = isCarriedForward(task)
   // While a task is open in the detail panel, the panel is its only editor.
   const locked = selected
-  const draggable = task.status !== 'done' && !carried && !locked
+  const draggable = (task.status === 'todo' || task.status === 'doing') && !carried && !locked
   // The row is what's dragged and what's dropped on; only its grip starts a drag.
   const { setNodeRef: setDragRef, setActivatorNodeRef, listeners } = useDraggable({ id: task.id, disabled: !draggable })
   const { setNodeRef: setDropRef } = useDroppable({ id: rowDropId(task.id) })
@@ -110,7 +110,7 @@ export function TaskRow({
         status={task.status}
         onClick={onAdvance}
         onDoubleClick={onSetDone}
-        disabled={locked || carried || !task.dayDate}
+        disabled={locked || carried || (!task.dayDate && task.status !== 'canceled')}
         disabledTitle={locked ? OPEN_IN_PANEL_HINT : carried ? CARRIED_FORWARD_HINT : undefined}
       />
 
@@ -194,7 +194,7 @@ export function TaskRow({
           onPickCopyDate={onPickCopyDate}
           onToggleFlag={onToggleFlag}
           onOpenReminder={onOpenReminder}
-          onDelete={onDelete}
+          onCancel={onCancel}
         />
       </div>
     </div>
