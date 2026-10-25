@@ -28,7 +28,7 @@ import { SettingsPage } from './features/settings/SettingsPage'
 import { Sidebar, type ViewKey } from './features/sidebar/Sidebar'
 import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
-import { QuickAddModal } from './features/task/QuickAddModal'
+import { QuickAdd, type QuickAddNav } from './features/task/QuickAdd'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
 import { IconButton } from './shared/ui/IconButton'
@@ -119,7 +119,8 @@ function App() {
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
   // What the date picker is for: rondel the task there, or copy it there.
   const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
-  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  // Bumped to force one board reload (e.g. after quick-add) even when view/anchor don't change.
+  const [boardReload, setBoardReload] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   const today = todayIso()
@@ -138,12 +139,10 @@ function App() {
   const todayInRange = today >= rangeStart && today <= rangeEnd
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
-  // "Every day", "Every month on the 1st"… per rule, for recurring tasks' icon and side panel.
   const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
   const naggedRef = useRef<Set<string>>(new Set())
-  // The day recurring tasks were last created for. Browsing (which reloads the
-  // board a lot) reuses it; any change resets it, since finishing a "start of
-  // week/month" task is what lets the next one be created.
+  // The day recurring tasks were last created for; any change resets it so the
+  // next "start of week/month" task can be created once the current one is done.
   const recurringSyncedFor = useRef<string | null>(null)
 
   const reportError = useCallback((context: string, e: unknown) => {
@@ -153,9 +152,7 @@ function App() {
 
   const loadBoard = useCallback(async () => {
     try {
-      // Recurring tasks appear on their own day, never ahead of time — browsing
-      // forward must not pre-create them.
-      // The device's own day, like the board, the review times and midnight.
+      // Recurring tasks appear on their own day, never ahead of time; today is the device's day.
       const recurringDay = today
       if (recurringSyncedFor.current !== recurringDay) {
         await dataSource.syncRecurring(recurringDay)
@@ -233,11 +230,10 @@ function App() {
   const { scheduleSync } = sync
 
   useEffect(() => {
-    // loadBoard only sets state after awaiting the data source; the rule can't
-    // see through the async call.
+    // loadBoard sets state only after awaiting the data source.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (settings) void loadBoard()
-  }, [settings, loadBoard])
+  }, [settings, loadBoard, boardReload])
 
   useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
@@ -249,21 +245,6 @@ function App() {
     })
     return () => cancelAnimationFrame(frame)
   }, [printRequest, reportError])
-
-  // "n" opens the quick-add composer, unless you're typing or it's already open.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'n' || e.metaKey || e.ctrlKey || e.altKey) return
-      const el = e.target as HTMLElement | null
-      if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return
-      e.preventDefault()
-      setQuickAddOpen(true)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
-
-  /* ---- nag: rondeled items waiting + tasks left undone on past days ---- */
 
   const nagCount = undecided.length + leftUndone.length
   const nagCountRef = useRef(0)
@@ -277,8 +258,6 @@ function App() {
   )
   const selectedTask = allTasks.find((t) => t.id === selectedTaskId) ?? null
   const noteTask = allTasks.find((t) => t.id === noteTaskId) ?? null
-
-  /* ---- actions ---- */
 
   const attempt = useCallback(
     async (context: string, fn: () => Promise<unknown>) => {
@@ -312,6 +291,15 @@ function App() {
         tagIds: [...new Set([...activeTagIds, ...tagIds])],
       }),
     )
+
+  // Quick-add created a task: go to where it landed, open it, and reload once.
+  const onQuickAdded = (id: string, nav: QuickAddNav) => {
+    setSelectedTaskId(id)
+    setView(nav.view)
+    setAnchorDate(nav.anchorDate)
+    setBoardReload((n) => n + 1)
+    scheduleSync()
+  }
 
   /** Creates a tag the user explicitly chose to create while typing #name. */
   const createTagNamed = async (name: string): Promise<Tag | null> => {
@@ -411,17 +399,13 @@ function App() {
       await loadBoard()
     })
 
-  /**
-   * A fresh to-do on that day: same title, tags, note and flag. It starts new:
-   * not recurring, never rondeled, no history or reminder.
-   */
+  // A fresh to-do on that day: new — not recurring, never rondeled, no history or reminder.
   const copyTask = (task: Task, dayIso: string) =>
     run(async () => {
       const copy = await dataSource.createTask({ title: task.title, dayDate: dayIso, tagIds: task.tagIds })
       if (task.note || task.flagged) await dataSource.updateTask(copy.id, { note: task.note, flagged: task.flagged })
     })
 
-  // The reminder lives in the side panel: open it there, ready to type a time.
   const openReminder = (task: Task) => {
     setSelectedTaskId(task.id)
     requestAnimationFrame(() => document.getElementById('reminder-time')?.focus())
@@ -461,8 +445,6 @@ function App() {
     onNewDay: () => void loadBoard(),
   })
 
-  /* ---- settings actions ---- */
-
   const updateSettings = (patch: Partial<UserSetting>) =>
     void attempt('Unable to save settings', async () => {
       setSettings(await dataSource.updateSettings(patch))
@@ -489,8 +471,6 @@ function App() {
       await loadBoard()
     })
 
-  /* ---- recurring actions ---- */
-
   const refreshRules = async () => setRules(await dataSource.listRecurringRules())
   const createRule = (input: RecurringRuleInput) =>
     void attempt('Unable to create recurring task', async () => {
@@ -510,8 +490,6 @@ function App() {
       await dataSource.deleteRecurringRule(id)
       await refreshRules()
     })
-
-  /* ---- groups ---- */
 
   const dayGroup = (iso: string): BoardGroup => {
     const dayTasks = rangeTasks.filter((t) => t.dayDate === iso && !t.rondeled && visible(t))
@@ -776,11 +754,13 @@ function App() {
                 )}
               </Menu>
             ) : null}
-            <IconButton
-              icon="plus"
-              label="Add a task"
-              title="Add a task (n)"
-              onClick={() => setQuickAddOpen(true)}
+            <QuickAdd
+              tags={tags}
+              weekStartDay={weekStartDay}
+              activeTagIds={activeTagIds}
+              onCreateTag={createTagNamed}
+              onAdded={onQuickAdded}
+              onError={reportError}
             />
             <IconButton
               icon="print"
@@ -911,16 +891,6 @@ function App() {
         purpose={datePurpose}
         onClose={() => setDateTaskId(null)}
         onConfirm={confirmDate}
-      />
-
-      <QuickAddModal
-        key={`quickadd:${quickAddOpen ? 'open' : 'closed'}`}
-        open={quickAddOpen}
-        tags={tags}
-        weekStartDay={weekStartDay}
-        onCreateTag={createTagNamed}
-        onAdd={(title, tagIds, target) => quickAdd(target, title, tagIds)}
-        onClose={() => setQuickAddOpen(false)}
       />
     </div>
   )

@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { addDays, firstDayOfNextMonth, firstDayOfNextWeek, todayIso } from '../../domain/dates'
+import { addDays, firstDayOfNextMonth, firstDayOfNextWeek, formatShort, todayIso } from '../../domain/dates'
 import type { Tag } from '../../domain/types'
 import type { BoardGroupAddTarget } from '../board/WeekBoard'
+import type { ViewKey } from '../sidebar/Sidebar'
 import { HashTagMenu } from '../tags/HashTagMenu'
 import { useHashTagInput } from '../tags/useHashTagInput'
 import { Button } from '../../shared/ui/Button'
@@ -9,11 +10,18 @@ import { Modal } from '../../shared/ui/Modal'
 import { TagChip } from '../../shared/ui/TagChip'
 import './QuickAddModal.css'
 
-type Dest = 'today' | 'tomorrow' | 'next-week' | 'next-month' | 'date' | 'bucket'
+type Dest = 'today' | 'tomorrow' | 'this-week' | 'next-week' | 'next-month' | 'date' | 'bucket'
+
+/** Where to take the board after adding, so the new task is visible and open. */
+export interface QuickAddNav {
+  view: ViewKey
+  anchorDate: string
+}
 
 const DESTS: { value: Dest; label: string }[] = [
   { value: 'today', label: 'Today' },
   { value: 'tomorrow', label: 'Tomorrow' },
+  { value: 'this-week', label: 'This week' },
   { value: 'next-week', label: 'Next week' },
   { value: 'next-month', label: 'Next month' },
   { value: 'date', label: 'Pick a date' },
@@ -25,26 +33,38 @@ interface QuickAddModalProps {
   tags: Tag[]
   weekStartDay: number
   onCreateTag: (name: string) => Promise<Tag | null>
-  onAdd: (title: string, tagIds: string[], target: BoardGroupAddTarget) => void
+  onAdd: (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav) => void
   onClose: () => void
 }
 
-/** Where the chosen destination lands a task, and a sentence describing it. */
-function resolve(dest: Dest, date: string, weekStartDay: number): { target: BoardGroupAddTarget; hint: string } {
+/** The task's placement, where the board should go to show it, and a one-line hint. */
+function resolve(
+  dest: Dest,
+  date: string,
+  weekStartDay: number,
+): { target: BoardGroupAddTarget; nav: QuickAddNav; hint: string } {
   const today = todayIso()
   switch (dest) {
     case 'today':
-      return { target: { dayDate: today }, hint: 'Lands on Today.' }
-    case 'tomorrow':
-      return { target: { dayDate: addDays(today, 1) }, hint: 'Lands on Tomorrow.' }
-    case 'next-week':
-      return { target: { dayDate: firstDayOfNextWeek(today, weekStartDay), rondeled: true }, hint: 'Waits in next week’s Unassigned list.' }
-    case 'next-month':
-      return { target: { dayDate: firstDayOfNextMonth(today), rondeled: true }, hint: 'Waits in next month’s Unassigned list.' }
+      return { target: { dayDate: today }, nav: { view: 'day', anchorDate: today }, hint: `Lands on Today (${formatShort(today)}).` }
+    case 'tomorrow': {
+      const tomorrow = addDays(today, 1)
+      return { target: { dayDate: tomorrow }, nav: { view: 'day', anchorDate: tomorrow }, hint: `Lands on Tomorrow (${formatShort(tomorrow)}).` }
+    }
+    case 'this-week':
+      return { target: { dayDate: today, rondeled: true }, nav: { view: 'week', anchorDate: today }, hint: 'Waits in this week’s Unassigned list.' }
+    case 'next-week': {
+      const nextWeek = firstDayOfNextWeek(today, weekStartDay)
+      return { target: { dayDate: nextWeek, rondeled: true }, nav: { view: 'week', anchorDate: nextWeek }, hint: `Waits in next week’s Unassigned list (from ${formatShort(nextWeek)}).` }
+    }
+    case 'next-month': {
+      const nextMonth = firstDayOfNextMonth(today)
+      return { target: { dayDate: nextMonth, rondeled: true }, nav: { view: 'month', anchorDate: nextMonth }, hint: `Waits in next month’s Unassigned list (from ${formatShort(nextMonth)}).` }
+    }
     case 'date':
-      return { target: { dayDate: date }, hint: `Lands on ${date}.` }
+      return { target: { dayDate: date }, nav: { view: 'day', anchorDate: date }, hint: date ? `Lands on ${formatShort(date)}.` : 'Pick a date.' }
     case 'bucket':
-      return { target: { bucket: 'bucket-list' }, hint: 'Kept in the Bucket List (no date).' }
+      return { target: { bucket: 'bucket-list' }, nav: { view: 'rondel', anchorDate: today }, hint: 'Kept in the Bucket List (no date).' }
   }
 }
 
@@ -56,11 +76,11 @@ export function QuickAddModal({ open, tags, weekStartDay, onCreateTag, onAdd, on
 
   const dateValid = dest !== 'date' || (date !== '' && date >= todayIso())
   const canAdd = input.text.trim() !== '' && dateValid
-  const { target, hint } = resolve(dest, date, weekStartDay)
+  const { target, nav, hint } = resolve(dest, date, weekStartDay)
 
   const submit = () => {
     if (!canAdd) return
-    onAdd(input.text.trim(), input.tagIds, target)
+    onAdd(input.text.trim(), input.tagIds, target, nav)
     onClose()
   }
 
