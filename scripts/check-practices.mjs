@@ -15,6 +15,7 @@ const NO_STYLESHEET_NEEDED = new Set([
   'src/shared/ui/InlineEditInput.tsx',
   'src/features/settings/TagColorInput.tsx',
   'src/features/task/TaskTitleField.tsx', // styled by TaskDetailPanel.css (.detail-title)
+  'src/features/task/QuickAdd.tsx', // a + button and the QuickAddModal; no styles of its own
   'src/features/reminders/ReminderModal.tsx', // a Modal around ReminderList
 ])
 const DUPLICATE_BLOCK_LINES = 20

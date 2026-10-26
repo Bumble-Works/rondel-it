@@ -28,6 +28,8 @@ import { SettingsPage } from './features/settings/SettingsPage'
 import { Sidebar, type ViewKey } from './features/sidebar/Sidebar'
 import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
+import { QuickAdd, type QuickAddNav } from './features/task/QuickAdd'
+import { toQuickAddCreateTaskInput } from './features/task/quickAddInput'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
 import { IconButton } from './shared/ui/IconButton'
@@ -112,6 +114,7 @@ function App() {
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
   const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
+  const [boardReload, setBoardReload] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   const today = todayIso()
@@ -125,7 +128,6 @@ function App() {
   const monthStart = useMemo(() => startOfMonth(anchorDate), [anchorDate])
   const monthEnd = useMemo(() => endOfMonth(anchorDate), [anchorDate])
 
-  // The week/month the Unassigned container represents (shared with the drop target).
   const containerStart = view === 'month' ? monthStart : anchorWeekStart
   const containerEnd = view === 'month' ? monthEnd : anchorWeekEnd
 
@@ -230,7 +232,7 @@ function App() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (settings) void loadBoard()
-  }, [settings, loadBoard])
+  }, [settings, loadBoard, boardReload])
 
   useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
@@ -241,8 +243,6 @@ function App() {
     })
     return () => cancelAnimationFrame(frame)
   }, [printRequest, reportError])
-
-  /* ---- nag: rondeled items waiting + tasks left undone on past days ---- */
 
   const nagCount = undecided.length + leftUndone.length
   const nagCountRef = useRef(0)
@@ -256,8 +256,6 @@ function App() {
   )
   const selectedTask = allTasks.find((t) => t.id === selectedTaskId) ?? null
   const noteTask = allTasks.find((t) => t.id === noteTaskId) ?? null
-
-  /* ---- actions ---- */
 
   const attempt = useCallback(
     async (context: string, fn: () => Promise<unknown>) => {
@@ -282,15 +280,16 @@ function App() {
   )
 
   const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[]) =>
-    run(() =>
-      dataSource.createTask({
-        title,
-        dayDate: target.dayDate ?? null,
-        rondeled: target.rondeled ?? false,
-        bucket: target.bucket ?? null,
-        tagIds: [...new Set([...activeTagIds, ...tagIds])],
-      }),
-    )
+    run(() => dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds)))
+
+  const onQuickAdded = (id: string, nav: QuickAddNav) => {
+    setPage('board')
+    setSelectedTaskId(id)
+    setView(nav.view)
+    setAnchorDate(nav.anchorDate)
+    setBoardReload((n) => n + 1)
+    scheduleSync()
+  }
 
   /** Creates a tag the user explicitly chose to create while typing #name. */
   const createTagNamed = async (name: string): Promise<Tag | null> => {
@@ -339,8 +338,7 @@ function App() {
     })
   const move = (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => {
     const task = allTasks.find((t) => t.id === taskId)
-    // Reordering inside the rondel container keeps the week/month it was rondeled
-    // for; only tasks dragged in from a day take the container's period.
+    // Reordering in the container keeps its rondeled period; day-drags take the container's.
     const keepsPeriod = target.rondeled && task?.rondeled && task.dayDate
     const placed = keepsPeriod ? { ...target, dayDate: task.dayDate ?? undefined } : target
     return run(() => dataSource.moveTask(taskId, placed, { beforeId }))
@@ -390,17 +388,13 @@ function App() {
       await loadBoard()
     })
 
-  /**
-   * A fresh to-do on that day: same title, tags, note and flag. It starts new:
-   * not recurring, never rondeled, no history or reminder.
-   */
+  // A fresh to-do on that day: new — not recurring, never rondeled, no history or reminder.
   const copyTask = (task: Task, dayIso: string) =>
     run(async () => {
       const copy = await dataSource.createTask({ title: task.title, dayDate: dayIso, tagIds: task.tagIds })
       if (task.note || task.flagged) await dataSource.updateTask(copy.id, { note: task.note, flagged: task.flagged })
     })
 
-  // The reminder lives in the side panel: open it there, ready to type a time.
   const openReminder = (task: Task) => {
     setSelectedTaskId(task.id)
     requestAnimationFrame(() => document.getElementById('reminder-time')?.focus())
@@ -445,8 +439,6 @@ function App() {
     onNewDay: () => void loadBoard(),
   })
 
-  /* ---- settings actions ---- */
-
   const updateSettings = (patch: Partial<UserSetting>) =>
     void attempt('Unable to save settings', async () => {
       setSettings(await dataSource.updateSettings(patch))
@@ -473,8 +465,6 @@ function App() {
       await loadBoard()
     })
 
-  /* ---- recurring actions ---- */
-
   const refreshRules = async () => setRules(await dataSource.listRecurringRules())
   const createRule = (input: RecurringRuleInput) =>
     void attempt('Unable to create recurring task', async () => {
@@ -494,8 +484,6 @@ function App() {
       await dataSource.deleteRecurringRule(id)
       await refreshRules()
     })
-
-  /* ---- groups ---- */
 
   const dayGroup = (iso: string): BoardGroup => {
     const dayTasks = rangeTasks.filter((t) => t.dayDate === iso && !t.rondeled && visible(t))
@@ -520,7 +508,6 @@ function App() {
     title: 'Unassigned',
     eyebrow: 'Rondeled',
     defaultCollapsed: false,
-    // Current period anchors to today (no backdating); otherwise the period's start.
     addTarget: { dayDate: containerDropDay({ start: containerStart, end: containerEnd }, today), rondeled: true },
     tasks: containerItems.filter(visible),
     emptyLabel: 'Nothing rondeled here',
@@ -608,10 +595,15 @@ function App() {
 
   const printTitle = view === 'week' ? `Week of ${subtitle}` : view === 'rondel' ? 'Bucket List' : subtitle
 
+  const quickAddEl = (
+    <QuickAdd tags={tags} weekStartDay={weekStartDay} activeTagIds={activeTagIds} onCreateTag={createTagNamed} onAdded={onQuickAdded} onError={reportError} />
+  )
+
   if (page === 'settings' && settings) {
     return (
       <div className="app">
         {error && <p className="app-error">{error}</p>}
+        <div className="app-float-add">{quickAddEl}</div>
         <SettingsPage
           settings={settings}
           tags={tags}
@@ -631,6 +623,7 @@ function App() {
     return (
       <div className="app">
         {error && <p className="app-error">{error}</p>}
+        <div className="app-float-add">{quickAddEl}</div>
         <RecurringPage
           rules={rules}
           tags={tags}
@@ -761,6 +754,7 @@ function App() {
                 )}
               </Menu>
             ) : null}
+            {quickAddEl}
             <IconButton
               icon="print"
               label={view === 'rondel' ? 'Print the Bucket List' : `Print this ${view}`}

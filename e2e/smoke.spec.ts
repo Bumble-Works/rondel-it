@@ -458,6 +458,45 @@ test('editing a recurring rule updates the task already on the list', async ({ p
   await expect(page.locator('.task-row', { hasText: /^Stretch$/ })).toHaveCount(0)
 })
 
+test('quick add works from Settings and Recurring, then returns to the board', async ({ page }) => {
+  await page.getByRole('button', { name: 'Settings' }).click()
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Add a task' }).click()
+  const fromSettings = page.getByRole('dialog', { name: 'Add a task' })
+  await expect(fromSettings).toBeVisible()
+  await fromSettings.getByPlaceholder('What needs doing?').fill('Quick from settings')
+  await fromSettings.getByRole('button', { name: 'Add' }).click()
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
+  await expect(row(page, 'Quick from settings')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Recurring' }).click()
+  await expect(page.getByText('Your recurring tasks')).toBeVisible()
+  await page.locator('.recurring-title').click()
+  await page.keyboard.press('n')
+
+  const fromRecurring = page.getByRole('dialog', { name: 'Add a task' })
+  await expect(fromRecurring).toBeVisible()
+  await fromRecurring.getByPlaceholder('What needs doing?').fill('Quick from recurring')
+  await fromRecurring.getByRole('button', { name: 'Add' }).click()
+
+  await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
+  await expect(row(page, 'Quick from recurring')).toBeVisible()
+})
+
+test('Escape closes quick-add tag suggestions without closing the composer', async ({ page }) => {
+  await page.getByRole('button', { name: 'Add a task' }).click()
+  const modal = page.getByRole('dialog', { name: 'Add a task' })
+  const input = modal.getByPlaceholder('What needs doing?')
+  await input.fill('Buy milk #err')
+
+  await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeVisible()
+  await input.press('Escape')
+  await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toHaveCount(0)
+  await expect(modal).toBeVisible()
+})
+
 /**
  * Drags a task by its grip onto `target`, moving in steps like a person would,
  * and lets go once `ready` shows the drop has registered.
