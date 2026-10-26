@@ -37,6 +37,7 @@ describe('NagModal', () => {
         onClose={() => {}}
         onRondel={() => {}}
         onSetDone={onSetDone}
+        onCancel={() => {}}
         onPickDate={() => {}}
       />,
     )
@@ -52,7 +53,7 @@ describe('NagModal', () => {
   it('leaves out an empty section', () => {
     render(
       <NagModal open waiting={[]} leftUndone={[task({ title: 'Only one' })]} weekStartDay={1}
-        onClose={() => {}} onRondel={() => {}} onSetDone={() => {}} onPickDate={() => {}} />,
+        onClose={() => {}} onRondel={() => {}} onSetDone={() => {}} onCancel={() => {}} onPickDate={() => {}} />,
     )
     expect(screen.queryByRole('region', { name: 'Rondeled items waiting' })).not.toBeInTheDocument()
   })

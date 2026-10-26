@@ -30,7 +30,7 @@ export interface RecurringRuleInput {
 
 export interface MoveOptions {
   beforeId?: string | null
-  /** Counts as a rondel (carry-forward): resets to todo and bumps rondelCount. */
+  /** Counts as a rondel (carry-forward), keeping status and bumping rondelCount. */
   rondel?: boolean
 }
 

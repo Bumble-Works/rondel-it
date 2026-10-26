@@ -87,6 +87,31 @@
   transform: scale(1);
 }
 
+/* canceled: red outline + red × */
+.status-circle-x {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--accent-red);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.status-circle--canceled {
+  border-color: var(--accent-red);
+}
+
+.status-circle--canceled .status-circle-x {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.status-circle--static.status-circle--canceled:hover {
+  border-color: var(--accent-red);
+}
+
 .status-circle:disabled {
   cursor: not-allowed;
   opacity: 0.45;

@@ -30,6 +30,7 @@ export type IconName =
   | 'bell'
   | 'pencil'
   | 'copy'
+  | 'rotate-ccw'
 
 const PATHS: Record<IconName, ReactNode> = {
   note: <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v6.7a1.5 1.5 0 0 1-.44 1.06l-3.3 3.3a1.5 1.5 0 0 1-1.06.44H5.5A1.5 1.5 0 0 1 4 15.5v-10Zm7.5 10.9V13a1 1 0 0 1 1-1h3.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
@@ -114,6 +115,16 @@ const PATHS: Record<IconName, ReactNode> = {
       <rect x="7" y="7" width="9" height="9" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <path d="M13 7V5.5A1.5 1.5 0 0 0 11.5 4h-6A1.5 1.5 0 0 0 4 5.5v6A1.5 1.5 0 0 0 5.5 13H7" fill="none" stroke="currentColor" strokeWidth="1.5" />
     </>
+  ),
+  'rotate-ccw': (
+    <path
+      d="M5.2 8.2a5.5 5.5 0 1 1-1 3.4M5.2 8.2H3.4M5.2 8.2V6.4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   ),
   bell: (
     <path

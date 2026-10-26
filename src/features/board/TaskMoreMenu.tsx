@@ -14,13 +14,17 @@ interface TaskMoreMenuProps {
   onToggleFlag: () => void
   /** Opens the task's reminder (in the side panel). */
   onOpenReminder: () => void
-  onDelete: () => void
+  onReopen: () => void
+  onCancel: () => void
 }
 
-/** The row's "⋯": copy, flag, reminder and delete, so the row itself stays calm. */
-export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onToggleFlag, onOpenReminder, onDelete }: TaskMoreMenuProps) {
-  // A history copy is a memory: it can't be flagged.
-  const canFlag = !isCarriedForward(task)
+/** The row's "⋯": copy, flag, reminder and cancel, so the row itself stays calm. */
+export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onToggleFlag, onOpenReminder, onReopen, onCancel }: TaskMoreMenuProps) {
+  // A history copy is a memory, and a canceled task is settled: neither can be flagged.
+  const canFlag = !isCarriedForward(task) && task.status !== 'canceled'
+  const showReopen = task.status === 'canceled'
+  const showCancel = !isCarriedForward(task) && task.status !== 'canceled'
+  const hasBelowCopy = canFlag || canRemind(task) || showCancel
 
   return (
     <Menu
@@ -30,7 +34,7 @@ export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onT
           className={`task-more-btn ${expanded ? 'is-open' : ''}`.trim()}
           aria-label="More actions"
           aria-expanded={expanded}
-          title={disabledReason ?? 'More: copy, flag, reminder, delete'}
+          title={disabledReason ?? 'More: copy, flag, reminder, cancel'}
           disabled={disabledReason !== null}
           onClick={onClick}
         >
@@ -45,13 +49,22 @@ export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onT
         }
         return (
           <>
-            <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(() => onCopy(addDays(todayIso(), 1)))}>
-              Copy to tomorrow
-            </MenuItem>
-            <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(onPickCopyDate)}>
-              Copy to a date…
-            </MenuItem>
-            <MenuSeparator />
+            {showReopen && (
+              <MenuItem icon={<Icon name="rotate-ccw" size={16} />} onClick={pick(onReopen)}>
+                Reopen task
+              </MenuItem>
+            )}
+            {!showReopen && (
+              <>
+                <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(() => onCopy(addDays(todayIso(), 1)))}>
+                  Copy to tomorrow
+                </MenuItem>
+                <MenuItem icon={<Icon name="copy" size={16} />} onClick={pick(onPickCopyDate)}>
+                  Copy to a date…
+                </MenuItem>
+              </>
+            )}
+            {hasBelowCopy && <MenuSeparator />}
             {canFlag && (
               <MenuItem icon={<Icon name={task.flagged ? 'flag-filled' : 'flag'} size={16} />} onClick={pick(onToggleFlag)}>
                 {task.flagged ? 'Remove flag' : 'Flag as important'}
@@ -62,10 +75,12 @@ export function TaskMoreMenu({ task, disabledReason, onCopy, onPickCopyDate, onT
                 {task.reminderTime ? `Reminder: ${formatClock(task.reminderTime)}` : 'Add reminder'}
               </MenuItem>
             )}
-            {(canFlag || canRemind(task)) && <MenuSeparator />}
-            <MenuItem tone="danger" icon={<Icon name="trash" size={16} />} onClick={pick(onDelete)}>
-              Delete task
-            </MenuItem>
+            {(canFlag || canRemind(task)) && showCancel && <MenuSeparator />}
+            {showCancel && (
+              <MenuItem icon={<Icon name="close" size={16} />} onClick={pick(onCancel)}>
+                Cancel task
+              </MenuItem>
+            )}
           </>
         )
       }}

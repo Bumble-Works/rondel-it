@@ -19,15 +19,24 @@ Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
 - Statuses: **todo → doing → done**. Clicking the status circle advances one
   step. Clicking a done task's circle reopens it as todo. Double-clicking sets
   it to done.
-- `canceled` exists in the data model, but nothing in the UI sets it yet.
+- **Cancel** (⋯ menu, detail panel, or the nag) sets a task to `canceled`
+  instead of deleting it: its title is **crossed out** and the status circle
+  shows a **red ×**. A canceled task sinks to the very bottom of its day.
+  Canceling replaced deleting as the way to let a task go, so finished work and
+  abandoned work both stay on record.
+- A canceled task is **settled**: it keeps the day it was canceled on and its
+  controls are turned off — no flag, reminder, reschedule/rondel, drag, or
+  copy. Its circle doesn't advance; reopening is a deliberate **Reopen task**
+  (the only ⋯ item left, and a button in the detail panel), which brings it
+  back as todo at the **top** of its day.
 - Reopening a done task (back to todo) moves it to the **top** of its day.
 - **Flag (important):** one flag per task, toggled from the row's ⋯ menu
   or the detail panel. A flagged task's title is bold with a small amber flag.
   Flagging **doesn't reorder**; drag it up yourself. The flag carries forward
   when a task is rondeled. History copies can't be flagged or unflagged.
 - Done tasks always sink to the bottom of their day. Each day sorts as:
-  **active tasks → carried-forward history → done**. Within each group, the
-  order you set by dragging is kept.
+  **active tasks → carried-forward history → done → canceled**. Within each
+  group, the order you set by dragging is kept.
 - A **rondeled item** (waiting for next week/month) that you start (doing) or
   finish (done) **becomes a regular task on today** with that status. It keeps
   its rondel count, first scheduled day and created date. See "Rondeled items".
@@ -292,12 +301,16 @@ Today, Next week, Next month, Pick a date, Mark done.
   - **Left undone on past days:** todo/doing tasks on any day before today
     (history copies, done tasks, rondeled and Bucket List items excluded), oldest first.
   - **Rondeled items waiting:** rondeled items whose week/month has started.
-- Each item offers **Today, Next week, Next month, Pick a date, Done** (no
-  "doing"). Moving a past-day task off its day counts as a rondel (a doing task
-  leaves its history copy, as usual).
+- Each item offers **Today, Next week, Next month, Pick a date, Cancel, Done**
+  (no "doing"). Moving a past-day task off its day counts as a rondel (a doing
+  task leaves its history copy, as usual).
 - **Done on a past-day task** marks it done **on the day it was planned**, as
   if you finished it then and forgot to check it off: it stays on that day,
   completed that day. (Done on a rondeled item moves it to today, as before.)
+- **Cancel** lets a nagging item go: a past-day task is canceled **on its day**
+  (it stays there, resolved, so the past stops nagging), and a rondeled item is
+  canceled **onto today** (like starting or finishing one). Either way it's a
+  resolution, so the nag stops asking.
 - *(Planned: the end-of-day review will also cover today's unfinished tasks.)*
 
 ## Red dot on the app icon (Mac and Windows apps)

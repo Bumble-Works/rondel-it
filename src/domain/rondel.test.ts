@@ -39,6 +39,7 @@ describe('rondel rules', () => {
     expect(canRondel(task())).toBe(true)
     expect(canRondel(task({ status: 'doing' }))).toBe(true)
     expect(canRondel(task({ status: 'done' }))).toBe(false)
+    expect(canRondel(task({ status: 'canceled' }))).toBe(false)
     expect(canRondel(task({ status: 'doing', carriedToId: 'next' }))).toBe(false)
     expect(isCarriedForward(task({ carriedToId: 'next' }))).toBe(true)
   })

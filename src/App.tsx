@@ -329,9 +329,9 @@ function App() {
     })
   const saveNote = (taskId: string, note: string) => run(() => dataSource.updateTask(taskId, { note }))
   const changeTitle = (taskId: string, title: string) => run(() => dataSource.updateTask(taskId, { title }))
-  const removeTask = (taskId: string) =>
+  const cancelTask = (taskId: string) =>
     run(async () => {
-      await dataSource.deleteTask(taskId)
+      await dataSource.setTaskStatus(taskId, 'canceled')
       if (selectedTaskId === taskId) setSelectedTaskId(null)
       if (noteTaskId === taskId) setNoteTaskId(null)
       if (dateTaskId === taskId) setDateTaskId(null)
@@ -807,7 +807,7 @@ function App() {
             onPickDate={(task) => pickDate(task, 'rondel')}
             onOpenNote={(task) => setNoteTaskId(task.id)}
             onToggleFlag={toggleFlag}
-            onDelete={(task) => removeTask(task.id)}
+            onCancel={(task) => cancelTask(task.id)}
             onCopy={copyTask}
             onPickCopyDate={(task) => pickDate(task, 'copy')}
             onOpenReminder={openReminder}
@@ -836,7 +836,7 @@ function App() {
           onSetDone={() => setDone(selectedTask)}
           onRondel={(target) => rondel(selectedTask, target)}
           onPickDate={() => pickDate(selectedTask, 'rondel')}
-          onDelete={() => removeTask(selectedTask.id)}
+          onCancel={() => cancelTask(selectedTask.id)}
           onCreateTag={(name) => createTagForTask(selectedTask, name)}
           createTag={createTagNamed}
           weekStartDay={weekStartDay}
@@ -861,6 +861,7 @@ function App() {
         onRondel={(task, target) => rondel(task, target)}
         // A forgotten task counts as done on the day it was planned.
         onSetDone={(task) => setDone(task, { onItsDay: !task.rondeled })}
+        onCancel={(task) => cancelTask(task.id)}
         onPickDate={(task) => pickDate(task, 'rondel')}
       />
 

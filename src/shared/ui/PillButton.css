@@ -29,3 +29,14 @@
   border-color: var(--status-done);
   color: var(--status-done);
 }
+
+.pill-btn--cancel {
+  color: var(--accent-red);
+  border-color: color-mix(in srgb, var(--accent-red) 45%, transparent);
+}
+
+.pill-btn--cancel:hover {
+  background: color-mix(in srgb, var(--accent-red) 12%, transparent);
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}

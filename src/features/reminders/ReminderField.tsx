@@ -55,7 +55,7 @@ export function ReminderField({ task, onChange }: ReminderFieldProps) {
           )}
         </div>
       ) : (
-        <p className="reminder-hint">Give it a day to set a reminder.</p>
+        <p className="reminder-hint">{task.status === 'canceled' ? 'Reopen this task to set a reminder.' : 'Give it a day to set a reminder.'}</p>
       )}
       <ChoiceModal
         open={pending !== null}

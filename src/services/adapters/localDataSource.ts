@@ -83,8 +83,8 @@ function writeRules(rules: RecurringRule[]) {
 
 function ordered(tasks: Task[]): Task[] {
   // Manual order (position) is respected so drag-and-drop reordering sticks.
-  // Carried-forward history sits below active work; done always sinks to the bottom.
-  const rank = (t: Task): number => (t.status === 'done' ? 2 : isCarriedForward(t) ? 1 : 0)
+  // Carried-forward history sits below active work, followed by done and canceled tasks.
+  const rank = (t: Task): number => (t.status === 'canceled' ? 3 : t.status === 'done' ? 2 : isCarriedForward(t) ? 1 : 0)
   return [...tasks].sort((a, b) => {
     const ra = rank(a)
     const rb = rank(b)
@@ -124,7 +124,7 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
  * Its history (rondelCount, originDate, createdAt) is kept.
  */
 function withStatus(task: Task, status: TaskStatus): Task {
-  const leavesRondelContainer = task.rondeled && (status === 'doing' || status === 'done')
+  const leavesRondelContainer = task.rondeled && (status === 'doing' || status === 'done' || status === 'canceled')
   return {
     ...task,
     status,
@@ -151,6 +151,7 @@ function endOfDayIso(iso: string): string {
 
 function changeStatus(tasks: Task[], index: number, status: TaskStatus, onItsDay = false): Task {
   const before = tasks[index]
+  if (isCarriedForward(before)) throw new Error('Carried-forward history can not be changed')
   let next = withStatus(before, status)
   if (onItsDay && status === 'done' && before.dayDate && !before.rondeled) {
     next = { ...next, dayDate: before.dayDate, completedAt: endOfDayIso(before.dayDate) }
@@ -309,6 +310,8 @@ export const localDataSource: DataSource = {
     const index = findIndexOrThrow(tasks, id)
     const source = tasks[index]
 
+    if (source.status === 'canceled') throw new Error('Reopen the canceled task before moving it')
+
     const dayDate = target.dayDate ?? null
     const rondeled = target.rondeled ?? false
     const bucket = target.bucket ?? null
@@ -348,13 +351,7 @@ export const localDataSource: DataSource = {
         rondeled,
         bucket,
         originDate: source.originDate ?? dayDate,
-        // Rondeling counts the carry-forward; a canceled task comes back as todo.
-        ...(rondel
-          ? {
-              rondelCount: source.rondelCount + 1,
-              ...(source.status === 'canceled' ? { status: 'todo' as const, completedAt: null } : {}),
-            }
-          : {}),
+        rondelCount: source.rondelCount + (rondel ? 1 : 0),
       }
       tasks[index] = moved
     }
@@ -501,7 +498,7 @@ export const localDataSource: DataSource = {
     for (const rule of rules) {
       if (!isStartRule(rule.kind)) continue
       const pending = tasks
-        .filter((t) => t.recurringRuleId === rule.id && t.status !== 'done' && !isCarriedForward(t))
+        .filter((t) => t.recurringRuleId === rule.id && (t.status === 'todo' || t.status === 'doing') && !isCarriedForward(t))
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
       if (pending.length > 1) {
         const removeIds = new Set(pending.slice(1).map((t) => t.id))
