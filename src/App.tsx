@@ -113,7 +113,6 @@ function App() {
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
   const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
-  // Bumped to force one board reload (e.g. after quick-add) even when view/anchor don't change.
   const [boardReload, setBoardReload] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
@@ -128,7 +127,6 @@ function App() {
   const monthStart = useMemo(() => startOfMonth(anchorDate), [anchorDate])
   const monthEnd = useMemo(() => endOfMonth(anchorDate), [anchorDate])
 
-  // The week/month the Unassigned container represents (shared with the drop target).
   const containerStart = view === 'month' ? monthStart : anchorWeekStart
   const containerEnd = view === 'month' ? monthEnd : anchorWeekEnd
 
@@ -291,7 +289,6 @@ function App() {
       }),
     )
 
-  // Quick-add created a task: go to where it landed, open it, and reload once.
   const onQuickAdded = (id: string, nav: QuickAddNav) => {
     setPage('board')
     setSelectedTaskId(id)
@@ -348,8 +345,7 @@ function App() {
     })
   const move = (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => {
     const task = allTasks.find((t) => t.id === taskId)
-    // Reordering inside the rondel container keeps the week/month it was rondeled
-    // for; only tasks dragged in from a day take the container's period.
+    // Reordering in the container keeps its rondeled period; day-drags take the container's.
     const keepsPeriod = target.rondeled && task?.rondeled && task.dayDate
     const placed = keepsPeriod ? { ...target, dayDate: task.dayDate ?? undefined } : target
     return run(() => dataSource.moveTask(taskId, placed, { beforeId }))
@@ -519,7 +515,6 @@ function App() {
     title: 'Unassigned',
     eyebrow: 'Rondeled',
     defaultCollapsed: false,
-    // Current period anchors to today (no backdating); otherwise the period's start.
     addTarget: { dayDate: containerDropDay({ start: containerStart, end: containerEnd }, today), rondeled: true },
     tasks: containerItems.filter(visible),
     emptyLabel: 'Nothing rondeled here',
