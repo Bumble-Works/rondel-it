@@ -1,4 +1,4 @@
-import { atLocal, planEvents, scheduledEvents, snoozedTime } from './schedule'
+import { atLocal, handledBeforeOpen, planEvents, scheduledEvents, snoozedTime } from './schedule'
 import type { Task } from './types'
 
 const settings = { dayStartTime: '09:00', endOfDayTime: '17:00' }
@@ -45,6 +45,21 @@ describe('schedule', () => {
     const justAfter = new Date(2026, 9, 20, 0, 0, 1)
     const { due } = planEvents(scheduledEvents(justAfter, [], settings), justAfter, new Set())
     expect(due.map((e) => e.key)).toEqual(['midnight:2026-10-20'])
+  })
+
+  it('suppresses end-of-day and midnight on open, but lets the morning review catch up', () => {
+    // Opened at 18:00, past both the 09:00 morning and 17:00 end-of-day reviews.
+    const opened = new Date(2026, 9, 19, 18, 0)
+    const handled = handledBeforeOpen(opened, settings)
+    expect(handled).toContain('review:2026-10-19:end')
+    expect(handled).toContain('midnight:2026-10-19')
+    // The morning review is left to catch up (fire) on open.
+    expect(handled).not.toContain('review:2026-10-19:start')
+  })
+
+  it('suppresses only the past midnight when the app opens before any review time', () => {
+    const opened = new Date(2026, 9, 19, 7, 0) // before 09:00
+    expect(handledBeforeOpen(opened, settings)).toEqual(['midnight:2026-10-19'])
   })
 
   it('snoozes a reminder 10 minutes from now, kept on its day', () => {
