@@ -29,6 +29,7 @@ import { Sidebar, type ViewKey } from './features/sidebar/Sidebar'
 import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
 import { QuickAdd, type QuickAddNav } from './features/task/QuickAdd'
+import { toQuickAddCreateTaskInput } from './features/task/quickAddInput'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
 import { IconButton } from './shared/ui/IconButton'
@@ -279,15 +280,7 @@ function App() {
   )
 
   const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[]) =>
-    run(() =>
-      dataSource.createTask({
-        title,
-        dayDate: target.dayDate ?? null,
-        rondeled: target.rondeled ?? false,
-        bucket: target.bucket ?? null,
-        tagIds: [...new Set([...activeTagIds, ...tagIds])],
-      }),
-    )
+    run(() => dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds)))
 
   const onQuickAdded = (id: string, nav: QuickAddNav) => {
     setPage('board')

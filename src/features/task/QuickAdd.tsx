@@ -5,6 +5,7 @@ import { createDataSource } from '../../services/adapters/dataSourceFactory'
 import { IconButton } from '../../shared/ui/IconButton'
 import { anyModalOpen } from '../../shared/ui/modalStack'
 import { QuickAddModal, type QuickAddNav } from './QuickAddModal'
+import { toQuickAddCreateTaskInput } from './quickAddInput'
 
 export type { QuickAddNav } from './QuickAddModal'
 
@@ -52,13 +53,7 @@ export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdde
   const add = (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav): Promise<boolean> =>
     (async () => {
       try {
-        const created = await dataSource.createTask({
-          title,
-          dayDate: target.dayDate ?? null,
-          rondeled: target.rondeled ?? false,
-          bucket: target.bucket ?? null,
-          tagIds: [...new Set([...activeTagIds, ...tagIds])],
-        })
+        const created = await dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds))
         onAdded(created.id, nav)
         return true
       } catch (e) {
