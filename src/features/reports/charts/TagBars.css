@@ -2,6 +2,8 @@
 .tag-bars-chart { min-height: 0; max-height: 270px; overflow: auto; overscroll-behavior: contain; }
 .tag-bars-chart:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .tag-bars-chart svg { display: block; width: 100%; height: auto; min-height: 100px; }
+.tag-bars-print-labels { margin: 0.5rem 0 0; padding-left: 1.8rem; font-size: 0.75rem; line-height: 1.5; color: var(--ink-soft); }
+.tag-bars-print-labels li { padding-left: 0.2rem; overflow-wrap: anywhere; }
 .tag-bars-key { flex: none; display: flex; flex-wrap: wrap; gap: 1rem; margin: 0.7rem 0 0; font-size: 0.75rem; color: var(--ink-soft); }
 .tag-bars-key span { display: inline-flex; align-items: center; gap: 0.4rem; }
 .tag-bars-key i { display: block; width: 18px; height: 10px; border-radius: 2px; background: #94a3b8; }

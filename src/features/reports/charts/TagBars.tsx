@@ -5,6 +5,7 @@ import './TagBars.css'
 
 const statusLabels: Record<string, string> = { done: 'done', doing: 'in progress', todo: 'to do', value: 'rondels' }
 const tagLabel = (tag: ReportTagMetric) => tag.id === '__untagged__' ? tag.name : `#${tag.name}`
+const printGroupSize = 12
 
 export function TagBars({ metrics, kind, printMode = false }: { metrics: ReportTagMetric[]; kind: 'completion' | 'rondels'; printMode?: boolean }) {
   const patternPrefix = useId().replaceAll(':', '')
@@ -25,7 +26,7 @@ export function TagBars({ metrics, kind, printMode = false }: { metrics: ReportT
     const tag = rows.find((row) => row.id === String(id))
     return tag ? tagLabel(tag) : ''
   }
-  const chunks = printMode ? Array.from({ length: Math.ceil(data.length / 12) }, (_, index) => data.slice(index * 12, (index + 1) * 12)) : [data]
+  const chunks = printMode ? Array.from({ length: Math.ceil(data.length / printGroupSize) }, (_, index) => data.slice(index * printGroupSize, (index + 1) * printGroupSize)) : [data]
   return (
     <div className="tag-bars">
       <div className="tag-bars-chart" role="region" aria-label={kind === 'completion' ? 'Task status by tag' : 'Rondels by tag'} tabIndex={0}>
@@ -40,6 +41,7 @@ export function TagBars({ metrics, kind, printMode = false }: { metrics: ReportT
             valueScale={{ type: 'linear', min: 0, max: maximum }}
             axisTop={null} axisRight={null}
             axisLeft={{ tickSize: 0, tickPadding: 10, format: (id) => {
+              if (printMode) return String(data.findIndex((datum) => datum.label === String(id)) + 1)
               const name = nameFor(id)
               return name.length > 16 ? `${name.slice(0, 15)}…` : name
             } }}
@@ -48,6 +50,9 @@ export function TagBars({ metrics, kind, printMode = false }: { metrics: ReportT
             barAriaLabel={(bar) => `${String(bar.data.name)}: ${bar.value} ${statusLabels[String(bar.id)]}`}
             tooltip={({ id, value, data: datum }) => <div className="tag-bars-tooltip"><strong>{String(datum.name)}</strong><span>{value} {statusLabels[String(id)]}</span></div>}
           />
+          {printMode && <ol className="tag-bars-print-labels" start={index * printGroupSize + 1}>
+            {chunk.map((datum) => <li key={datum.label}>{datum.name}</li>)}
+          </ol>}
         </div>)}
       </div>
       {kind === 'completion' && <div className="tag-bars-key">

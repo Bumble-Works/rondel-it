@@ -90,7 +90,8 @@ test('keeps report actions unavailable for invalid dates', async ({ page }) => {
 test('prints long charts and all table pages without clipping at paper width', async ({ page }) => {
   await page.evaluate(() => {
     const template = JSON.parse(localStorage.getItem('rondel.v6.tasks')!)[0]
-    const tags = Array.from({ length: 35 }, (_, index) => ({ id: `tag-${index}`, name: `Project ${index}`, color: '#5486f5' }))
+    const tags = Array.from({ length: 35 }, (_, index) => ({ id: `tag-${index}`,
+      name: index === 34 ? `Project ${'x'.repeat(180)}` : `Project migration ${index}`, color: '#5486f5' }))
     const tasks = Array.from({ length: 65 }, (_, index) => ({ ...template, id: `task-${index}`,
       title: `Task ${String(index).padStart(2, '0')}`, tagIds: [tags[index % tags.length].id], rondelCount: 1, doingRondelCount: 1 }))
     localStorage.setItem('rondel.v6.tags', JSON.stringify(tags))
@@ -104,6 +105,12 @@ test('prints long charts and all table pages without clipping at paper width', a
   await page.emulateMedia({ media: 'print' })
   const sheet = page.locator('.print-sheet[data-print-active]')
   await expect(sheet.locator('.tag-bars-page')).toHaveCount(6)
+  await expect(sheet.getByText('#Project migration 0', { exact: true })).toHaveCount(2)
+  await expect(sheet.getByText('#Project migration 1', { exact: true })).toHaveCount(2)
+  await expect(sheet.locator('.tag-bars-print-labels li')).toHaveCount(70)
+  for (const label of await sheet.locator('.tag-bars-print-labels li').all()) {
+    expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  }
   for (const chart of await sheet.locator('.tag-bars-page svg').all()) {
     expect(await chart.getAttribute('viewBox')).toMatch(/^0 0 540 /)
     const chartBox = await chart.boundingBox()

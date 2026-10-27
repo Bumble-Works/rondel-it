@@ -2,6 +2,12 @@
 
 ## wip — Report printing and CSV (`feat/report-print-export`, ready for local review)
 
+- PR #43 review fix: printed tag bars use numbered keys with complete, wrapping
+  names, including across chart groups. Added rendering and browser regression
+  coverage for shared prefixes and long unbroken names. Lint, practices, all 311
+  unit/component tests and production build pass; the focused long-chart and
+  all-pages table-print regression passes in Chromium and WebKit.
+
 - Reuse the shared print document wrapper and existing browser/native print dialog.
   Print Dashboard and Tasks using their existing visual components, selected dates,
   tag/status filters, collapsed sections, calendar year and timeline line choices.

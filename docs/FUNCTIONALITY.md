@@ -290,8 +290,10 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Dashboard printing preserves collapsed sections, calendar display year and
   timeline line choices. Hover/focus highlights and tooltips are omitted.
   Scrollable content expands for printing; long tag charts are divided into
-  readable groups with a shared scale. Only the requested report or board sheet
-  prints, with no surrounding app or dialogs.
+  readable groups with a shared scale. Printed tag bars use numbers with a matching
+  full-name key in each group; long names wrap so tags with a shared prefix remain
+  distinguishable. Only the requested report or board sheet prints, with no
+  surrounding app or dialogs.
 - Tasks printing includes **all matching rows**, in current sort order, across
   every table page. Show notes controls full inline notes on paper too. Column
   headings repeat across pages; pagination and task-action buttons are omitted.
