@@ -1,5 +1,3 @@
 .count-bars svg { display: block; width: 100%; height: auto; }
-.count-bars dl { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
-.count-bars dl > div { text-align: center; }
-.count-bars dt { color: var(--muted); font-size: 0.7rem; }
-.count-bars dd { margin: 0.2rem 0 0; font-size: 1rem; font-weight: 800; }
+.count-bars rect[tabindex]:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.count-bars-tooltip { display: grid; gap: 0.3rem; padding: 0.6rem 0.8rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); font-size: 0.78rem; }

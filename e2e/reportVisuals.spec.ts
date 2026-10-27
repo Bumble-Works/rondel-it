@@ -1,0 +1,165 @@
+import { expect, test, type Page } from '@playwright/test'
+import { legacyReportTask, REPORT_NOW, seedReportData, selectFixtureReportDates } from './helpers/reportData.ts'
+
+test.use({ locale: 'en-US', timezoneId: 'UTC' })
+const errors: string[] = []
+const section = (page: Page, title: string) => page.locator('.report-section').filter({ has: page.getByRole('heading', { name: title, exact: true }) })
+
+async function openReports(page: Page) {
+  await page.getByRole('button', { name: 'Reports', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Reports', exact: true })).toBeVisible()
+  await expect(page.getByRole('status')).toHaveCount(0)
+  await selectFixtureReportDates(page)
+}
+
+test.beforeEach(async ({ page }) => {
+  errors.length = 0
+  page.on('pageerror', (error) => errors.push(error.message))
+  await page.clock.setFixedTime(new Date(REPORT_NOW))
+})
+
+test.afterEach(() => expect(errors).toEqual([]))
+
+test('matches the dated list without carrying today’s work into empty days', async ({ page }) => {
+  const base = { ...legacyReportTask(), originDate: '2026-10-27', completedAt: null, rondelCount: 0 }
+  await seedReportData(page, [
+    { ...base, id: 'today-only', title: 'Only on Tuesday', status: 'doing', dayDate: '2026-10-27' },
+    { ...base, id: 'wednesday-one', title: 'First Wednesday task', status: 'todo', dayDate: '2026-10-28' },
+    { ...base, id: 'wednesday-two', title: 'Second Wednesday task', status: 'todo', dayDate: '2026-10-28' },
+  ])
+  await page.goto('/')
+  await expect(page.locator('.task-row')).toHaveCount(1)
+  await expect(page.locator('.task-row')).toContainText('Only on Tuesday')
+  await openReports(page)
+  await page.getByRole('combobox', { name: 'Period', exact: true }).selectOption('this-week')
+  const chart = page.getByRole('group', { name: 'Explore daily report values' })
+  const tooltip = page.getByRole('tooltip')
+  const value = (label: string) => tooltip.locator('dl > div').filter({ has: page.getByText(label, { exact: true }) }).locator('dd')
+  await chart.focus()
+  await expect(tooltip).toContainText('Oct 31, 2026')
+  await expect(tooltip.locator('dd')).toHaveText(['0', '0', '0', '0', '0'])
+  await page.keyboard.press('Home')
+  await expect(tooltip.locator('dd')).toHaveText(['0', '0', '0', '0', '0'])
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight')
+  await expect(tooltip).toContainText('Oct 27, 2026')
+  await expect(value('In progress')).toHaveText('1')
+  await page.keyboard.press('ArrowRight')
+  await expect(tooltip).toContainText('Oct 28, 2026')
+  await expect(value('To do')).toHaveText('2')
+  await expect(value('In progress')).toHaveText('0')
+  await expect(page.locator('.completion-donut-legend dd')).toHaveText(['2', '1', '0'])
+  await page.getByRole('button', { name: 'Back to your list' }).click()
+  await page.getByRole('button', { name: 'Next day', exact: true }).click()
+  await expect(page.locator('.task-row')).toHaveCount(2)
+})
+
+test('explores every status on the shared timeline and can highlight or hide overlapping lines', async ({ page }) => {
+  await seedReportData(page)
+  await page.goto('/')
+  await openReports(page)
+  const overview = page.locator('.report-overview')
+  await expect(overview.locator(':scope > .report-section').first().getByRole('heading', { level: 2 })).toHaveText('A little progress, day by day')
+  const chart = page.getByRole('group', { name: 'Explore daily report values' })
+  await chart.focus()
+  const tooltip = page.getByRole('tooltip')
+  await expect(tooltip).toContainText('Oct 27, 2026')
+  await expect(tooltip.locator('dl > div')).toHaveCount(5)
+  await expect(tooltip.locator('dl > div').filter({ has: page.getByText('To do', { exact: true }) }).locator('dd')).toHaveText('1')
+  await expect(tooltip.locator('dl > div').filter({ has: page.getByText('In progress', { exact: true }) }).locator('dd')).toHaveText('2')
+  await page.keyboard.press('Home')
+  await expect(tooltip).toContainText('Oct 14, 2026')
+  await page.keyboard.press('End')
+  await expect(tooltip).toContainText('Oct 27, 2026')
+  const legend = page.getByRole('group', { name: 'Timeline lines' })
+  await legend.getByRole('button', { name: 'Done', exact: true }).hover()
+  await expect(chart.locator('[data-series="done"]')).toHaveAttribute('opacity', '1')
+  await expect(chart.locator('[data-series="todo"]')).toHaveAttribute('opacity', '0.2')
+  await legend.getByRole('button', { name: 'Done', exact: true }).click()
+  await expect(chart.locator('[data-series="done"]')).toHaveCount(0)
+  await legend.getByRole('button', { name: 'Done', exact: true }).click()
+  await expect(chart.locator('[data-series="done"]')).toHaveCount(1)
+})
+
+test('keeps tag filters sticky and summary charts equal without duplicated legends or clipped labels', async ({ page }) => {
+  await seedReportData(page)
+  await page.goto('/')
+  await openReports(page)
+  const status = section(page, 'Where your list stands')
+  const completion = section(page, 'Completion by tag')
+  const left = await status.boundingBox()
+  const right = await completion.boundingBox()
+  expect(left).not.toBeNull()
+  expect(right).not.toBeNull()
+  expect(Math.abs(left!.height - right!.height)).toBeLessThanOrEqual(1)
+  expect(Math.abs(left!.y - right!.y)).toBeLessThanOrEqual(1)
+  await expect(completion.locator('.tag-bars-labels')).toHaveCount(0)
+  await expect(completion.getByRole('region', { name: 'Task status by tag' })).toContainText('#work')
+  await expect(completion.getByLabel('#work: 2 done', { exact: true })).toBeAttached()
+  await expect(completion.getByLabel('#work: 3 in progress', { exact: true })).toHaveAttribute('fill', /url\(/)
+  await completion.scrollIntoViewIfNeeded()
+  await page.screenshot({ path: test.info().outputPath('summary-charts.png') })
+  const labelsFit = await completion.locator('.tag-bars-chart svg').evaluate((svg) => {
+    const bounds = svg.getBoundingClientRect()
+    return [...svg.querySelectorAll('text')].every((text) => {
+      const box = text.getBoundingClientRect()
+      return box.left >= bounds.left - 1 && box.right <= bounds.right + 1
+    })
+  })
+  expect(labelsFit).toBe(true)
+  const duration = section(page, 'From started to completed')
+  const bucket = section(page, 'Bucket List')
+  const outcomes = section(page, 'Where your rondeled items went')
+  const durationBox = (await duration.boundingBox())!
+  const bucketBox = (await bucket.boundingBox())!
+  const outcomesBox = (await outcomes.boundingBox())!
+  expect(Math.abs(durationBox.y - outcomesBox.y)).toBeLessThanOrEqual(1)
+  expect(Math.abs(bucketBox.y + bucketBox.height - outcomesBox.y - outcomesBox.height)).toBeLessThanOrEqual(1)
+  expect(Math.abs(durationBox.x - bucketBox.x)).toBeLessThanOrEqual(1)
+  expect(durationBox.height).toBeLessThan(outcomesBox.height)
+  await outcomes.scrollIntoViewIfNeeded()
+  await page.screenshot({ path: test.info().outputPath('bottom-charts.png') })
+  const filters = page.getByRole('region', { name: 'Filter reports by tag' })
+  await page.locator('.reports-page').evaluate((main) => { main.scrollTop = 1000 })
+  const before = await filters.boundingBox()
+  await page.locator('.reports-page').evaluate((main) => { main.scrollTop = 1400 })
+  const after = await filters.boundingBox()
+  expect(before).not.toBeNull()
+  expect(after).not.toBeNull()
+  expect(Math.abs(before!.y - after!.y)).toBeLessThanOrEqual(1)
+})
+
+test('shows exclusive outcomes for rondeled tasks without counting doing twice', async ({ page }) => {
+  await seedReportData(page)
+  await page.goto('/')
+  await openReports(page)
+  const outcomes = section(page, 'Where your rondeled items went')
+  const rows = outcomes.locator('dl > div')
+  await expect(rows.filter({ has: page.getByText('Rondeled', { exact: true }) }).locator('dd')).toHaveText('67%2 tasks')
+  await expect(rows.filter({ has: page.getByText('In progress', { exact: true }) }).locator('dd')).toHaveText('33%1 task')
+})
+
+test('tracks Bucket List additions and scheduling through the UI without increasing rondels, including after reload', async ({ page }) => {
+  await seedReportData(page, [])
+  await page.goto('/')
+  await openReports(page)
+  const bucket = section(page, 'Bucket List')
+  await expect(bucket.getByRole('heading', { name: 'Bucket List', exact: true })).toBeVisible()
+  await expect(bucket.getByRole('definition')).toHaveText(['0', '0'])
+  await page.getByRole('button', { name: 'Back to your list' }).click()
+  await page.locator('.sidebar-link', { hasText: 'Bucket List' }).click()
+  await page.getByPlaceholder('Add to this bucket').fill('Learn piano')
+  await page.getByPlaceholder('Add to this bucket').press('Enter')
+  const row = page.locator('.task-row', { hasText: 'Learn piano' })
+  await row.getByRole('button', { name: 'Schedule this task' }).click()
+  await page.getByRole('menuitem', { name: 'Tomorrow', exact: true }).click()
+  await expect(row).toHaveCount(0)
+  await openReports(page)
+  await expect(bucket.getByRole('definition')).toHaveText(['1', '1'])
+  await expect(bucket.getByText('You’re making someday happen!')).toBeVisible()
+  await expect(page.locator('.report-highlight').filter({ has: page.getByText('Rondeled', { exact: true }) }).locator('strong')).toHaveText('0')
+  await expect(page.getByText('No recorded activity in this period.', { exact: false })).toHaveCount(0)
+  await page.reload()
+  await openReports(page)
+  await expect(bucket.getByRole('definition')).toHaveText(['1', '1'])
+})

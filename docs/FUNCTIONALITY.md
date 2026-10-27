@@ -135,45 +135,151 @@ Today, Next week, Next month, Pick a date, Mark done.
   survives scheduling and carry-forward. Unknown legacy origins stay unknown.
 - `canceledAt`: when a task was canceled; cleared if it is reopened.
 
-## Reports (dashboard in progress)
+## Reports
 
-- **Reports** in the sidebar opens a dashboard, available to everyone. It
-  defaults to **Past 14 days**, including today. Presets also cover current
-  and previous weeks, months, quarters and years, and Custom.
-  Current periods stop at today; completed periods use their full boundaries.
-  Weeks follow Settings. Custom dates include both endpoints. **Every report
-  is limited to one year**, including a full leap year; All time isn't offered.
-  Any historical year can be selected. Longer custom ranges show a clear
-  message and don't calculate or render a report. Changing a collapsed section
-  or calendar display year reuses the existing calculation.
-- Presets show their date range below the period selector. Custom shows its
-  From/Through fields there with their hint and validation message; it doesn't
-  repeat the dates as a separate summary.
-- Tags filter reports with **any** or **all** matching. Filtering uses the
-  latest task's tags across its whole carry-forward chain. Each independent
-  recurring occurrence or fresh copy counts separately, even with the same title.
-- Scheduled-work status shows live tasks assigned to real days in the range;
-  waiting week/month and Bucket List items don't enter its completion percentage.
-  Canceled tasks are counted separately and excluded from that percentage.
-- Completions use the recorded completion date, including deliberately
-  backdated completions. They can differ from the scheduled-work status count.
-- Carry-forward counts show tasks and decisions **out of**, **into**, and
-  **within** the selected period, based on source/destination scheduled dates.
-  A todo moved from October into November remains visible as carried out in
-  October. Lifetime rondel totals are labeled separately and count each chain once.
-- Charts show completion dates, completion by tag, lifetime rondels by tag,
-  lifetime rondel buckets and the todo/doing split. Multi-tag tasks contribute
-  fully to each tag; untagged work has its own group.
-- Both first scheduled → completed and first started → completed durations
-  use calendar days, including pauses. Same-day completion is zero days.
-  Missing or negative intervals are excluded from averages with coverage shown.
-- A Bucket List celebration appears only for proven Bucket List origins
-  completed in the range. Older unknown origins aren't guessed.
-- Dashboard sections can be collapsed. Reports are recalculated from current
-  retained data; reopening, moving, retagging or editing work can change them.
-  Missing legacy movement history is reported as partial.
-- Meeting-review details, the sortable task table and print/export integration
-  are still follow-up work; see `docs/TODO.md`.
+- Reports in the sidebar is available to everyone. Default: This week.
+  Presets are This week, Last week, Next week, This month, Last month and Custom.
+  Report weeks run Sunday–Saturday, independently of the board's week setting.
+  Months include every day of the calendar month, including future dates.
+  Custom includes both endpoints. Every report is limited to one calendar year,
+  including a full leap year. Longer/reversed/invalid ranges show validation and
+  do not calculate or render charts. There is no All time option.
+- Preset dates appear under Period. Custom shows only From/Through inputs and
+  its range hint, without repeating the same dates as another summary.
+- Dashboard and Tasks share date and tag any/all filters. The tag controls stay
+  sticky while scrolling. Tabs support Left/Right and Home/End. A task chain
+  uses the latest task's tags; same-named independent tasks remain separate.
+- Reports use current retained information and recalculate when work is edited,
+  retagged, reopened, moved, completed or canceled. They are not saved snapshots.
+  One shared load reads retained tasks for the report; every chart receives the
+  same calculated dashboard. Date/tag changes reuse tasks in memory rather than
+  loading them again per chart. Task changes, window focus and explicit retry
+  refresh that shared data. Full retained history preserves task-chain context.
+- A task remains relevant from its first scheduled date through resolution,
+  inclusive, even after being moved beyond the selected dates. Dated moves,
+  decisions made in the period, and retained work/completion evidence can also
+  make it relevant. Unscheduled Bucket List ideas and untouched first-time
+  week/month plans stay out of the task list until actualized or rondeled.
+- Overview boxes appear in order: To do, In progress, Done, Rondeled, Canceled,
+  Left behind. They have short captions and no tag chips. To do/In progress use
+  current live tasks relevant to the range; Done/Canceled use resolution dates
+  in the range. Rondeled counts decisions actually made during the range,
+  including repeated moves of one task, once per recorded event. It differs
+  from the number of tasks carried across the period boundary and from lifetime
+  rondel counts. Older undated rondels are not assigned invented dates; the UI
+  shows the recorded number without legacy caveats or a plus sign.
+  Overview colors match the status lines and donut charts: purple To do, blue
+  In progress, green Done, amber Rondeled and pink Canceled. Left behind uses
+  its own coral color, including at zero, to stay distinct from Done.
+  Done says "🎉 Look at you go" and Rondeled says "A little reshuffling" preceded
+  by the same Rondel icon used on task rows;
+  all six overview boxes have hover tooltips explaining their counts.
+  Overview captions omit punctuation, start with an emoji or app icon and stay within 25
+  characters. Canceled says "🧹 Great job prioritizing"; To do uses ✨ and
+  In progress uses 💭.
+- Legacy cancellations without canceledAt use their saved task day for reports
+  only. Recorded cancellation timestamps take priority. Canceled counts respect
+  the same dates and latest-chain tag any/all filters as every other aggregate.
+- Left behind counts live to-dos still on past dates, within the report's scope
+  and tags. It excludes doing, done/canceled tasks, history copies, Bucket List
+  items and waiting containers. Zero says "🌟 All clear nicely done";
+  a positive count says "🧭 Needs some attention". Clicking it opens Tasks
+  filtered to those items. Show all tasks clears that focus. Open task takes the
+  user to that task's day and opens its existing detail panel for action.
+  Its hover tooltip says "Unfinished to-dos still dated in the past." The count
+  button also exposes that explanation to screen readers.
+- A little progress, day by day is immediately below the boxes: a timeline with
+  To do, In progress, Done, Rondeled and Canceled lines across the selected dates.
+  Status counts match the saved task entries on each calendar day, including
+  retained doing history copies. Empty days stay zero; tasks never fill dates
+  between their first scheduled day and today or a future period end. Done and
+  canceled entries use their list day, even if their resolution timestamp differs.
+  Bucket List and unassigned waiting-container items are not day entries.
+  Rondeled counts only recorded decisions made on that date in the device's
+  timezone; source/destination dates and undated lifetime totals never imply
+  extra activity. This reflects the list now, not immutable past status snapshots.
+  The chart has at most 366 dates and five series. Distinct dashes, legend
+  hover/focus highlighting, line toggles and a shared date tooltip keep equal
+  values readable without shifting data. Arrow keys/Home/End explore dates.
+- Your little wins retains the completion calendar beneath the timeline. A
+  year selector appears when the range crosses New Year; it shows only that
+  year's completion dates. Changing display year reuses the existing report.
+- Where your list stands and Completion by tag sit side by side with the same
+  fixed expanded height. Both aggregate the same saved day entries as the daily
+  status lines, rather than the broader task-chain scope used by Tasks and the
+  overview boxes. Retained copies count on each day where they actually appear;
+  moved-away work is not assigned to its former days without a saved entry.
+  Canceled tasks stay out of the completion rate.
+  Completion by tag shows task counts: done is solid, doing striped, to-do
+  outlined, in the tag's color. Canceled is omitted from this chart. Tag names
+  beginning with # label the bar rows; long names are shortened on the axis
+  and shown in full on hover/focus. Extra tags scroll within the fixed chart
+  space. Counts are available on hover/focus rather than repeated below.
+- Zero-activity tags are omitted from each chart. Where tasks keep rolling
+  shows lifetime rondel counts for relevant chains, in tag colors. Multi-tag
+  tasks contribute fully under each tag. Axes use whole counts and keep their
+  edge labels inside the SVG. Redundant chart footnotes are omitted.
+- What carried forward retains tasks and decisions out of, into and within
+  the range, based on scheduled source/destination dates. For example, a task
+  pushed from October to November still appears as outgoing in October.
+- Where your rondeled items went shows current outcomes for relevant chains
+  with a lifetime rondel count above zero. Every chain belongs to exactly one
+  category: Rondeled (still to do), In progress, Done or Canceled. A doing task
+  never also counts under Rondeled. The chart shows task counts and percentages.
+  On wide windows it sits beside a stack of the shorter duration card and Bucket
+  List card, with aligned top and bottom edges. Narrow windows stack the cards.
+  Duration bars are shorter and omit the repeated "Since first started" heading.
+  Chart collapse controls let users focus on selected sections and shorten the
+  page; each section can be reopened independently without recalculating data.
+- Bucket List is a compact half-width lower card with Created and Actualized chips for
+  genuine Bucket List ideas, captioned "Always room for a little dreaming."
+  Each idea counts once when created and once when
+  first given a real calendar day; waiting in a week/month container is not
+  actualization. Starting or finishing a waiting idea actualizes it onto today;
+  canceling it does not. Previously scheduled work parked in Bucket List is
+  excluded. This chart always appears at the bottom of the dashboard, including
+  zero counts when no dated Bucket List activity is known for the selected period.
+  There are no bar tracks or reserved chart space. Positive counts highlight the
+  chips and show a short encouragement; zero counts stay quiet.
+  Optional bucketHistory observations date these actions separately from rondels,
+  including plain drags, and survive copies and reloads. Scheduling out of Bucket
+  List does not increase rondelCount. Proven legacy bucket origins can use their
+  saved first scheduled day when dated observations are unavailable. Transfers
+  retain their observed real source day so later parking and rescheduling cannot
+  replace that legacy first actualization. Waiting-container dates do not prove
+  earlier actualization; inferred dates are never written into task storage.
+  A completion celebration still appears
+  only for proven Bucket List origins finished in the selected range.
+- Tasks shows one row per logical task chain. Columns: Task (with tags), Status,
+  First seen, Completed, Rondels, Days in progress. First seen uses the earliest
+  retained creation timestamp in the chain, converted to the device's timezone;
+  it is not the latest scheduled date or a UTC date slice. Missing legacy
+  creation timestamps fall back to the earliest retained scheduled date.
+  Unfinished work shows — for Completed. Every column sorts in either direction;
+  unknowns stay last and the default is most lifetime rondels first.
+- Task status pills support any combination of To do, In progress, Completed
+  and Canceled. All statuses includes canceled; selecting every status is the
+  same as All. These filters affect the table only, never task state or charts.
+  Show notes displays all full notes inline and hides them together. There are
+  no per-row expanders, destination or rondel-split columns. At most 50 rows
+  render per page; changing dates/tags/status/sort resets to page one, including
+  clearing a filter or returning to an earlier selection. Narrow
+  tables scroll inside their panel.
+- Days in progress runs from the recorded first start to completion for done
+  tasks, or through today for unfinished started tasks, including pauses and
+  reopenings. Legacy missing starts can use dated doing history or the current
+  real scheduled day for doing/done work. Fallbacks are report-only and never
+  written into task storage; recorded starts always win. Untouched to-dos have
+  no invented start. No per-row estimate label is shown. Started-to-completed
+  averages exclude estimates and invalid intervals. Same-day work is zero days.
+  The duration chart exposes every bucket's count to screen readers and shows
+  exact counts on hover or keyboard focus, including small or empty buckets.
+  It omits duplicate bucket summaries and coverage prose.
+- There is no Meeting review tab. Existing Week printing serves meeting review;
+  report print/export integration remains a follow-up in docs/TODO.md. Removed
+  dashboard sections include planned-to-completed duration, the overall lifetime
+  rondel histogram and the to-do/doing rondel split. Their existing derived
+  calculations remain candidates for later cleanup.
 
 ## Drag and drop
 

@@ -9,17 +9,16 @@ interface CountBarsProps {
 
 export function CountBars({ data, color = '#5486f5', label }: CountBarsProps) {
   return (
-    <div className="count-bars">
-      <div aria-hidden="true">
-        <Bar width={470} height={180} data={data} keys={['count']} indexBy="label"
-          margin={{ top: 20, right: 10, bottom: 30, left: 10 }} padding={0.45}
-          colors={[color]} borderRadius={5} enableGridY={false} enableLabel={false}
-          axisLeft={null} axisBottom={{ tickSize: 0, tickPadding: 10 }}
-          animate={false} isInteractive={false} />
-      </div>
-      <dl aria-label={label}>
-        {data.map((item) => <div key={item.label}><dt>{item.label}</dt><dd>{item.count}</dd></div>)}
-      </dl>
+    <div className="count-bars" role="group" aria-label={label}>
+      <Bar role="group" width={470} height={120} data={data} keys={['count']} indexBy="label"
+        margin={{ top: 10, right: 10, bottom: 30, left: 10 }} padding={0.45}
+        colors={[color]} borderRadius={5} enableGridY={false} enableLabel labelSkipHeight={12}
+        axisLeft={null} axisBottom={{ tickSize: 0, tickPadding: 10 }}
+        animate={false} isInteractive isFocusable
+        barAriaLabel={({ indexValue, value }) => `${indexValue}: ${value} ${value === 1 ? 'task' : 'tasks'}`}
+        tooltip={({ indexValue, value }) => <div className="count-bars-tooltip" role="tooltip">
+          <strong>{indexValue}</strong><span>{value} {value === 1 ? 'task' : 'tasks'}</span>
+        </div>} />
     </div>
   )
 }

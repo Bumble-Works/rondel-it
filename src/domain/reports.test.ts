@@ -29,7 +29,53 @@ function dashboard(tasks: Task[]) {
 }
 
 describe('report population and identity', () => {
-  it('counts current scheduled statuses separately from completion dates', () => {
+  it('counts legacy and recorded cancellations consistently through any/all tag filters without writing dates', () => {
+    const tasks = [
+      task({ id: 'legacy-work', status: 'canceled', dayDate: '2026-10-26', tagIds: ['work'] }),
+      task({ id: 'home', status: 'canceled', dayDate: '2026-11-02', canceledAt: '2026-10-26T12:00:00', tagIds: ['home'] }),
+      task({ id: 'both', status: 'canceled', canceledAt: '2026-10-25T12:00:00', tagIds: ['work', 'home'] }),
+      task({ id: 'outside', status: 'canceled', originDate: '2026-09-01', dayDate: '2026-10-26', canceledAt: '2026-09-30T12:00:00', tagIds: ['work'] }),
+    ]
+    const filtered = (tagIds: string[], tagMatch: 'any' | 'all' = 'any') =>
+      buildDashboard(tasks, tags, october, { tagIds, tagMatch, includeCanceled: true }, today)
+    expect(filtered([]).activity.canceled).toBe(3)
+    expect(filtered(['work']).activity.canceled).toBe(2)
+    expect(filtered(['home']).activity.canceled).toBe(2)
+    expect(filtered(['work', 'home']).activity.canceled).toBe(3)
+    expect(filtered(['work', 'home'], 'all').activity.canceled).toBe(1)
+    expect(filtered(['missing']).activity.canceled).toBe(0)
+    expect(filtered(['work']).rows.find((row) => row.id === 'legacy-work')).toMatchObject({ canceledDate: '2026-10-26', tagIds: ['work'] })
+    expect(tasks[0].canceledAt).toBeNull()
+  })
+
+  it('attributes a canceled chain to its current tags rather than an old history copy', () => {
+    const tasks = [
+      task({ id: 'old', status: 'doing', tagIds: ['home'], carriedToId: 'live' }),
+      task({ id: 'live', originTaskId: 'old', status: 'canceled', dayDate: '2026-10-26', tagIds: ['work'] }),
+    ]
+    const filtered = (tagIds: string[]) => buildDashboard(tasks, tags, october, { tagIds, includeCanceled: true }, today)
+    expect(filtered(['work']).activity.canceled).toBe(1)
+    expect(filtered(['work']).rows).toHaveLength(1)
+    expect(filtered(['home']).activity.canceled).toBe(0)
+    expect(filtered(['home']).rows).toHaveLength(0)
+  })
+
+  it('identifies left-behind todos without including doing, containers, history, or work already moved forward', () => {
+    const report = buildDashboard([
+      task({ id: 'left', tagIds: ['work'], dayDate: '2026-10-24' }),
+      task({ id: 'today', dayDate: today }),
+      task({ id: 'future', dayDate: '2026-10-26' }),
+      task({ id: 'doing', status: 'doing', dayDate: '2026-10-24' }),
+      task({ id: 'waiting', rondeled: true, dayDate: '2026-10-24', rondelCount: 1 }),
+      task({ id: 'bucket', dayDate: null, bucket: 'bucket-list' }),
+      task({ id: 'old', status: 'doing', dayDate: '2026-10-20', carriedToId: 'live' }),
+      task({ id: 'live', originTaskId: 'old', dayDate: '2026-11-02', rondelCount: 1 }),
+    ], tags, october, {}, today)
+    expect(report.leftBehindIds).toEqual(['left'])
+    expect(buildDashboard([task({ id: 'left', tagIds: ['work'] })], tags, october, { tagIds: ['home'] }, today).leftBehindIds).toEqual([])
+  })
+
+  it('uses saved day entries for status charts and recorded completion dates for the completion calendar', () => {
     const report = dashboard([
       task({ id: 'scheduled', status: 'done', completedAt: '2026-11-01T12:00:00' }),
       task({ id: 'completed', status: 'done', dayDate: '2026-09-30', completedAt: '2026-10-02T12:00:00' }),
@@ -43,7 +89,7 @@ describe('report population and identity', () => {
     expect(report.rows.map((row) => row.id).sort()).toEqual(['active', 'completed', 'scheduled'])
   })
 
-  it('counts a carried lineage once and preserves separate same-title recurring occurrences', () => {
+  it('counts a carried lineage once in Tasks and its saved entries separately in status charts', () => {
     const tasks = [
       task({ id: 'original', status: 'doing', carriedToId: 'copy', rondelCount: 1 }),
       task({ id: 'copy', originTaskId: 'original', previousTaskId: 'original', rondelCount: 2 }),
@@ -52,7 +98,7 @@ describe('report population and identity', () => {
     ]
     const report = dashboard(tasks)
     expect(groupLineage(tasks)).toHaveLength(3)
-    expect(report.summary.total).toBe(3)
+    expect(report.summary.total).toBe(4)
     expect(report.rows).toHaveLength(3)
     expect(report.rondels.total).toBe(2)
   })
@@ -79,14 +125,54 @@ describe('report population and identity', () => {
     expect(all.rows.map((row) => row.id)).toEqual(['both'])
     const work = any.tagMetrics.find((tag) => tag.id === 'work')!
     expect(work).toMatchObject({ total: 1, done: 1, rondels: 0 })
-    expect(any.tagMetrics.find((tag) => tag.id === 'home')).toMatchObject({ total: 2, done: 1, rondels: 1 })
+    expect(any.tagMetrics.find((tag) => tag.id === 'home')).toMatchObject({ total: 3, inProgress: 1, done: 1, rondels: 1 })
   })
 })
 
 describe('period carry-forward flows', () => {
+  it('counts period rondels by decision date, including repeated decisions and deduplicated chain events', () => {
+    const moves = [
+      event({ id: 'before', occurredAt: '2026-09-30T12:00:00', fromDate: '2026-10-01', toDate: '2026-10-02' }),
+      event({ id: 'first', occurredAt: '2026-10-01T12:00:00', fromDate: '2026-11-01', toDate: '2026-11-02' }),
+      event({ id: 'last', occurredAt: '2026-10-31T12:00:00', fromDate: '2026-10-30', toDate: '2026-11-05' }),
+      event({ id: 'after', occurredAt: '2026-11-01T12:00:00', fromDate: '2026-10-20', toDate: '2026-10-21' }),
+    ]
+    const report = dashboard([
+      task({ id: 'old', status: 'doing', carriedToId: 'live', rondelHistory: moves }),
+      task({ id: 'live', originTaskId: 'old', dayDate: '2026-11-05', rondelCount: 4, rondelHistory: moves }),
+    ])
+    expect(report.activity.rondeled).toBe(2)
+    expect(report.rondels.total).toBe(4)
+    expect(report.rondels.flow.within).toEqual({ tasks: 1, decisions: 2 })
+    expect(report.rondels.flow.outgoing).toEqual({ tasks: 1, decisions: 1 })
+    expect(report.rows).toHaveLength(1)
+  })
+
+  it('includes decisions made in the period even when both scheduled dates are in the future', () => {
+    const report = dashboard([task({ originDate: '2026-11-01', dayDate: '2026-11-02', rondelCount: 1,
+      rondelHistory: [event({ fromDate: '2026-11-01', toDate: '2026-11-02' })] })])
+    expect(report.rows).toHaveLength(1)
+    expect(report.activity.rondeled).toBe(1)
+    expect(report.rondels.flow.outgoing.tasks).toBe(0)
+  })
+
+  it('counts current doing chains even after they move beyond the period and applies tag filters', () => {
+    const tasks = [
+      task({ id: 'old', status: 'doing', carriedToId: 'work' }),
+      task({ id: 'work', originTaskId: 'old', status: 'doing', dayDate: '2026-11-02', tagIds: ['work'], rondelCount: 1 }),
+      task({ id: 'home', status: 'doing', tagIds: ['home'] }),
+      task({ id: 'reopened', status: 'todo', startedAt: '2026-10-01T12:00:00' }),
+      task({ id: 'done', status: 'done', completedAt: '2026-10-25T12:00:00' }),
+      task({ id: 'cancel', status: 'canceled', canceledAt: '2026-10-25T12:00:00' }),
+    ]
+    expect(dashboard(tasks).activity.doing).toBe(2)
+    expect(buildDashboard(tasks, tags, october, { tagIds: ['work'] }).activity.doing).toBe(1)
+    expect(buildDashboard(tasks, tags, october, { tagIds: ['work', 'home'], tagMatch: 'all' }).activity.doing).toBe(0)
+  })
+
   it('retains October todos carried to November even though no task remains scheduled in October', () => {
     const report = dashboard([task({ dayDate: '2026-11-01', rondeled: true, rondelCount: 1, rondelHistory: [event()] })])
-    expect(report.summary.total).toBe(0)
+    expect(report.summary).toMatchObject({ total: 0, todo: 0, done: 0 })
     expect(report.rondels.flow.outgoing).toEqual({ tasks: 1, decisions: 1 })
     expect(report.rows[0].flows[0]).toMatchObject({ direction: 'outgoing', toDate: '2026-11-01' })
   })
@@ -121,6 +207,7 @@ describe('period carry-forward flows', () => {
     const report = dashboard([task({ rondelCount: 5, doingRondelCount: null, rondelHistory: [] })])
     expect(report.rondels).toMatchObject({ total: 5, todo: 0, doing: 0, unknown: 5 })
     expect(report.rondels.flow.outgoing.decisions).toBe(0)
+    expect(report.activity.rondeled).toBe(0)
     expect(report.coverage).toMatchObject({ partialHistory: 1, unknownRondelSplit: 1 })
   })
 })

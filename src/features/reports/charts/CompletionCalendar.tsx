@@ -31,7 +31,6 @@ export function CompletionCalendar({ dashboard, year, onYearChange }: Completion
         />
       </div>
       <div className="completion-calendar-key"><span>Fewer</span><i /><i /><i /><i /><span>More</span></div>
-      <p className="report-caption">Completed dates in your selected period. Empty days include dates outside the period.</p>
     </div>
   )
 }

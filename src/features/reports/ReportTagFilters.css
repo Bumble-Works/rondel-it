@@ -1,0 +1,8 @@
+.reports-tag-filter { position: sticky; top: 0; z-index: 20; padding: 1rem; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
+.reports-tag-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; font-size: 0.8rem; font-weight: 700; }
+.reports-tag-actions label { display: flex; align-items: center; gap: 0.5rem; }
+.reports-tag-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.7rem; }
+.reports-tag-buttons button { display: inline-flex; align-items: center; gap: 0.4rem; max-width: 100%; overflow-wrap: anywhere; border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface); padding: 0.4rem 0.7rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+.reports-tag-buttons button[aria-pressed="true"] { background: var(--brand-tint); border-color: var(--brand); color: var(--brand-ink); }
+.reports-tag-buttons i { width: 8px; height: 8px; flex: none; border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) { .reports-tag-buttons button { transition: none; } }

@@ -44,7 +44,7 @@ describe('validateSnapshot', () => {
     }
     const observed = savedTask({
       doingRondelCount: 1, startedAt: '2026-09-30T09:00:00Z', canceledAt: null,
-      bucketListOrigin: false, rondelHistory: [event],
+      bucketListOrigin: false, rondelHistory: [event], bucketHistory: [],
     })
     const valid = validateSnapshot(snapshot({ tasks: [observed] }), NOW)
     expect(valid.ok && valid.snapshot.tasks[0]).toEqual(observed)
@@ -56,12 +56,22 @@ describe('validateSnapshot', () => {
       { rondelHistory: [{ ...event, toDate: '2026-02-30' }] },
       { rondelHistory: [{ ...event, status: 'waiting' }] },
       { rondelHistory: [{ ...event, occurredAt: 'bad time' }] },
+      { bucketHistory: null }, { bucketHistory: [{}] },
+      { bucketHistory: [{ id: 'bucket', kind: 'deleted', occurredAt: '2026-10-01T09:00:00Z' }] },
+      { bucketHistory: [{ id: 'bucket', kind: 'added', occurredAt: 'yesterday' }] },
+      { bucketHistory: [{ id: 'bucket', kind: 'added', occurredAt: event.occurredAt, fromDate: '2026-02-30' }] },
     ]
     for (const fields of malformed) {
       const result = validateSnapshot(snapshot({ tasks: [{ ...observed, ...fields }] }), NOW)
       expect(result.ok && result.droppedRecords).toBe(1)
       expect(result.ok && result.snapshot.tasks).toEqual([])
     }
+  })
+
+  it.each([undefined, null, '2026-09-30'])('keeps optional Bucket List source dates across sync (%s)', (fromDate) => {
+    const bucketHistory = [{ id: 'bucket', kind: 'added', occurredAt: '2026-10-01T09:00:00Z', fromDate }]
+    const result = validateSnapshot(snapshot({ tasks: [savedTask({ bucketHistory })] }), NOW)
+    expect(result.ok && result.snapshot.tasks[0].bucketHistory).toEqual(bucketHistory)
   })
 
   it('accepts a well-formed snapshot', () => {

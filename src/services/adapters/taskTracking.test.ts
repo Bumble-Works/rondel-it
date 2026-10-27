@@ -71,7 +71,7 @@ describe('task reporting observations', () => {
     const old = await data.createTask({ title: 'Old', dayDate: firstDay })
     const other = await data.createTask({ title: 'Other', dayDate: firstDay })
     const records = JSON.parse(localStorage.getItem('rondel.v6.tasks')!) as Record<string, unknown>[]
-    for (const key of ['doingRondelCount', 'startedAt', 'bucketListOrigin', 'canceledAt', 'rondelHistory']) delete records[0][key]
+    for (const key of ['doingRondelCount', 'startedAt', 'bucketListOrigin', 'canceledAt', 'rondelHistory', 'bucketHistory']) delete records[0][key]
     records[0].rondelCount = 3
     localStorage.setItem('rondel.v6.tasks', JSON.stringify(records))
     const saved = localStorage.getItem('rondel.v6.tasks')

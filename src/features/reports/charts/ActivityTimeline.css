@@ -1,0 +1,15 @@
+.activity-timeline-key { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; margin: 0.4rem 0 0.8rem; }
+.activity-timeline-key button { display: inline-flex; align-items: center; gap: 0.4rem; border: 0; padding: 0.25rem 0; background: none; color: var(--ink-soft); font-size: 0.78rem; }
+.activity-timeline-key button[aria-pressed="false"] { opacity: 0.4; }
+.activity-timeline-key button:focus-visible, .activity-timeline-plot:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.activity-timeline-plot { position: relative; }
+.activity-timeline-plot > svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+.activity-timeline-grid line { stroke: var(--border); stroke-dasharray: 3 5; }
+.activity-timeline-grid text, .activity-timeline-date { fill: var(--muted); font-size: 13px; }
+.activity-timeline-crosshair { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; pointer-events: none; }
+.activity-timeline-tooltip { position: absolute; top: 0; right: 0; min-width: 165px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 0.75rem; box-shadow: var(--shadow-sm); pointer-events: none; font-size: 0.75rem; }
+.activity-timeline-tooltip dl { margin: 0.6rem 0 0; display: grid; gap: 0.4rem; }
+.activity-timeline-tooltip dl > div { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.activity-timeline-tooltip dt { display: flex; align-items: center; gap: 0.4rem; }
+.activity-timeline-tooltip dt i { width: 8px; height: 8px; border-radius: 50%; }
+.activity-timeline-tooltip dd { margin: 0; font-weight: 800; }

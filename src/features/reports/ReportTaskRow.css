@@ -1,0 +1,10 @@
+.report-task-row th, .report-task-row td { vertical-align: top; padding: 0.85rem 0.7rem; border-bottom: 1px solid var(--border); text-align: left; overflow-wrap: anywhere; font-size: 0.8rem; }
+.report-task-row th { font-weight: 600; }
+.report-task-title { font-size: 0.9rem; line-height: 1.5; }
+.report-task-row td > strong { font-size: 0.78rem; }
+.report-task-row small { display: block; margin-top: 0.3rem; font-size: 0.7rem; line-height: 1.5; color: var(--muted); }
+.report-task-row--canceled .report-task-title { color: var(--muted); text-decoration: line-through; }
+.report-task-row--canceled td > strong { color: var(--accent-red); }
+.report-task-note { margin-top: 0.6rem; font-weight: 400; }
+.report-open-task { display: block; margin-top: 0.5rem; padding: 0; border: none; background: none; color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; font-size: 0.75rem; }
+.report-open-task:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }

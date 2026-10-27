@@ -1,12 +1,13 @@
 import { Pie } from '@nivo/pie'
 import type { Dashboard } from '../../../domain/reportTypes'
+import { reportColors } from '../reportColors'
 import './CompletionDonut.css'
 
 export function CompletionDonut({ summary }: { summary: Dashboard['summary'] }) {
   const data = [
-    { id: 'To do', label: 'To do', value: summary.todo, color: '#d9e2ef' },
-    { id: 'In progress', label: 'In progress', value: summary.doing, color: '#5486f5' },
-    { id: 'Completed', label: 'Completed', value: summary.done, color: '#16b98a' },
+    { id: 'To do', label: 'To do', value: summary.todo, color: reportColors.todo },
+    { id: 'In progress', label: 'In progress', value: summary.doing, color: reportColors.doing },
+    { id: 'Completed', label: 'Completed', value: summary.done, color: reportColors.done },
   ]
   return (
     <div className="completion-donut">
@@ -27,8 +28,6 @@ export function CompletionDonut({ summary }: { summary: Dashboard['summary'] }) 
           <dt><i style={{ background: item.color }} />{item.label}</dt><dd>{item.value}</dd>
         </div>)}
       </dl>
-      <p className="report-caption">{summary.done} of {summary.total} scheduled tasks completed.
-        {summary.canceled > 0 && ` ${summary.canceled} canceled, counted separately.`}</p>
     </div>
   )
 }

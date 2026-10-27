@@ -4,7 +4,7 @@ import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { nextStatus } from '../../domain/status'
 import { taskTrackingDefaults } from '../../domain/taskTracking'
 import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
-import type { RecurringRule, Tag, Task, TaskRondel, TaskStatus, UserSetting } from '../../domain/types'
+import type { RecurringRule, Tag, Task, TaskBucketEvent, TaskRondel, TaskStatus, UserSetting } from '../../domain/types'
 import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
 
@@ -100,6 +100,7 @@ function byTag(tasks: Task[], tagId?: string): Task[] {
 }
 
 function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<Task>): Task {
+  const createdAt = nowIso()
   return {
     id: uid(),
     status: 'todo',
@@ -111,11 +112,12 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
     bucketListOrigin: fields.bucket === 'bucket-list',
     canceledAt: null,
     rondelHistory: [],
+    bucketHistory: fields.bucketHistory ?? (fields.bucket === 'bucket-list' ? [{ id: uid(), occurredAt: createdAt, kind: 'added' }] : []),
     flagged: false,
     reminderTime: null,
     tagIds: [],
     note: '',
-    createdAt: nowIso(),
+    createdAt,
     completedAt: null,
     recurringRuleId: null,
     originDate: fields.dayDate,
@@ -132,12 +134,17 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
  */
 function withStatus(task: Task, status: TaskStatus): Task {
   const leavesRondelContainer = task.rondeled && (status === 'doing' || status === 'done' || status === 'canceled')
+  const changedAt = nowIso()
+  const actualizesBucketIdea = task.bucketListOrigin === true && status !== 'canceled' && (
+    leavesRondelContainer || (task.status === 'canceled' && task.bucket === null && task.dayDate !== null)
+  )
   return {
     ...task,
     status,
-    completedAt: status === 'done' ? nowIso() : null,
-    startedAt: task.startedAt ?? (status === 'doing' && task.status !== 'doing' ? nowIso() : null),
-    canceledAt: status === 'canceled' ? (task.canceledAt ?? nowIso()) : null,
+    completedAt: status === 'done' ? changedAt : null,
+    startedAt: task.startedAt ?? (status === 'doing' && task.status !== 'doing' ? changedAt : null),
+    canceledAt: status === 'canceled' ? (task.canceledAt ?? changedAt) : null,
+    ...(actualizesBucketIdea ? { bucketHistory: [...(task.bucketHistory ?? []), { id: uid(), kind: 'scheduled' as const, occurredAt: changedAt }] } : {}),
     ...(leavesRondelContainer ? { dayDate: todayIso(), rondeled: false } : {}),
   }
 }
@@ -330,6 +337,14 @@ export const localDataSource: DataSource = {
     const bucket = target.bucket ?? null
     const rondel = (options?.rondel ?? false) && !isSchedulingDecision(source, { dayDate, rondeled, bucket })
     const beforeId = options?.beforeId ?? null
+    const occurredAt = nowIso()
+    const bucketKind = bucket === 'bucket-list' && source.bucket !== 'bucket-list' ? 'added'
+      : bucket === null && !rondeled && dayDate !== null && (source.bucket === 'bucket-list' || (source.bucketListOrigin === true && source.rondeled)) ? 'scheduled' : null
+    const bucketEvent: TaskBucketEvent | null = bucketKind ? {
+      id: uid(), occurredAt, kind: bucketKind,
+      fromDate: !source.bucket && !source.rondeled ? source.dayDate : null,
+    } : null
+    const bucketHistory = bucketEvent ? [...(source.bucketHistory ?? []), bucketEvent] : source.bucketHistory ?? []
 
     if (rondel && !canRondel(source)) {
       throw new Error('Done tasks and carried-forward history can not be rondeled')
@@ -339,7 +354,7 @@ export const localDataSource: DataSource = {
       ? null
       : source.doingRondelCount + (rondel && source.status === 'doing' ? 1 : 0)
     const event: TaskRondel | null = rondel ? {
-      id: uid(), occurredAt: nowIso(), status: source.status,
+      id: uid(), occurredAt, status: source.status,
       fromDate: source.dayDate, toDate: dayDate,
       fromRondeled: source.rondeled, toRondeled: rondeled,
       fromBucket: source.bucket, toBucket: bucket,
@@ -368,8 +383,9 @@ export const localDataSource: DataSource = {
         originDate: source.originDate,
         originTaskId: source.originTaskId ?? source.id,
         previousTaskId: source.id,
+        bucketHistory: [],
       })
-      tasks[index] = { ...source, carriedToId: moved.id, rondelHistory }
+      tasks[index] = { ...source, carriedToId: moved.id, rondelHistory, bucketHistory }
       tasks.push(moved)
     } else {
       moved = {
@@ -381,6 +397,7 @@ export const localDataSource: DataSource = {
         rondelCount: source.rondelCount + (rondel ? 1 : 0),
         doingRondelCount,
         rondelHistory,
+        bucketHistory,
       }
       tasks[index] = moved
     }

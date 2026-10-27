@@ -3,6 +3,12 @@ import type { Tag, Task, TaskRondel } from '../../src/domain/types.ts'
 
 export const REPORT_NOW = '2026-10-27T12:00:00Z'
 
+export async function selectFixtureReportDates(page: Page): Promise<void> {
+  await page.getByRole('combobox', { name: 'Period', exact: true }).selectOption('custom')
+  await page.getByLabel('From', { exact: true }).fill('2026-10-14')
+  await page.getByLabel('Through', { exact: true }).fill('2026-10-27')
+}
+
 const tags: Tag[] = [
   { id: 'work', name: 'work', color: '#5486f5' },
   { id: 'fitness', name: 'fitness', color: '#16b98a' },
@@ -31,17 +37,18 @@ function move(id: string, fromDate: string, toDate: string, status: 'todo' | 'do
 function reportTasks(): Task[] {
   return [
     task({ id: 'work-done', tagIds: ['work'], status: 'done', dayDate: '2026-10-20',
-      originDate: '2026-10-17', startedAt: '2026-10-18T12:00:00Z', completedAt: '2026-10-21T12:00:00Z' }),
+      originDate: '2026-10-17', createdAt: '2026-10-17T08:00:00Z', startedAt: '2026-10-18T12:00:00Z', completedAt: '2026-10-21T12:00:00Z',
+      note: 'Client update shipped.\nReady for the manager review.' }),
     task({ id: 'work-active', tagIds: ['work'], status: 'doing', startedAt: '2026-10-25T12:00:00Z' }),
     task({ id: 'fitness-done', tagIds: ['fitness'], status: 'done', dayDate: '2026-10-23', completedAt: '2026-10-23T12:00:00Z' }),
     task({ id: 'shared-done', tagIds: ['work', 'fitness'], status: 'done', dayDate: '2026-10-26', completedAt: '2026-10-26T12:00:00Z' }),
     task({ id: 'untagged' }),
     task({ id: 'canceled', tagIds: ['work'], status: 'canceled', dayDate: '2026-10-25', canceledAt: '2026-10-25T12:00:00Z' }),
     task({ id: 'history', tagIds: ['work'], status: 'doing', dayDate: '2026-10-17',
-      startedAt: '2026-10-16T12:00:00Z', carriedToId: 'history-live',
+      startedAt: '2026-10-16T12:00:00Z', carriedToId: 'history-live', note: 'Initial attempt; waiting on review.',
       rondelHistory: [move('within', '2026-10-17', '2026-10-27', 'doing')] }),
     task({ id: 'history-live', tagIds: ['work'], status: 'doing', originTaskId: 'history', previousTaskId: 'history',
-      startedAt: '2026-10-16T12:00:00Z', rondelCount: 1, doingRondelCount: 1 }),
+      startedAt: '2026-10-16T12:00:00Z', rondelCount: 1, doingRondelCount: 1, note: 'Review feedback applied.' }),
     task({ id: 'pushed-out', tagIds: ['work'], dayDate: '2026-11-02', rondeled: true, rondelCount: 1,
       rondelHistory: [{ ...move('out', '2026-10-22', '2026-11-02'), toRondeled: true }] }),
     task({ id: 'brought-in', tagIds: ['work'], dayDate: '2026-10-24', rondelCount: 1,
