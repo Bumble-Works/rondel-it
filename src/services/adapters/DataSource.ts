@@ -35,6 +35,8 @@ export interface MoveOptions {
 }
 
 export interface DataSource {
+  /** Complete records, including Bucket List items and carried-forward history. */
+  listAllTasks(): Promise<Task[]>
   listTasksInRange(startDate: string, endDate: string, tagId?: string): Promise<Task[]>
   listBucketTasks(bucket: TaskBucket, tagId?: string): Promise<Task[]>
   /** All unassigned rondel-container items (rondeled = true). */

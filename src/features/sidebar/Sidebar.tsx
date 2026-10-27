@@ -2,6 +2,7 @@ import type { Tag, TaskStatus } from '../../domain/types'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import { Menu, MenuItem } from '../../shared/ui/Menu'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
+import { features } from '../../shared/features'
 import './Sidebar.css'
 
 export type ViewKey = 'day' | 'week' | 'month' | 'rondel'
@@ -23,6 +24,7 @@ const STATUS_ITEMS: Array<{ key: TaskStatus; label: string }> = [
   { key: 'todo', label: 'To do' },
   { key: 'doing', label: 'Doing' },
   { key: 'done', label: 'Done' },
+  { key: 'canceled', label: 'Canceled' },
 ]
 
 interface SidebarProps {
@@ -39,6 +41,7 @@ interface SidebarProps {
   onResetStatuses: () => void
   onOpenSettings: () => void
   onOpenRecurring: () => void
+  onOpenReports: () => void
 }
 
 export function Sidebar({
@@ -55,6 +58,7 @@ export function Sidebar({
   onResetStatuses,
   onOpenSettings,
   onOpenRecurring,
+  onOpenReports,
 }: SidebarProps) {
   const allStatuses = activeStatuses.length === 0
   const allTags = activeTagIds.length === 0
@@ -188,6 +192,12 @@ export function Sidebar({
       </div>
 
       <div className="sidebar-foot">
+        {features.reports && (
+          <button type="button" className="sidebar-link" onClick={onOpenReports}>
+            <span className="sidebar-link-icon"><Icon name="chart" size={18} /></span>
+            <span className="sidebar-link-label">Reports</span>
+          </button>
+        )}
         <button type="button" className="sidebar-link" onClick={onOpenRecurring}>
           <span className="sidebar-link-icon">
             <Icon name="repeat" size={18} />

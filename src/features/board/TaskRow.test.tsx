@@ -11,6 +11,7 @@ const task: Task = {
   bucket: null,
   position: 0,
   rondelCount: 0,
+  doingRondelCount: 0, startedAt: null, bucketListOrigin: false, canceledAt: null, rondelHistory: [],
   flagged: false,
   reminderTime: null,
   tagIds: [],

@@ -20,6 +20,7 @@ function seedWaitingRondeledTask() {
     bucket: null,
     position: 0,
     rondelCount: 1,
+    doingRondelCount: null, startedAt: null, bucketListOrigin: null, canceledAt: null, rondelHistory: [],
     flagged: false,
     reminderTime: null,
     originDate: '2026-10-19',

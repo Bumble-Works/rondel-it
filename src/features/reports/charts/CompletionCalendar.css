@@ -1,0 +1,13 @@
+.completion-calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: 0.82rem; color: var(--ink-soft); }
+.completion-calendar-head label { display: flex; gap: 0.5rem; align-items: center; }
+.completion-calendar-head select { border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--r-sm); padding: 0.3rem; }
+.completion-calendar-scroll { overflow-x: auto; }
+.completion-calendar-scroll > div { min-width: 650px; }
+.completion-calendar-scroll svg { display: block; width: 100%; min-width: 650px; height: auto; }
+.completion-calendar-key { display: flex; justify-content: flex-end; gap: 4px; align-items: center; font-size: 0.7rem; color: var(--muted); margin: 0.25rem 0 0.6rem; }
+.completion-calendar-key i { width: 11px; height: 11px; border-radius: 2px; background: #c6efdf; }
+.completion-calendar-key i:nth-of-type(2) { background: #89dcbd; }
+.completion-calendar-key i:nth-of-type(3) { background: #41c599; }
+.completion-calendar-key i:nth-of-type(4) { background: #16a777; }
+@media (max-width: 560px) { .completion-calendar-head { align-items: flex-start; flex-direction: column; } }
+@media print { .completion-calendar-scroll { overflow: visible; } .completion-calendar-head label { display: none; } }

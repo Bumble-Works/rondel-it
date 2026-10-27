@@ -124,6 +124,56 @@ Today, Next week, Next month, Pick a date, Mark done.
 - `rondelCount`: how many times it's been rondeled.
 - `originTaskId` / `previousTaskId`: link copies back to the original and to
   the previous hop. `carriedToId` marks a history copy.
+- `doingRondelCount`: how many counted rondels happened while doing. Older
+  tasks can have an unknown split; they aren't assumed to have been todo.
+- `startedAt`: first recorded start, kept across carry-forward and reopening.
+- `rondelHistory`: dated source/destination observations for counted rondels,
+  including todo moves that don't leave a history copy. Scheduling and
+  dragging don't add observations. Each observation stays on its source
+  record; successor copies inherit totals without duplicating observations.
+- `bucketListOrigin`: whether the task began in the Bucket List. The marker
+  survives scheduling and carry-forward. Unknown legacy origins stay unknown.
+- `canceledAt`: when a task was canceled; cleared if it is reopened.
+
+## Reports (dashboard in progress)
+
+- **Reports** in the sidebar opens a dashboard, available to everyone. It
+  defaults to **Past 14 days**, including today. Presets also cover current
+  and previous weeks, months, quarters and years, and Custom.
+  Current periods stop at today; completed periods use their full boundaries.
+  Weeks follow Settings. Custom dates include both endpoints. **Every report
+  is limited to one year**, including a full leap year; All time isn't offered.
+  Any historical year can be selected. Longer custom ranges show a clear
+  message and don't calculate or render a report. Changing a collapsed section
+  or calendar display year reuses the existing calculation.
+- Presets show their date range below the period selector. Custom shows its
+  From/Through fields there with their hint and validation message; it doesn't
+  repeat the dates as a separate summary.
+- Tags filter reports with **any** or **all** matching. Filtering uses the
+  latest task's tags across its whole carry-forward chain. Each independent
+  recurring occurrence or fresh copy counts separately, even with the same title.
+- Scheduled-work status shows live tasks assigned to real days in the range;
+  waiting week/month and Bucket List items don't enter its completion percentage.
+  Canceled tasks are counted separately and excluded from that percentage.
+- Completions use the recorded completion date, including deliberately
+  backdated completions. They can differ from the scheduled-work status count.
+- Carry-forward counts show tasks and decisions **out of**, **into**, and
+  **within** the selected period, based on source/destination scheduled dates.
+  A todo moved from October into November remains visible as carried out in
+  October. Lifetime rondel totals are labeled separately and count each chain once.
+- Charts show completion dates, completion by tag, lifetime rondels by tag,
+  lifetime rondel buckets and the todo/doing split. Multi-tag tasks contribute
+  fully to each tag; untagged work has its own group.
+- Both first scheduled → completed and first started → completed durations
+  use calendar days, including pauses. Same-day completion is zero days.
+  Missing or negative intervals are excluded from averages with coverage shown.
+- A Bucket List celebration appears only for proven Bucket List origins
+  completed in the range. Older unknown origins aren't guessed.
+- Dashboard sections can be collapsed. Reports are recalculated from current
+  retained data; reopening, moving, retagging or editing work can change them.
+  Missing legacy movement history is reported as partial.
+- Meeting-review details, the sortable task table and print/export integration
+  are still follow-up work; see `docs/TODO.md`.
 
 ## Drag and drop
 

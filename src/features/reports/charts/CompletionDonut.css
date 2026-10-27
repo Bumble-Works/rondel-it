@@ -1,0 +1,11 @@
+.completion-donut { display: flex; flex-direction: column; align-items: center; }
+.completion-donut-graphic { position: relative; width: 240px; height: 210px; }
+.completion-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; }
+.completion-donut-center strong { font-size: 2.15rem; font-weight: 800; letter-spacing: -0.06em; }
+.completion-donut-center span { color: var(--muted); font-size: 0.8rem; }
+.completion-donut-empty { width: 186px; height: 186px; border: 20px solid var(--surface-2); border-radius: 50%; margin: 12px auto; }
+.completion-donut-legend { display: flex; flex-wrap: wrap; justify-content: center; width: 100%; gap: 0.6rem 1.25rem; margin: 0.3rem 0 1rem; }
+.completion-donut-legend > div { display: flex; gap: 0.45rem; align-items: center; }
+.completion-donut-legend dt { display: flex; gap: 0.35rem; align-items: center; font-size: 0.78rem; color: var(--ink-soft); }
+.completion-donut-legend dd { margin: 0; font-size: 0.85rem; font-weight: 800; }
+.completion-donut-legend i { width: 8px; height: 8px; border-radius: 50%; }

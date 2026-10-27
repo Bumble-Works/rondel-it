@@ -2,8 +2,9 @@ import { addDays, fromIso, toIso, todayIso } from '../../domain/dates'
 import { nextTagColor } from '../../domain/hashTags'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { nextStatus } from '../../domain/status'
+import { taskTrackingDefaults } from '../../domain/taskTracking'
 import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
-import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from '../../domain/types'
+import type { RecurringRule, Tag, Task, TaskRondel, TaskStatus, UserSetting } from '../../domain/types'
 import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
 
@@ -34,6 +35,7 @@ function normalizeTask(task: Partial<Task> & Pick<Task, 'id'>): Task {
     originTaskId: task.originTaskId ?? null,
     previousTaskId: task.previousTaskId ?? null,
     carriedToId: task.carriedToId ?? null,
+    ...taskTrackingDefaults(task),
   } as Task
   // Older data could finish a rondeled item without leaving the container. Move
   // it to the day it was completed, as finishing one does now.
@@ -104,6 +106,11 @@ function newTask(fields: Pick<Task, 'title' | 'dayDate' | 'position'> & Partial<
     rondeled: false,
     bucket: null,
     rondelCount: 0,
+    doingRondelCount: 0,
+    startedAt: null,
+    bucketListOrigin: fields.bucket === 'bucket-list',
+    canceledAt: null,
+    rondelHistory: [],
     flagged: false,
     reminderTime: null,
     tagIds: [],
@@ -129,6 +136,8 @@ function withStatus(task: Task, status: TaskStatus): Task {
     ...task,
     status,
     completedAt: status === 'done' ? nowIso() : null,
+    startedAt: task.startedAt ?? (status === 'doing' && task.status !== 'doing' ? nowIso() : null),
+    canceledAt: status === 'canceled' ? (task.canceledAt ?? nowIso()) : null,
     ...(leavesRondelContainer ? { dayDate: todayIso(), rondeled: false } : {}),
   }
 }
@@ -205,6 +214,10 @@ const FIRST_LOOKAHEAD_DAYS = 3660
  * and folder sync shares it between devices. Used unless VITE_DATA_SOURCE=rails.
  */
 export const localDataSource: DataSource = {
+  async listAllTasks() {
+    return readTasks()
+  },
+
   async listTasksInRange(startDate, endDate, tagId) {
     const tasks = readTasks().filter(
       (t) => t.dayDate !== null && t.dayDate >= startDate && t.dayDate <= endDate,
@@ -322,6 +335,17 @@ export const localDataSource: DataSource = {
       throw new Error('Done tasks and carried-forward history can not be rondeled')
     }
 
+    const doingRondelCount = source.doingRondelCount === null
+      ? null
+      : source.doingRondelCount + (rondel && source.status === 'doing' ? 1 : 0)
+    const event: TaskRondel | null = rondel ? {
+      id: uid(), occurredAt: nowIso(), status: source.status,
+      fromDate: source.dayDate, toDate: dayDate,
+      fromRondeled: source.rondeled, toRondeled: rondeled,
+      fromBucket: source.bucket, toBucket: bucket,
+    } : null
+    const rondelHistory = event ? [...source.rondelHistory, event] : source.rondelHistory
+
     let moved: Task
     if (rondel && keepsHistoryOnRondel(source)) {
       // Leave the source on its day as history; carry a doing copy forward.
@@ -333,6 +357,9 @@ export const localDataSource: DataSource = {
         bucket,
         position: tasks.length,
         rondelCount: source.rondelCount + 1,
+        doingRondelCount,
+        startedAt: source.startedAt,
+        bucketListOrigin: source.bucketListOrigin,
         flagged: source.flagged,
         reminderTime: source.reminderTime,
         tagIds: [...source.tagIds],
@@ -342,7 +369,7 @@ export const localDataSource: DataSource = {
         originTaskId: source.originTaskId ?? source.id,
         previousTaskId: source.id,
       })
-      tasks[index] = { ...source, carriedToId: moved.id }
+      tasks[index] = { ...source, carriedToId: moved.id, rondelHistory }
       tasks.push(moved)
     } else {
       moved = {
@@ -352,6 +379,8 @@ export const localDataSource: DataSource = {
         bucket,
         originDate: source.originDate ?? dayDate,
         rondelCount: source.rondelCount + (rondel ? 1 : 0),
+        doingRondelCount,
+        rondelHistory,
       }
       tasks[index] = moved
     }

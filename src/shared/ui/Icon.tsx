@@ -30,9 +30,11 @@ export type IconName =
   | 'bell'
   | 'pencil'
   | 'copy'
+  | 'chart'
   | 'rotate-ccw'
 
 const PATHS: Record<IconName, ReactNode> = {
+  chart: <path d="M4 3.5v13h13M7 12V9m4 3V5m4 7V7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />,
   note: <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9A1.5 1.5 0 0 1 16 5.5v6.7a1.5 1.5 0 0 1-.44 1.06l-3.3 3.3a1.5 1.5 0 0 1-1.06.44H5.5A1.5 1.5 0 0 1 4 15.5v-10Zm7.5 10.9V13a1 1 0 0 1 1-1h3.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
   'note-filled': (
     <>

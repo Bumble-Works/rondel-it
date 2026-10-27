@@ -2,6 +2,19 @@ export type TaskStatus = 'todo' | 'doing' | 'done' | 'canceled'
 
 export type TaskBucket = 'bucket-list'
 
+/** One counted carry-forward decision, retained on the task it moved from. */
+export interface TaskRondel {
+  id: string
+  occurredAt: string
+  fromDate: string | null
+  toDate: string | null
+  fromRondeled: boolean
+  toRondeled: boolean
+  fromBucket: TaskBucket | null
+  toBucket: TaskBucket | null
+  status: TaskStatus
+}
+
 export interface Task {
   id: string
   title: string
@@ -14,6 +27,15 @@ export interface Task {
   bucket: TaskBucket | null
   position: number
   rondelCount: number
+  /** Null when earlier versions did not record the todo/doing split. */
+  doingRondelCount: number | null
+  /** First recorded entry into doing; preserved through carry-forward and reopening. */
+  startedAt: string | null
+  /** Whether this lineage began in the Bucket List; null for unknown legacy origins. */
+  bucketListOrigin: boolean | null
+  canceledAt: string | null
+  /** Only decisions made from this record; successor copies start an empty list. */
+  rondelHistory: TaskRondel[]
   flagged: boolean
   /** Reminder on the task's day, 'HH:mm' (local time); null for none. */
   reminderTime: string | null

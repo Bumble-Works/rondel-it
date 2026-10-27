@@ -1,4 +1,5 @@
 import type { RecurringRule, Tag, Task, UserSetting } from '../../domain/types'
+import { taskTrackingDefaults } from '../../domain/taskTracking'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1'
@@ -42,6 +43,7 @@ function snakeKeys(input: object): Record<string, unknown> {
 
 function mapTask(payload: Record<string, unknown>): Task {
   return {
+    ...taskTrackingDefaults({ ...payload, rondelCount: Number(payload.rondelCount) } as Partial<Task>),
     id: String(payload.id),
     title: String(payload.title),
     status: String(payload.status) as Task['status'],
@@ -69,6 +71,10 @@ function optionalString(value: unknown): string | null {
 }
 
 export const railsDataSource: DataSource = {
+  async listAllTasks() {
+    throw new Error('Reports are not available with the Rails data source: a complete task export is not supported yet.')
+  },
+
   async listTasksInRange(startDate, endDate, tagId) {
     const response = await request<{ tasks: Record<string, unknown>[] }>(
       `/tasks?start=${startDate}&end=${endDate}`,

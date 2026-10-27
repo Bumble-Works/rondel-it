@@ -1,4 +1,7 @@
 import type { Collection, Snapshot, SyncMeta } from '../../domain/sync'
+import type { Task } from '../../domain/types'
+import { taskTrackingDefaults } from '../../domain/taskTracking'
+import { taskTrackingValid } from './taskTrackingValidation'
 
 /**
  * Everything read from the sync folder is untrusted (other devices, cloud
@@ -45,7 +48,8 @@ const RECORD_CHECKS: Record<Collection, (r: Rec) => boolean> = {
     typeof r.rondeled === 'boolean' &&
     (r.bucket === null || r.bucket === 'bucket-list') &&
     typeof r.position === 'number' &&
-    typeof r.rondelCount === 'number' &&
+    Number.isInteger(r.rondelCount) && (r.rondelCount as number) >= 0 &&
+    taskTrackingValid(r) &&
     isStringArray(r.tagIds) &&
     isString(r.note) &&
     isString(r.createdAt),
@@ -129,7 +133,7 @@ export function validateSnapshot(data: unknown, now = Date.now()): Validated {
     ok: true,
     droppedRecords,
     snapshot: {
-      tasks: clean.tasks as unknown as Snapshot['tasks'],
+      tasks: clean.tasks.map((task) => ({ ...task, ...taskTrackingDefaults(task as Partial<Task>) })) as unknown as Snapshot['tasks'],
       tags: clean.tags as unknown as Snapshot['tags'],
       rules: clean.rules as unknown as Snapshot['rules'],
       settings: settings as Snapshot['settings'],
