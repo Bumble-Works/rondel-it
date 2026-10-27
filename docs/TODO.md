@@ -107,6 +107,48 @@
   tmp/report-review-details-pr.md. Local e2e was used to debug the reported loading
   and chart issues; routine browser verification remains a CI responsibility.
 
+## todo — Reports maintainability (separate follow-up PR)
+
+Schedule after the report printing/CSV PR lands. Preserve current behavior and
+appearance; keep this cleanup separate from new features and report calculations.
+The goal is to keep routine changes local to the responsibility they affect.
+
+- **Give printable layout a clear owner.** `ReportPrintButton.css` currently
+  reaches into dashboard cards, calendars, tag charts and task rows. Move those
+  rules under the printable report/document owner so layout fixes are discoverable
+  there. Separate the print trigger from request preparation, dialog/error handling
+  and cleanup where that makes ownership clearer. Start with `ReportPrintButton`,
+  `PrintDocument` and their styles; retain the shared browser/native `printPage`.
+- **Keep dashboard display state together.** `ReportsPage` currently passes
+  collapse, calendar-year and timeline-line settings through `ReportOverview` to
+  individual charts and the printable copy. Give those settings one dashboard
+  owner and reuse the same selection for screen and print. Keep shared date/tag
+  filters and table status/sort/page state distinct. A new chart display option
+  should not require changes in the task table or `App.tsx`.
+- **Consolidate trivial single-use components where useful.** Review wrappers
+  such as `ReportExportButton` and its one-rule stylesheet. Keep small pieces in
+  their owning component when a separate file adds indirection without reuse or
+  a meaningful responsibility. Preserve busy/error handling and keyboard access.
+  Keep the shared `ReportTable`, `PrintDocument` and chart renderers; continue to
+  follow the stylesheet and component-size rules in `PRACTICES.md`.
+
+Acceptance and verification:
+
+- Keep the ten-column CSV contract, full notes, all matching rows, filters and
+  sorting unchanged. Preserve screen pagination and display choices after print.
+- Preserve dashboard appearance, collapsed sections, calendar year, timeline
+  toggles, SVG scaling/patterns, long-chart page breaks, repeating table headings,
+  existing board printing and native save cancellation/error behavior.
+- Retain the existing tests in `reportCsv.test.ts`, `ReportOutput.test.tsx`,
+  `PrintDocument.test.tsx`, download tests, `e2e/reportOutput.spec.ts` and board-print
+  smoke cases. Run lint, practices, unit/component tests and build; browser checks
+  remain in CI, with local e2e reserved for debugging failures. Compare print/PDF
+  output before and after the cleanup.
+- Make small commits by responsibility. A CSV-column edit should stay in its
+  formatter, focused tests and relevant docs. Avoid adding a general framework,
+  changing stored task/history data or bundling the derived-metric cleanup listed
+  under Simplification candidates below.
+
 ## todo — Remaining reporting follow-up
 
 - Verify large saved histories remain responsive with a one-year report,
