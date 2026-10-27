@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import {
   addDays,
@@ -32,9 +32,9 @@ import { QuickAdd, type QuickAddNav } from './features/task/QuickAdd'
 import { toQuickAddCreateTaskInput } from './features/task/quickAddInput'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
+import { STATUS_LABEL, FILTERABLE_STATUSES } from './shared/taskStatus'
+import { ActiveFilters } from './features/board/ActiveFilters'
 import { IconButton } from './shared/ui/IconButton'
-import { Menu } from './shared/ui/Menu'
-import { TagChip } from './shared/ui/TagChip'
 import { containerDropDay, isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import { describeRecurrence } from './domain/recurrence'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
@@ -48,6 +48,9 @@ import { useSchedule } from './features/reminders/useSchedule'
 import { useReminderAlerts } from './features/reminders/useReminderAlerts'
 import { ReminderModal } from './features/reminders/ReminderModal'
 import { announceReview } from './features/reminders/announceReview'
+import { features } from './shared/features'
+
+const ReportsPage = lazy(() => import('./features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
 
 const dataSource = createDataSource()
 
@@ -63,21 +66,6 @@ interface Buckets {
 }
 
 const EMPTY_BUCKETS: Buckets = { 'bucket-list': [] }
-
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  todo: 'To do',
-  doing: 'Doing',
-  done: 'Done',
-  canceled: 'Canceled',
-}
-
-const STATUS_COLOR: Record<TaskStatus, string> = {
-  todo: 'var(--muted)',
-  doing: 'var(--status-doing)',
-  done: 'var(--status-done)',
-  canceled: 'var(--faint)',
-}
-const FILTERABLE_STATUSES: TaskStatus[] = ['todo', 'doing', 'done']
 
 const BUCKET_DEFS: Array<[keyof Buckets, string, string]> = [['bucket-list', 'Bucket List', 'Someday']]
 
@@ -107,7 +95,8 @@ function App() {
   const [tagMatchMode, setTagMatchMode] = useState<'any' | 'all'>('any')
   const [activeStatuses, setActiveStatuses] = useState<TaskStatus[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
-  const [page, setPage] = useState<'board' | 'settings' | 'recurring'>('board')
+  const [page, setPage] = useState<'board' | 'settings' | 'recurring' | 'reports'>('board')
+  const [reportsRevision, setReportsRevision] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [printRequest, setPrintRequest] = useState<{ dayIso: string | null; at: number } | null>(null)
 
@@ -171,6 +160,7 @@ function App() {
       ])
       setReminderTasks(withReminders)
       setRangeTasks(range)
+      setReportsRevision((revision) => revision + 1)
       setBuckets({ 'bucket-list': bl })
 
       setContainerItems(rondelItems.filter((t) => showsInRondelContainer(t, { start: containerStart, end: containerEnd }, today)))
@@ -639,187 +629,139 @@ function App() {
 
   return (
     <div className={`app ${sidebarOpen ? 'is-sidebar-open' : ''}`.trim()}>
-      <div className="app-drawer-backdrop" onClick={() => setSidebarOpen(false)} />
-      <Sidebar
-        activeView={view}
-        onSelectView={(v) => {
-          setView(v)
-          setPage('board')
-          setSidebarOpen(false)
-        }}
-        tags={tags}
-        activeTagIds={activeTagIds}
-        onToggleTag={toggleTagFilter}
-        onResetTags={resetTagFilter}
-        tagMatchMode={tagMatchMode}
-        onSetTagMatchMode={setTagMatchMode}
-        activeStatuses={activeStatuses}
-        onToggleStatus={toggleStatus}
-        onResetStatuses={resetStatuses}
-        onOpenSettings={() => {
-          setPage('settings')
-          setSidebarOpen(false)
-        }}
-        onOpenRecurring={() => {
-          setPage('recurring')
-          setSidebarOpen(false)
-        }}
-      />
+      {page === 'reports' && features.reports ? (
+        <Suspense fallback={<main className="app-main"><p role="status">Loading reports…</p></main>}>
+          <ReportsPage dataSource={dataSource} tags={tags} weekStartDay={weekStartDay} revision={reportsRevision} onBack={() => setPage('board')} onError={reportError} />
+        </Suspense>
+      ) : (
+        <>
+          <div className="app-drawer-backdrop" onClick={() => setSidebarOpen(false)} />
+          <Sidebar
+            activeView={view}
+            onSelectView={(v) => {
+              setView(v)
+              setPage('board')
+              setSidebarOpen(false)
+            }}
+            tags={tags}
+            activeTagIds={activeTagIds}
+            onToggleTag={toggleTagFilter}
+            onResetTags={resetTagFilter}
+            tagMatchMode={tagMatchMode}
+            onSetTagMatchMode={setTagMatchMode}
+            activeStatuses={activeStatuses}
+            onToggleStatus={toggleStatus}
+            onResetStatuses={resetStatuses}
+            onOpenSettings={() => {
+              setPage('settings')
+              setSidebarOpen(false)
+            }}
+            onOpenRecurring={() => {
+              setPage('recurring')
+              setSidebarOpen(false)
+            }}
+            onOpenReports={() => {
+              setSelectedTaskId(null)
+              setPrintRequest(null)
+              setPage('reports')
+              setSidebarOpen(false)
+            }}
+          />
 
-      <main className="app-main">
-        <header className="app-topbar">
-          <button
-            type="button"
-            className="app-menu-btn"
-            aria-label="Show sidebar"
-            aria-expanded={sidebarOpen}
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Icon name="menu" size={20} />
-          </button>
-          <div className="app-topbar-titles">
-            <h1>{title}</h1>
-            <p>{subtitle}</p>
-          </div>
-
-          <div className="app-topbar-right">
-            {activeTagIds.length > 0 || activeStatuses.length > 0 ? (
-              <Menu
-                align="right"
-                trigger={({ onClick, 'aria-expanded': expanded }) => (
-                  <button
-                    type="button"
-                    className={`app-filter-btn ${expanded ? 'is-open' : ''}`.trim()}
-                    onClick={onClick}
-                  >
-                    <Icon name="filter" size={15} />
-                    <span>Filters</span>
-                    <span className="app-filter-count">{activeTagIds.length + activeStatuses.length}</span>
-                  </button>
-                )}
+          <main className="app-main">
+            <header className="app-topbar">
+              <button
+                type="button"
+                className="app-menu-btn"
+                aria-label="Show sidebar"
+                aria-expanded={sidebarOpen}
+                onClick={() => setSidebarOpen(true)}
               >
-                {(close) => (
-                  <div className="filter-panel">
-                    <div className="filter-panel-head">
-                      <span>Active filters</span>
-                      <button
-                        type="button"
-                        className="filter-panel-clear"
-                        onClick={() => {
-                          resetTagFilter()
-                          resetStatuses()
-                          close()
-                        }}
-                      >
-                        Clear all
-                      </button>
-                    </div>
+                <Icon name="menu" size={20} />
+              </button>
+              <div className="app-topbar-titles">
+                <h1>{title}</h1>
+                <p>{subtitle}</p>
+              </div>
 
-                    {activeStatuses.length > 0 && (
-                      <div className="filter-panel-group">
-                        <div className="filter-panel-label">Status</div>
-                        <div className="filter-panel-chips">
-                          {activeStatuses.map((status) => (
-                            <TagChip
-                              key={status}
-                              name={STATUS_LABEL[status]}
-                              color={STATUS_COLOR[status]}
-                              onRemove={() => toggleStatus(status)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {activeTagIds.length > 0 && (
-                      <div className="filter-panel-group">
-                        <div className="filter-panel-label">Tags</div>
-                        <div className="filter-panel-chips">
-                          {activeTagIds.map((id) => {
-                            const tag = tagsById.get(id)
-                            if (!tag) return null
-                            return (
-                              <TagChip
-                                key={id}
-                                name={tag.name}
-                                color={tag.color}
-                                onRemove={() => toggleTagFilter(id)}
-                              />
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
+              <div className="app-topbar-right">
+                <ActiveFilters
+                  activeTagIds={activeTagIds}
+                  activeStatuses={activeStatuses}
+                  tagsById={tagsById}
+                  resetTagFilter={resetTagFilter}
+                  resetStatuses={resetStatuses}
+                  toggleStatus={toggleStatus}
+                  toggleTagFilter={toggleTagFilter}
+                />
+                {quickAddEl}
+                <IconButton
+                  icon="print"
+                  label={view === 'rondel' ? 'Print the Bucket List' : `Print this ${view}`}
+                  title={`Print ${printTitle}${view === 'week' || view === 'month' ? ', every day with tasks' : ''}`}
+                  onClick={() => setPrintRequest({ dayIso: null, at: Date.now() })}
+                />
+                {canPage && (
+                  <div className="app-nav">
+                    <button
+                      type="button"
+                      className="app-nav-arrow"
+                      aria-label={view === 'day' ? 'Previous day' : view === 'week' ? 'Previous week' : 'Previous month'}
+                      onClick={() => shiftAnchor(-1)}
+                    >
+                      <Icon name="chevron-left" size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      className="app-nav-today"
+                      disabled={isAnchorNow}
+                      onClick={() => setAnchorDate(today)}
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className="app-nav-arrow"
+                      aria-label={view === 'day' ? 'Next day' : view === 'week' ? 'Next week' : 'Next month'}
+                      onClick={() => shiftAnchor(1)}
+                    >
+                      <Icon name="chevron-right" size={18} />
+                    </button>
                   </div>
                 )}
-              </Menu>
-            ) : null}
-            {quickAddEl}
-            <IconButton
-              icon="print"
-              label={view === 'rondel' ? 'Print the Bucket List' : `Print this ${view}`}
-              title={`Print ${printTitle}${view === 'week' || view === 'month' ? ', every day with tasks' : ''}`}
-              onClick={() => setPrintRequest({ dayIso: null, at: Date.now() })}
-            />
-            {canPage && (
-              <div className="app-nav">
-                <button
-                  type="button"
-                  className="app-nav-arrow"
-                  aria-label={view === 'day' ? 'Previous day' : view === 'week' ? 'Previous week' : 'Previous month'}
-                  onClick={() => shiftAnchor(-1)}
-                >
-                  <Icon name="chevron-left" size={18} />
-                </button>
-                <button
-                  type="button"
-                  className="app-nav-today"
-                  disabled={isAnchorNow}
-                  onClick={() => setAnchorDate(today)}
-                >
-                  Today
-                </button>
-                <button
-                  type="button"
-                  className="app-nav-arrow"
-                  aria-label={view === 'day' ? 'Next day' : view === 'week' ? 'Next week' : 'Next month'}
-                  onClick={() => shiftAnchor(1)}
-                >
-                  <Icon name="chevron-right" size={18} />
-                </button>
               </div>
-            )}
-          </div>
-        </header>
+            </header>
 
-        <div className="app-scroll">
-          {error && <p className="app-error">{error}</p>}
+            <div className="app-scroll">
+              {error && <p className="app-error">{error}</p>}
 
-          <WeekBoard
-            groups={groups}
-            tagsById={tagsById}
-            repeatLabels={repeatLabels}
-            selectedTaskId={selectedTaskId}
-            onOpen={(task) => setSelectedTaskId(task.id)}
-            onAdvance={advance}
-            onSetDone={setDone}
-            onRondel={rondel}
-            onPickDate={(task) => pickDate(task, 'rondel')}
-            onOpenNote={(task) => setNoteTaskId(task.id)}
-            onToggleFlag={toggleFlag}
-            onCancel={(task) => cancelTask(task.id)}
-            onCopy={copyTask}
-            onPickCopyDate={(task) => pickDate(task, 'copy')}
-            onOpenReminder={openReminder}
-            onQuickAdd={quickAdd}
-            onCreateTag={createTagNamed}
-            onMove={move}
-            weekStartDay={weekStartDay}
-          />
-        </div>
-      </main>
+              <WeekBoard
+                groups={groups}
+                tagsById={tagsById}
+                repeatLabels={repeatLabels}
+                selectedTaskId={selectedTaskId}
+                onOpen={(task) => setSelectedTaskId(task.id)}
+                onAdvance={advance}
+                onSetDone={setDone}
+                onRondel={rondel}
+                onPickDate={(task) => pickDate(task, 'rondel')}
+                onOpenNote={(task) => setNoteTaskId(task.id)}
+                onToggleFlag={toggleFlag}
+                onCancel={(task) => cancelTask(task.id)}
+                onCopy={copyTask}
+                onPickCopyDate={(task) => pickDate(task, 'copy')}
+                onOpenReminder={openReminder}
+                onQuickAdd={quickAdd}
+                onCreateTag={createTagNamed}
+                onMove={move}
+                weekStartDay={weekStartDay}
+              />
+            </div>
+          </main>
+        </>
+      )}
 
-      {selectedTask && (
+      {selectedTask && page === 'board' && (
         <TaskDetailPanel
           key={selectedTask.id}
           task={selectedTask}
