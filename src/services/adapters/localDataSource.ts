@@ -218,7 +218,7 @@ const FIRST_LOOKAHEAD_DAYS = 3660
 
 /**
  * The app's real storage: everything lives on this device (see localStore),
- * and folder sync shares it between devices. Used unless VITE_DATA_SOURCE=rails.
+ * and folder sync shares it between devices.
  */
 export const localDataSource: DataSource = {
   async listAllTasks() {

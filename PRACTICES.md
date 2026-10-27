@@ -11,7 +11,7 @@
 - **Well-named** variables and functions; names describe what/why.
 - **Short functions and files** — each does one thing; split when they grow.
 - **Helpers and services** for reusable logic; keep components/controllers thin.
-- **MVC mindset** (Rails-style): models = domain/data, controllers = orchestration,
+- **MVC mindset**: models = domain/data, controllers = orchestration,
   views = presentation.
 
 ## Comments

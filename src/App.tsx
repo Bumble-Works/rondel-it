@@ -38,7 +38,7 @@ import { IconButton } from './shared/ui/IconButton'
 import { containerDropDay, isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
 import { describeRecurrence } from './domain/recurrence'
 import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
-import { createDataSource } from './services/adapters/dataSourceFactory'
+import { localDataSource as dataSource } from './services/adapters/localDataSource'
 import { useSync } from './features/sync/useSync'
 import { restoreMenuBarIcon } from './shared/startAtLogin'
 import { PrintSheet } from './features/print/PrintSheet'
@@ -51,8 +51,6 @@ import { announceReview } from './features/reminders/announceReview'
 import { features } from './shared/features'
 
 const ReportsPage = lazy(() => import('./features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
-
-const dataSource = createDataSource()
 
 const VIEW_TITLE: Record<ViewKey, string> = {
   day: 'Day',

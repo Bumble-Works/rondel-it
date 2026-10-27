@@ -4,7 +4,7 @@ This is the source of truth for how the app is **meant** to behave.
 If the app does something different from this doc, it's a bug. If we want it
 to behave differently, update this doc in the same change as the code.
 
-Plans (`Plan1.md`, …) are temporary and get deleted once done. This doc stays.
+Working plans are temporary; this doc stays. Current work lives in `docs/TODO.md`.
 
 ## Philosophy
 
@@ -588,7 +588,7 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Data and storage
 
-- Today the app runs on the local adapter: data lives in the web view's
+- The app uses the local adapter: data lives in the web view's
   storage (`rondel.v6.*` keys). In the browser that's per origin
   (`localhost:1420`); in the Mac and Windows apps it's per app identifier
   (`com.bumbleworks.rondelit`). They don't share data (sync aside).
@@ -605,4 +605,3 @@ Today, Next week, Next month, Pick a date, Mark done.
 - Time zone: everything (the board's "today", review times, reminders,
   midnight and recurring tasks) uses **this device's** time zone, so it
   follows you when you travel. The synced settings' `timezone` isn't used.
-- The Rails adapter (`VITE_DATA_SOURCE=rails`) sends snake_case and reads camelCase.

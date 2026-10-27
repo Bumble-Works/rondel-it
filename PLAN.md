@@ -161,13 +161,14 @@ avoids heavy backend infrastructure for the core app
 reduces customer friction and operational burden
 keeps the business model sane for a small team
 Later-phase possibility
-A subscription model could be introduced later if reporting or premium sync becomes heavily server-dependent. But that should be a later decision, not the initial default.
+A subscription model could be introduced later for advanced features. But that should be a later decision, not the initial default.
 
 Best technical architecture for reuse
 Recommended stack
 Desktop app: Tauri + React + TypeScript
-Backend: Rails for shared logic, future reporting, and premium services
-Local storage: SQLite or another local data store
+Domain logic: shared TypeScript modules in the app for task rules and reporting
+Local storage: localStorage today, with SQLite or another local file store as a future option
+Sync: per-device JSON snapshots in the user's chosen cloud-drive folder
 Shared domain model: tasks, task states, notes, categories, settings, history
 Future clients: reuse the core logic across Mac, Windows, Linux, iPhone, Android, and web
 Why this is the best fit
@@ -225,14 +226,13 @@ Phase 3 — premium features
 Phase 4 — cross-platform expansion
  evaluate Windows and Linux desktop paths
  plan reusable architecture for mobile apps
- define shared backend contracts
+ reuse shared domain logic and the device snapshot format
 Open decisions to confirm
 Should a task that was in doing on a previous day remain visibly marked as doing in that day’s history while the new date starts as todo?
 Should categories be structured categories or freeform tags first?
 Should reporting rely only on task state history, or include manual time tracking?
 Should rondel suggestions be advisory or automatic?
 Should done tasks remain visible in the day view or be hidden after a period?
-Should premium sync use user-owned cloud storage first, or should a backend option be introduced later?
 Final recommendation
 Rondel It should be built as a premium, polished, keyboard-first daily review tool, with a meaningful task lifecycle and intentional carry-forward as the main differentiator.
 
