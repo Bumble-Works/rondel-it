@@ -59,8 +59,7 @@ your OS](https://v2.tauri.app/start/prerequisites/), then run:
 npm run app:dev
 ```
 
-`npm run app:build` builds the desktop app. The older `bootstrap` and `start` scripts
-refer to a Rails backend that's on hold; use `npm run dev` for the browser version.
+`npm run app:build` builds the desktop app. `npm start` also runs the browser version.
 
 ## Your data belongs to you
 
@@ -96,7 +95,7 @@ The browser and desktop apps share a **React + TypeScript** interface built with
 notifications, reminder windows and access to the sync folder.
 
 Task rules live in `src/domain/`, separate from the UI. Data access sits behind an
-adapter in `src/services/adapters/`; the app currently uses the local adapter backed by
+adapter in `src/services/adapters/`; the app uses the local adapter backed by
 `localStorage`. Sync writes one JSON snapshot per device and merges changes per task,
 tag or recurring rule. Deletion markers distinguish an intentional delete from a missing
 file.

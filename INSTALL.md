@@ -70,14 +70,14 @@ xcode-select --install
 # Homebrew — https://brew.sh (skip if already installed)
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Node.js (v20+) and Rust (v1.85+)
+# Node.js and Rust (v1.85+)
 brew install node rust
 ```
 
 Verify:
 
 ```bash
-node -v      # v20 or newer
+node -v      # use the version pinned in .nvmrc (Node 22+ required)
 cargo -v     # 1.85 or newer
 ```
 
@@ -91,17 +91,13 @@ npm install
 
 ### 3. Run it
 
-- **Bootstrap local web+api dev prerequisites (deps + db):**
-  ```bash
-  npm run bootstrap
-  ```
 - **Try it live (dev window with hot reload):**
   ```bash
   npm run app:dev
   ```
-- **Start web + Rails API together (non-Tauri flow):**
+- **Run the browser version at http://localhost:1420:**
   ```bash
-  npm run start
+  npm run dev
   ```
 - **Build the installable app:**
   ```bash
@@ -126,8 +122,10 @@ cp -R "src-tauri/target/release/bundle/macos/Rondel It.app" /Applications/
 
 ## Where your data is stored
 
-- Everything is stored **locally** inside the app (no cloud, no sync).
+- Everything is stored **locally** inside the app.
 - It persists across restarts and reboots.
-- It stays on this Mac only — installing on another Mac starts fresh.
+- Installing on another Mac starts fresh unless you enable folder sync.
 
-**Coming later:** optional sync via your own Google Drive / iCloud Drive folder, so two Macs can share the same data without any server.
+Optional sync is available in **Settings → Sync → Choose folder…**. Pick a
+folder in Google Drive, OneDrive, Box or Dropbox on each computer. Each device
+keeps its own data and exchanges changes through that folder.

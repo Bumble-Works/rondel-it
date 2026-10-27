@@ -6,7 +6,7 @@ const SRC = 'src'
 const MAX_COMPONENT_LINES = 250
 // Known exceptions, with the limit they must not grow past. Shrink, then remove.
 const LINE_LIMIT_EXCEPTIONS = {
-  'src/App.tsx': 900, // to be split into per-feature hooks (Plan1.md)
+  'src/App.tsx': 900, // to be split into per-feature hooks
 }
 // Components with no visual styles of their own (they take a className).
 const NO_STYLESHEET_NEEDED = new Set([

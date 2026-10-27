@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { Tag } from '../../domain/types'
 import type { BoardGroupAddTarget } from '../board/WeekBoard'
-import { createDataSource } from '../../services/adapters/dataSourceFactory'
+import { localDataSource as dataSource } from '../../services/adapters/localDataSource'
 import { IconButton } from '../../shared/ui/IconButton'
 import { anyModalOpen } from '../../shared/ui/modalStack'
 import { QuickAddModal, type QuickAddNav } from './QuickAddModal'
 import { toQuickAddCreateTaskInput } from './quickAddInput'
 
 export type { QuickAddNav } from './QuickAddModal'
-
-const dataSource = createDataSource()
 
 interface QuickAddProps {
   tags: Tag[]
