@@ -1,0 +1,10 @@
+.report-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface); }
+.report-table-scroll:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.report-table-scroll table { width: 100%; min-width: 790px; border-collapse: collapse; table-layout: fixed; }
+.report-table-scroll thead { background: var(--surface-2); }
+.report-table-scroll thead th { text-align: left; padding: 0.8rem 0.7rem; border-bottom: 1px solid var(--border); }
+.report-table-scroll th:first-child { width: 35%; }
+.report-table-scroll thead button { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 0.25rem; text-align: left; padding: 0; border: none; background: none; color: var(--ink-soft); font-size: 0.72rem; font-weight: 800; }
+.report-table-scroll thead th[aria-sort] button { color: var(--brand-ink); }
+.report-table-scroll thead button:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+.report-table-scroll tbody tr:last-child td, .report-table-scroll tbody tr:last-child th { border-bottom: none; }

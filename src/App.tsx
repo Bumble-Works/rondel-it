@@ -813,6 +813,7 @@ function App() {
       {/* After the nag so "Pick a date" from the nag opens on top of it. */}
       {printRequest && (
         <PrintSheet
+          key={printRequest.at}
           // Exactly what the board shows, filters applied.
           title={printRequest.dayIso ? formatDayLabel(printRequest.dayIso) : printTitle}
           {...(printRequest.dayIso

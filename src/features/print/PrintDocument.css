@@ -1,0 +1,15 @@
+.print-sheet { display: none; }
+
+@media print {
+  body > :not(.print-sheet[data-print-active]) { display: none !important; }
+  body { background: #fff; }
+  .print-sheet[data-print-active] {
+    display: block;
+    color: #000;
+    font-family: -apple-system, system-ui, sans-serif;
+    font-size: 11pt;
+  }
+  .print-head { border-bottom: 1.5pt solid #000; padding-bottom: 6pt; margin-bottom: 10pt; }
+  .print-head h1 { font-size: 18pt; margin: 0; }
+  .print-head p { margin: 3pt 0 0; color: #444; font-size: 9.5pt; }
+}

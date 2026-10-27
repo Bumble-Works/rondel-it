@@ -16,18 +16,22 @@ interface ReportOverviewProps {
   onToggle: (section: string) => void
   calendarYear: number
   onCalendarYear: (year: number) => void
+  printMode?: boolean
+  hiddenTimeline?: string[]
+  onHiddenTimelineChange?: (hidden: string[]) => void
   onLeftBehind?: () => void
 }
 
-export function ReportOverview({ dashboard, collapsed, onToggle, calendarYear, onCalendarYear, onLeftBehind = () => {} }: ReportOverviewProps) {
+export function ReportOverview({ dashboard, collapsed, onToggle, calendarYear, onCalendarYear, onLeftBehind = () => {}, printMode = false, hiddenTimeline, onHiddenTimelineChange }: ReportOverviewProps) {
   const { summary, rondels } = dashboard
+  const longPrintCharts = printMode && dashboard.tagMetrics.length > 12
   const section = (id: string) => ({ collapsed: collapsed.includes(id), onToggle: () => onToggle(id) })
   return (
     <div className="report-overview">
       <ReportHighlights dashboard={dashboard} onLeftBehind={onLeftBehind} />
 
       <ReportSection title="A little progress, day by day" description="One day, one little step at a time." {...section('timeline')}>
-        <ActivityTimeline days={dashboard.timeline} />
+        <ActivityTimeline days={dashboard.timeline} hiddenSeries={hiddenTimeline} onHiddenSeriesChange={onHiddenTimelineChange} printMode={printMode} />
       </ReportSection>
 
       <ReportSection title="Your little wins" description="Completions, one square at a time." {...section('calendar')}>
@@ -38,12 +42,12 @@ export function ReportOverview({ dashboard, collapsed, onToggle, calendarYear, o
         <span aria-hidden="true">✦</span><div><strong>Someday became done.</strong><p>{dashboard.bucketCompletions.length} Bucket List {dashboard.bucketCompletions.length === 1 ? 'idea' : 'ideas'} brought into reality this period.</p></div>
       </aside>}
 
-      <div className="report-overview-grid">
+      <div className={`report-overview-grid${longPrintCharts ? ' report-overview-grid--long' : ''}`}>
         <ReportSection className="report-summary-chart" title="Where your list stands" description="Current status of your list." {...section('status')}>
           <CompletionDonut summary={summary} />
         </ReportSection>
-        <ReportSection className="report-summary-chart" title="Completion by tag" description="A little done, a little underway." {...section('tags-completed')}>
-          <TagBars metrics={dashboard.tagMetrics} kind="completion" />
+        <ReportSection className="report-summary-chart" wide={longPrintCharts} title="Completion by tag" description="A little done, a little underway." {...section('tags-completed')}>
+          <TagBars metrics={dashboard.tagMetrics} kind="completion" printMode={printMode} />
         </ReportSection>
         <ReportSection title="What carried forward" description="Following tasks between periods, even when they now live elsewhere." {...section('flow')}>
           <div className="report-flow">
@@ -55,8 +59,8 @@ export function ReportOverview({ dashboard, collapsed, onToggle, calendarYear, o
             </div>)}
           </div>
         </ReportSection>
-        <ReportSection title="Where tasks keep rolling" description="The tags attached to work that has been carried forward." {...section('tags-rondels')}>
-          <TagBars metrics={dashboard.tagMetrics} kind="rondels" />
+        <ReportSection wide={longPrintCharts} title="Where tasks keep rolling" description="The tags attached to work that has been carried forward." {...section('tags-rondels')}>
+          <TagBars metrics={dashboard.tagMetrics} kind="rondels" printMode={printMode} />
         </ReportSection>
         <div className="report-overview-bottom">
           <div className="report-overview-stack">

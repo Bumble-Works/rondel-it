@@ -1,5 +1,31 @@
 # Progress
 
+## wip — Report printing and CSV (`feat/report-print-export`, ready for local review)
+
+- Reuse the shared print document wrapper and existing browser/native print dialog.
+  Print Dashboard and Tasks using their existing visual components, selected dates,
+  tag/status filters, collapsed sections, calendar year and timeline line choices.
+- Print/export every matching task in sorted order across all table pages. Print
+  follows Show notes; CSV always includes full notes and ten useful columns
+  without internal IDs.
+- Expand print-only overflow, repeat table headings, split long tag charts on a
+  shared scale and keep SVG pattern IDs unique across screen/print copies.
+- Browser CSV download and desktop native save picker share the same formatter;
+  cancellation is normal and failures reach the existing error handler.
+- Focused CSV/component/native-download tests and browser regressions cover
+  filters, all pages, display choices, cancellation, error reporting and SVG scaling.
+  Column meanings are in docs/REPORT-EXPORT.md.
+- Validation: lint, practices checks, all 316 unit/component tests and production
+  build pass. All eight focused report scenarios and ten existing board-print
+  cases pass across Chromium/WebKit. Local browser checks debugged actual calendar
+  clipping and chart page-break overlaps.
+- Reviewed generated PDFs, including a full-year calendar, 35-tag charts and all
+  65 rows of a long-note table with repeating headings. Both browser engines also
+  show no page overflow at 360px. Native Mac/Windows dialogs still need manual checks.
+- Preview: `npm run dev` → http://localhost:1420. Reports → Print on either tab,
+  or Tasks → Export CSV. Only local commits; human reviews and publishes.
+
+
 ## in-pr — Reporting dashboard (`feat/make-reporting`)
 
 - Restored reporting work from `wip/backup-all` on top of main at `1ddbbd5`
@@ -83,9 +109,6 @@
 
 ## todo — Remaining reporting follow-up
 
-- Connect printable reports to the system dialog, honoring tags, ranges and
-  collapsed sections; retain the chosen view for Save as PDF.
-- Connect the recovered CSV helper to the task table and add focused export tests.
 - Verify large saved histories remain responsive with a one-year report,
   rapid tag changes and collapsed sections. The current adapter still reads
   all retained tasks to preserve complete lineage and cross-period move counts;
@@ -111,8 +134,8 @@
   in the existing report model although their dashboard sections are gone.
   Review unused derived results in an isolated cleanup, preserving useful AI data.
 - Day-grouped review data is still generated although Meeting review was removed.
-  It can be dropped once confirmed unnecessary for Week printing/AI. CSV wiring
-  is also pending. Keep persisted lineage and dated rondel observations intact.
+  It can be dropped once confirmed unnecessary for Week printing/AI. Keep
+  persisted lineage and dated rondel observations intact.
 - Status charts intentionally match saved day lists without filling gaps. Todo
   moves do not retain old day entries; only dated rondel decisions establish that
   they moved. Immutable past status snapshots would need fuller tracking if wanted.

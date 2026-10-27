@@ -1,6 +1,6 @@
-import { createPortal } from 'react-dom'
 import { isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
+import { PrintDocument } from './PrintDocument'
 import './PrintSheet.css'
 
 // Round, like the app's status circles.
@@ -35,16 +35,8 @@ interface PrintSheetProps {
 export function PrintSheet({ title, sections, showHeadings, tagsById, filterSummary }: PrintSheetProps) {
   const total = sections.reduce((sum, section) => sum + section.tasks.length, 0)
 
-  return createPortal(
-    <section className="print-sheet" aria-hidden="true">
-      <header className="print-head">
-        <h1>{title}</h1>
-        <p>
-          {total} task{total === 1 ? '' : 's'}
-          {filterSummary ? ` · Filtered: ${filterSummary}` : ''}
-        </p>
-      </header>
-
+  return (
+    <PrintDocument title={title} summary={`${total} task${total === 1 ? '' : 's'}${filterSummary ? ` · Filtered: ${filterSummary}` : ''}`}>
       {total === 0 ? (
         <p className="print-empty">Nothing to print.</p>
       ) : (
@@ -55,8 +47,7 @@ export function PrintSheet({ title, sections, showHeadings, tagsById, filterSumm
           </section>
         ))
       )}
-    </section>,
-    document.body,
+    </PrintDocument>
   )
 }
 

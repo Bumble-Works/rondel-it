@@ -1,0 +1,40 @@
+@media print {
+  .report-print {
+    color: var(--ink) !important;
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .report-print .print-head { border-color: var(--border); }
+  .report-print .print-head h1 { color: var(--brand-ink); letter-spacing: -0.04em; }
+  .report-print .report-overview { display: block; }
+  .report-print .report-overview > * + * { margin-top: 12pt; }
+  .report-print .report-overview-grid, .report-print .report-overview-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-print .report-overview-grid--long { display: block; }
+  .report-print .report-overview-grid--long > * + * { margin-top: 12pt; }
+  .report-print .report-overview-bottom { break-inside: avoid; }
+  .report-print .report-section { overflow: visible; border-radius: var(--r-xl); }
+  .report-print .report-section-heading { padding: 10pt 12pt; }
+  .report-print .report-section-body { padding: 0 12pt 12pt; }
+  .report-print .report-summary-chart { height: auto; }
+  .report-print .report-highlight { padding: 10pt; break-inside: avoid; }
+  .report-print .report-highlight-count { text-decoration: none; }
+  .report-print .completion-donut, .report-print .rondel-outcomes { flex-wrap: wrap; }
+  .report-print .completion-calendar-scroll { overflow: visible; }
+  .report-print .completion-calendar-scroll svg { min-width: 0; max-width: 100%; }
+  .report-print .tag-bars-chart { max-height: none; overflow: visible; }
+  .report-print .tag-bars { display: block; }
+  .report-print .tag-bars-page { break-inside: avoid; }
+  .report-print .tag-bars-page + .tag-bars-page { margin-top: 12pt; }
+  .report-print .report-section:has(.tag-bars-page + .tag-bars-page) { break-inside: auto; display: block; }
+  .report-print .report-section:has(.tag-bars-page + .tag-bars-page) .report-section-body { display: block; }
+  .report-print .report-section-heading { break-after: avoid; }
+  .report-print .report-table-scroll { overflow: visible; border-radius: 0; }
+  .report-print .report-table-scroll table { min-width: 0; }
+  .report-print thead { display: table-header-group; }
+  .report-print .report-task-row { break-inside: avoid; }
+  .report-print .report-task-row th, .report-print .report-task-row td { padding: 6pt 4pt; font-size: 8pt; }
+  .report-print .report-task-title { font-size: 9pt; }
+  .report-print .report-table-scroll thead th { padding: 6pt 4pt; font-size: 8pt; }
+  .report-print .report-context-note { overflow-wrap: anywhere; }
+}

@@ -13,8 +13,22 @@ const series: { key: keyof ReportActivity; label: string; color: string; dash?: 
   { key: 'canceled', label: 'Canceled', color: reportColors.canceled, dash: '2 4' },
 ]
 
-export function ActivityTimeline({ days }: { days: ReportTimelineDay[] }) {
-  const [hidden, setHidden] = useState<string[]>([])
+interface ActivityTimelineProps {
+  days: ReportTimelineDay[]
+  hiddenSeries?: string[]
+  onHiddenSeriesChange?: (hidden: string[]) => void
+  printMode?: boolean
+}
+
+export function ActivityTimeline({ days, hiddenSeries, onHiddenSeriesChange, printMode = false }: ActivityTimelineProps) {
+  const [localHidden, setLocalHidden] = useState<string[]>([])
+  const hidden = hiddenSeries ?? localHidden
+  const toggleSeries = (key: string) => {
+    const next = hidden.includes(key) ? hidden.filter((item) => item !== key) : [...hidden, key]
+    if (onHiddenSeriesChange) onHiddenSeriesChange(next)
+    else setLocalHidden(next)
+    setActive(null)
+  }
   const [active, setActive] = useState<string | null>(null)
   const [selected, setSelected] = useState<number | null>(null)
   const keyboardNavigation = useRef(false)
@@ -52,7 +66,7 @@ export function ActivityTimeline({ days }: { days: ReportTimelineDay[] }) {
         {series.map((item) => <button key={item.key} type="button" aria-pressed={!hidden.includes(item.key)}
           onMouseEnter={() => setActive(item.key)} onMouseLeave={() => setActive(null)}
           onFocus={() => setActive(item.key)} onBlur={() => setActive(null)}
-          onClick={() => { setHidden((keys) => keys.includes(item.key) ? keys.filter((key) => key !== item.key) : [...keys, item.key]); setActive(null) }}>
+          disabled={printMode} onClick={() => toggleSeries(item.key)}>
           <svg width="26" height="12" aria-hidden="true"><line x1="0" x2="26" y1="6" y2="6" stroke={item.color} strokeWidth="3" strokeDasharray={item.dash} /></svg>{item.label}
         </button>)}
       </div>

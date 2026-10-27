@@ -81,7 +81,7 @@ it('stacks dated list entries in tag colors and keeps postponed work out of stat
   const { rerender } = render(<TagBars metrics={dashboard.tagMetrics} kind="completion" />)
   expect(chartData('bar-data')).toEqual([{ label: 'work', name: '#Work', done: 1, doing: 1, todo: 0, color: tags[0].color }])
   expect(JSON.parse(screen.getByTestId('bar-data').getAttribute('data-fill') ?? 'null'))
-    .toEqual([{ match: { id: 'doing' }, id: 'in-progress-lines' }])
+    .toEqual([{ match: { id: 'doing' }, id: expect.stringContaining('in-progress-lines') }])
   rerender(<TagBars metrics={dashboard.tagMetrics} kind="rondels" />)
   expect(chartData('bar-data')).toEqual([{ label: 'work', name: '#Work', value: 5, color: tags[0].color }])
   const outside = reportFixture([task({ tagIds: ['work'], status: 'done', dayDate: '2026-11-01', completedAt: '2026-11-01T12:00:00Z' })])
@@ -122,4 +122,15 @@ it('keeps the calendar within its selected year and reports exact completion day
   expect(onYearChange).toHaveBeenCalledWith(2025)
   rerender(<CompletionCalendar dashboard={dashboard} year={2025} onYearChange={onYearChange} />)
   expect(chartData('calendar-data')).toEqual([{ day: '2025-12-31', value: 1 }])
+})
+
+it('splits printed tag charts into readable groups with unique pattern IDs', () => {
+  const metrics = Array.from({ length: 29 }, (_, index) => ({ id: `tag-${index}`, name: `Tag ${index}`, color: '#5486f5',
+    total: 2, done: 1, inProgress: 1, todo: 0, canceled: 0, rondels: index + 1 }))
+  render(<><TagBars metrics={metrics} kind="completion" /><TagBars metrics={metrics} kind="completion" printMode /></>)
+  const charts = screen.getAllByTestId('bar-data')
+  expect(charts).toHaveLength(4)
+  expect(charts.map((chart) => JSON.parse(chart.textContent ?? '[]').length)).toEqual([29, 12, 12, 5])
+  const patterns = charts.map((chart) => JSON.parse(chart.getAttribute('data-fill') ?? '[]')[0].id)
+  expect(new Set(patterns).size).toBe(4)
 })

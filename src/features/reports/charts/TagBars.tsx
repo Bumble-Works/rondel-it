@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Bar } from '@nivo/bar'
 import type { ReportTagMetric } from '../../../domain/reportTypes'
 import './TagBars.css'
@@ -5,7 +6,8 @@ import './TagBars.css'
 const statusLabels: Record<string, string> = { done: 'done', doing: 'in progress', todo: 'to do', value: 'rondels' }
 const tagLabel = (tag: ReportTagMetric) => tag.id === '__untagged__' ? tag.name : `#${tag.name}`
 
-export function TagBars({ metrics, kind }: { metrics: ReportTagMetric[]; kind: 'completion' | 'rondels' }) {
+export function TagBars({ metrics, kind, printMode = false }: { metrics: ReportTagMetric[]; kind: 'completion' | 'rondels'; printMode?: boolean }) {
+  const patternPrefix = useId().replaceAll(':', '')
   const activeCount = (tag: ReportTagMetric) => tag.done + tag.inProgress + tag.todo
   const rows = metrics.filter((tag) => kind === 'completion' ? activeCount(tag) > 0 : tag.rondels > 0)
     .sort((a, b) => kind === 'completion'
@@ -23,27 +25,30 @@ export function TagBars({ metrics, kind }: { metrics: ReportTagMetric[]; kind: '
     const tag = rows.find((row) => row.id === String(id))
     return tag ? tagLabel(tag) : ''
   }
+  const chunks = printMode ? Array.from({ length: Math.ceil(data.length / 12) }, (_, index) => data.slice(index * 12, (index + 1) * 12)) : [data]
   return (
     <div className="tag-bars">
       <div className="tag-bars-chart" role="region" aria-label={kind === 'completion' ? 'Task status by tag' : 'Rondels by tag'} tabIndex={0}>
-        <Bar width={540} height={Math.max(190, rows.length * 34 + 30)} data={data} keys={kind === 'completion' ? ['done', 'doing', 'todo'] : ['value']} indexBy="label"
-          layout="horizontal" margin={{ top: 6, right: 28, bottom: 28, left: 112 }} padding={0.5}
-          colors={({ id, data: datum }) => id === 'todo' ? '#ffffff' : String(datum.color)}
-          borderColor={({ data: bar }) => String(bar.data.color)} borderWidth={1.5}
-          borderRadius={3} enableLabel={false}
-          defs={[{ id: 'in-progress-lines', type: 'patternLines', background: 'inherit', color: 'rgba(255,255,255,0.8)', rotation: 45, lineWidth: 2, spacing: 6 }]}
-          fill={kind === 'completion' ? [{ match: { id: 'doing' }, id: 'in-progress-lines' }] : []}
-          valueScale={{ type: 'linear', min: 0, max: 'auto' }}
-          axisTop={null} axisRight={null}
-          axisLeft={{ tickSize: 0, tickPadding: 10, format: (id) => {
-            const name = nameFor(id)
-            return name.length > 16 ? `${name.slice(0, 15)}…` : name
-          } }}
-          axisBottom={{ tickSize: 0, tickPadding: 8, tickValues: ticks }}
-          enableGridY={false} enableGridX animate={false} isInteractive isFocusable
-          barAriaLabel={(bar) => `${String(bar.data.name)}: ${bar.value} ${statusLabels[String(bar.id)]}`}
-          tooltip={({ id, value, data: datum }) => <div className="tag-bars-tooltip"><strong>{String(datum.name)}</strong><span>{value} {statusLabels[String(id)]}</span></div>}
-        />
+        {chunks.map((chunk, index) => <div className="tag-bars-page" key={index}>
+          <Bar width={540} height={Math.max(190, chunk.length * 34 + 30)} data={chunk} keys={kind === 'completion' ? ['done', 'doing', 'todo'] : ['value']} indexBy="label"
+            layout="horizontal" margin={{ top: 6, right: 28, bottom: 28, left: 112 }} padding={0.5}
+            colors={({ id, data: datum }) => id === 'todo' ? '#ffffff' : String(datum.color)}
+            borderColor={({ data: bar }) => String(bar.data.color)} borderWidth={1.5}
+            borderRadius={3} enableLabel={false}
+            defs={[{ id: `${patternPrefix}-${index}-in-progress-lines`, type: 'patternLines', background: 'inherit', color: 'rgba(255,255,255,0.8)', rotation: 45, lineWidth: 2, spacing: 6 }]}
+            fill={kind === 'completion' ? [{ match: { id: 'doing' }, id: `${patternPrefix}-${index}-in-progress-lines` }] : []}
+            valueScale={{ type: 'linear', min: 0, max: maximum }}
+            axisTop={null} axisRight={null}
+            axisLeft={{ tickSize: 0, tickPadding: 10, format: (id) => {
+              const name = nameFor(id)
+              return name.length > 16 ? `${name.slice(0, 15)}…` : name
+            } }}
+            axisBottom={{ tickSize: 0, tickPadding: 8, tickValues: ticks }}
+            enableGridY={false} enableGridX animate={false} isInteractive={!printMode} isFocusable={!printMode}
+            barAriaLabel={(bar) => `${String(bar.data.name)}: ${bar.value} ${statusLabels[String(bar.id)]}`}
+            tooltip={({ id, value, data: datum }) => <div className="tag-bars-tooltip"><strong>{String(datum.name)}</strong><span>{value} {statusLabels[String(id)]}</span></div>}
+          />
+        </div>)}
       </div>
       {kind === 'completion' && <div className="tag-bars-key">
         <span><i />Done</span><span><i className="tag-bars-striped" />In progress</span>
