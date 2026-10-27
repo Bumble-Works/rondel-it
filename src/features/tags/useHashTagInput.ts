@@ -110,6 +110,12 @@ export function useHashTagInput<E extends HTMLInputElement | HTMLTextAreaElement
   return {
     inputRef,
     text,
+    caret,
+    replaceText: (value: string, nextCaret: number) => {
+      setText(value)
+      setCaret(nextCaret)
+      pendingCaret.current = nextCaret
+    },
     tagIds,
     options,
     open,

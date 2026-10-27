@@ -4,10 +4,10 @@ import type { Tag } from '../../domain/types'
 import type { BoardGroupAddTarget } from '../board/WeekBoard'
 import type { ViewKey } from '../sidebar/Sidebar'
 import { HashTagMenu } from '../tags/HashTagMenu'
-import { useHashTagInput } from '../tags/useHashTagInput'
+import { useTaskCapture } from './useTaskCapture'
+import { TaskCaptureOptions } from './TaskCaptureOptions'
 import { Button } from '../../shared/ui/Button'
 import { Modal } from '../../shared/ui/Modal'
-import { TagChip } from '../../shared/ui/TagChip'
 import './QuickAddModal.css'
 
 type Dest = 'today' | 'tomorrow' | 'this-week' | 'next-week' | 'next-month' | 'date' | 'bucket'
@@ -34,7 +34,7 @@ interface QuickAddModalProps {
   weekStartDay: number
   onCreateTag: (name: string) => Promise<Tag | null>
   /** Files the task; resolves true on success, false on failure (keep the draft). */
-  onAdd: (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav) => Promise<boolean>
+  onAdd: (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav, reminderTime: string | null) => Promise<boolean>
   onClose: () => void
 }
 
@@ -73,8 +73,8 @@ export function QuickAddModal({ open, tags, weekStartDay, onCreateTag, onAdd, on
   const [dest, setDest] = useState<Dest>('today')
   const [date, setDate] = useState(() => addDays(todayIso(), 1))
   const [busy, setBusy] = useState(false)
-  const input = useHashTagInput({ tags, onCreateTag })
-  const picked = input.tagIds.map((id) => tags.find((t) => t.id === id)).filter((t): t is Tag => Boolean(t))
+  const canSetTime = dest === 'today' || dest === 'tomorrow' || dest === 'date'
+  const input = useTaskCapture(tags, onCreateTag, canSetTime)
 
   const dateValid = dest !== 'date' || (date !== '' && date >= todayIso())
   const canAdd = input.text.trim() !== '' && dateValid && !busy
@@ -84,7 +84,7 @@ export function QuickAddModal({ open, tags, weekStartDay, onCreateTag, onAdd, on
     if (!canAdd) return
     setBusy(true)
     // Close only once the task is filed; a failed save keeps the draft to retry.
-    const ok = await onAdd(input.text.trim(), input.tagIds, target, nav)
+    const ok = await onAdd(input.text.trim(), input.tagIds, target, nav, input.time)
     setBusy(false)
     if (ok) onClose()
   }
@@ -125,13 +125,9 @@ export function QuickAddModal({ open, tags, weekStartDay, onCreateTag, onAdd, on
         {input.open && <HashTagMenu anchorRef={input.inputRef} options={input.options} highlight={input.highlight} onPick={input.pick} />}
       </div>
 
-      {picked.length > 0 && (
-        <div className="quickadd-tags">
-          {picked.map((tag) => (
-            <TagChip key={tag.id} name={tag.name} color={tag.color} size="sm" onRemove={() => input.removeTag(tag.id)} />
-          ))}
-        </div>
-      )}
+      <div className="quickadd-tags">
+        <TaskCaptureOptions input={input} tags={tags} onCreateTag={onCreateTag} canSetTime={canSetTime} />
+      </div>
 
       <div className="quickadd-row">
         <label className="quickadd-label" htmlFor="quickadd-dest">

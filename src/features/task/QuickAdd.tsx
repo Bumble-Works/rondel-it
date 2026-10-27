@@ -23,8 +23,7 @@ interface QuickAddProps {
 /**
  * The global "add a task" entry point: a + button (and the "n" shortcut) that
  * opens a small composer. On add it files the task, then hands back its id and
- * where it landed so the board can go there and open it — tags, a reminder or a
- * note are then one step away in the detail panel.
+ * where it landed so the board can go there and open it.
  */
 export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdded, onError }: QuickAddProps) {
   const [open, setOpen] = useState(false)
@@ -48,10 +47,10 @@ export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdde
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const add = (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav): Promise<boolean> =>
+  const add = (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav, time: string | null): Promise<boolean> =>
     (async () => {
       try {
-        const created = await dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds))
+        const created = await dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds, time))
         onAdded(created.id, nav)
         return true
       } catch (e) {

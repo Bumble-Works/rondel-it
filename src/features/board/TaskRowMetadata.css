@@ -1,0 +1,39 @@
+.task-main .task-row-metadata {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.task-row-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  pointer-events: auto;
+}
+
+.task-row-metadata .tag-picker {
+  display: contents;
+}
+
+.task-note-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+
+.task-note-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-note-preview svg {
+  flex: none;
+  color: var(--faint);
+}

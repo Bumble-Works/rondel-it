@@ -25,20 +25,38 @@
   color: var(--brand-ink);
 }
 
+.tag-picker-add:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tag-picker-options {
+  max-width: 280px;
+  max-height: min(240px, 40vh);
+  overflow-y: auto;
+}
+
+.tag-picker-options .menu-item-label {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.tag-picker-empty {
+  max-width: 210px;
+  padding: 0.3rem 0.6rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .tag-picker-swatch {
+  flex: none;
   width: 11px;
   height: 11px;
   border-radius: 50%;
   display: inline-block;
 }
 
-.tag-picker-create {
-  margin-top: 0.3rem;
-  padding: 0.35rem 0.3rem 0.15rem;
-  border-top: 1px solid var(--border);
-}
-
-.tag-picker-create-input {
+.tag-picker-search {
   width: 100%;
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--border-strong);
@@ -48,7 +66,7 @@
   font-weight: 600;
 }
 
-.tag-picker-create-input:focus {
+.tag-picker-search:focus {
   outline: none;
   border-color: var(--brand);
   box-shadow: 0 0 0 3px var(--brand-tint);

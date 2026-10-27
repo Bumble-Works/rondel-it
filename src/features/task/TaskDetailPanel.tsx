@@ -111,6 +111,7 @@ export function TaskDetailPanel({
         />
 
         <TagPicker
+          recurringOccurrence={Boolean(task.recurringRuleId)}
           className="detail-tags"
           tags={allTags}
           selectedIds={task.tagIds}

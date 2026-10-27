@@ -7,6 +7,7 @@ export function toQuickAddCreateTaskInput(
   title: string,
   tagIds: string[],
   activeTagIds: string[],
+  reminderTime: string | null = null,
 ): CreateTaskInput {
   return {
     title,
@@ -14,5 +15,6 @@ export function toQuickAddCreateTaskInput(
     rondeled: target.rondeled ?? false,
     bucket: target.bucket ?? null,
     tagIds: [...new Set([...activeTagIds, ...tagIds])],
+    ...(reminderTime && target.dayDate && !target.rondeled && !target.bucket ? { reminderTime } : {}),
   }
 }

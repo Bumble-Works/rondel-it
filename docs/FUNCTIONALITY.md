@@ -44,6 +44,10 @@ Working plans are temporary; this doc stays. Current work lives in `docs/TODO.md
   date to start".
 - Quick-add creates a todo in that section. If tag filters are active, the
   new task gets those tags.
+- Both the inline add field and global Add a task composer show **Tags** and
+  **Time** controls. Choose tags and a reminder before adding, with no need to
+  know the typing shortcuts. The inline plus button or Enter adds the task;
+  leaving the title field still adds it, except when moving into its controls.
 
 ## Views
 
@@ -303,12 +307,14 @@ Today, Next week, Next month, Pick a date, Mark done.
   with that status's circle: **Mark as doing**, **Mark as done**, **Mark as
   to-do** (the same as the row's circle tooltip).
 - **One editor per task:** while a task is open in the panel, its row's
-  controls (status, note, rondel, ⋯, drag) are disabled, with the hint
+  controls (status, tags, time, note, rondel, ⋯, drag) are disabled, with the hint
   "Open in the side panel — edit it there".
 - Title and note save when you leave the field. An empty title reverts.
 - The row's note button opens a note popup for tasks that aren't open in the panel.
-- **Row actions:** note and rondel sit in the row (drawn the same size); the
-  rest is under **⋯**:
+- Rows show the title first, the note preview on its own line below, then tags
+  and the time control together. Notes never sit between tags and time.
+- **Row actions:** note and rondel sit in the row (drawn the same size);
+  additional actions are under **⋯**:
   - **Copy to tomorrow** / **Copy to a date…** — a fresh to-do on that day with
     the same title, tags, note and flag. It starts new: to-do, not recurring
     (even if copied from a recurring task), never rondeled, no history or
@@ -335,8 +341,20 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Tags and filters
 
+- Every task row has a visible **Tags** control beside its tag chips. Search
+  existing tags, toggle several in one open menu, or explicitly create a tag.
+  Changes save immediately without opening the task. Chips have remove buttons.
+  History copies, canceled tasks and rows open in the detail panel are read-only.
+- The same searchable picker is available when adding a task and in the detail
+  panel. It stays open between picks; clicking outside or Escape closes it.
+- Tagging a recurring occurrence changes only that task. The first time its
+  picker opens on a device, a quiet note explains: "Tags apply to this task
+  only. Edit the series in recurring." It requires no response and stays gone
+  after closing the picker, including across restarts. Editing the recurring
+  rule changes its future occurrences and existing unfinished tasks.
+
 - Tags have a name and a color. They're managed in Settings, or created from
-  the detail panel or by typing `#name`. **New tags cycle through the colors**
+  row/add/detail tag pickers or by typing `#name`. **New tags cycle through the colors**
   (the least-used one next), so they don't all come out blue. Settings
   suggests the next color too; you can always pick another.
 - Filters by tag (match **any** or **all**) and by status. Selecting every
@@ -417,8 +435,14 @@ Today, Next week, Next month, Pick a date, Mark done.
 
 ## Reminders
 
-- A dated task can have a **reminder time** (side panel → Reminder). Only a
-  time: the task's day is the date. The row shows 🔔 and the time.
+- A dated task can have a **reminder time** (row → **Time**, add-task controls,
+  or side panel → Reminder). Only a time: the task's day is the date. The row's
+  bell control shows the time once set. The popover offers Set time and Remove.
+- While adding a dated task, a complete 24-hour `@10:00` or `10:00` token at
+  the caret offers **Set reminder for…**. Clicking it or Enter/Tab chooses the
+  time and removes that token from the title; Enter again adds the task.
+  Escape dismisses the suggestion. Unpicked times remain title text. Times in
+  URLs, invalid times and partial words are not suggestions.
 - A reminder needs a day: Bucket List items, rondeled items waiting in a
   container and history copies can't have one ("Give it a day to set a reminder").
 - At that time a **notification** appears: Notification Center in the Mac

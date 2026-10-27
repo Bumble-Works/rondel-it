@@ -14,6 +14,7 @@ export function Menu({ trigger, children, align = 'right' }: MenuProps) {
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null)
   const anchorRef = useRef<HTMLSpanElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
+  const focusedInput = useRef(false)
 
   const reposition = () => {
     const anchor = anchorRef.current
@@ -33,7 +34,15 @@ export function Menu({ trigger, children, align = 'right' }: MenuProps) {
   useLayoutEffect(() => {
     if (open) reposition()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  }, [open, children])
+
+  useEffect(() => {
+    if (!open) focusedInput.current = false
+    else if (coords && !focusedInput.current) {
+      panelRef.current?.querySelector('input')?.focus()
+      focusedInput.current = true
+    }
+  }, [open, coords])
 
   useEffect(() => {
     if (!open) return
@@ -44,7 +53,11 @@ export function Menu({ trigger, children, align = 'right' }: MenuProps) {
       setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        setOpen(false)
+        anchorRef.current?.querySelector('button')?.focus()
+      }
     }
     const onReflow = () => reposition()
     document.addEventListener('mousedown', onDocClick)

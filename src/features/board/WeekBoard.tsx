@@ -8,6 +8,7 @@ import { InlineAdd } from './InlineAdd'
 import { TaskRow } from './TaskRow'
 import { sectionDropId } from './boardDrop'
 import { useBoardDrag } from './useBoardDrag'
+import type { ReminderScope } from '../reminders/ReminderField'
 import './WeekBoard.css'
 
 export interface BoardGroupAddTarget {
@@ -50,7 +51,10 @@ interface WeekBoardProps {
   onCopy: (task: Task, dayIso: string) => void
   onPickCopyDate: (task: Task) => void
   onOpenReminder: (task: Task) => void
-  onQuickAdd: (target: BoardGroupAddTarget, title: string, tagIds: string[]) => void
+  onToggleTag: (task: Task, id: string) => void
+  onCreateTaskTag: (task: Task, name: string) => void
+  onChangeReminder: (task: Task, time: string | null, scope: ReminderScope) => void
+  onQuickAdd: (target: BoardGroupAddTarget, title: string, tagIds: string[], reminderTime: string | null) => void
   onCreateTag: (name: string) => Promise<Tag | null>
   onMove: (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => void
   weekStartDay?: number
@@ -72,6 +76,9 @@ export function WeekBoard({
   onCopy,
   onPickCopyDate,
   onOpenReminder,
+  onToggleTag,
+  onCreateTaskTag,
+  onChangeReminder,
   onQuickAdd,
   onCreateTag,
   onMove,
@@ -129,6 +136,9 @@ export function WeekBoard({
                 onCopy={(dayIso) => onCopy(task, dayIso)}
                 onPickCopyDate={() => onPickCopyDate(task)}
                 onOpenReminder={() => onOpenReminder(task)}
+                onToggleTag={(id) => onToggleTag(task, id)}
+                onCreateTag={(name) => onCreateTaskTag(task, name)}
+                onChangeReminder={(time, scope) => onChangeReminder(task, time, scope)}
                 isDragged={draggingId === task.id}
                 dropPosition={dropPositionFor(task.id)}
                 weekStartDay={weekStartDay}
@@ -139,7 +149,8 @@ export function WeekBoard({
                 placeholder={group.kind === 'bucket' ? 'Add to this bucket' : 'Add a task'}
                 tags={tags}
                 onCreateTag={onCreateTag}
-                onAdd={(title, tagIds) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title, tagIds)}
+                canSetTime={Boolean(group.addTarget.dayDate && !group.addTarget.rondeled && !group.addTarget.bucket)}
+                onAdd={(title, tagIds, time) => onQuickAdd(group.addTarget as BoardGroupAddTarget, title, tagIds, time)}
               />
             )}
           </BoardSection>

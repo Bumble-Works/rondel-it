@@ -2,6 +2,7 @@ import type { RecurringRule, RepeatSpec, Tag, Task, TaskBucket, TaskStatus, User
 
 export interface CreateTaskInput {
   title: string
+  reminderTime?: string | null
   dayDate?: string | null
   rondeled?: boolean
   bucket?: TaskBucket | null

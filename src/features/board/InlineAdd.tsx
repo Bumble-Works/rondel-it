@@ -1,33 +1,33 @@
 import type { Tag } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
-import { TagChip } from '../../shared/ui/TagChip'
 import { HashTagMenu } from '../tags/HashTagMenu'
-import { useHashTagInput } from '../tags/useHashTagInput'
+import { useTaskCapture } from '../task/useTaskCapture'
+import { TaskCaptureOptions } from '../task/TaskCaptureOptions'
 import './InlineAdd.css'
 
 interface InlineAddProps {
-  onAdd: (title: string, tagIds: string[]) => void
+  onAdd: (title: string, tagIds: string[], reminderTime: string | null) => void
   tags: Tag[]
   onCreateTag: (name: string) => Promise<Tag | null>
   placeholder?: string
+  canSetTime?: boolean
 }
 
-export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task' }: InlineAddProps) {
-  const input = useHashTagInput({ tags, onCreateTag })
-  const picked = input.tagIds.map((id) => tags.find((t) => t.id === id)).filter((t): t is Tag => Boolean(t))
+export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task', canSetTime = true }: InlineAddProps) {
+  const input = useTaskCapture(tags, onCreateTag, canSetTime)
 
   const submit = () => {
     const title = input.text.trim()
     if (!title) return
-    onAdd(title, input.tagIds)
+    onAdd(title, input.tagIds, input.time)
     input.reset()
   }
 
   return (
-    <div className={`inline-add ${input.text || picked.length ? 'is-active' : ''}`.trim()}>
-      <span className="inline-add-icon">
+    <div className={`inline-add ${input.text || input.tagIds.length ? 'is-active' : ''}`.trim()}>
+      <button type="button" className="inline-add-icon" aria-label="Add task to this list" disabled={!input.text.trim()} onClick={submit}>
         <Icon name="plus" size={16} />
-      </span>
+      </button>
       <input
         {...input.inputProps}
         className="inline-add-input"
@@ -40,22 +40,12 @@ export function InlineAdd({ onAdd, tags, onCreateTag, placeholder = 'Add a task'
         onBlur={(e) => {
           input.dismiss()
           // Focus moving to a chip's remove button stays inside the widget.
-          if (e.currentTarget.parentElement?.contains(e.relatedTarget)) return
+          if (e.currentTarget.parentElement?.contains(e.relatedTarget) ||
+            (e.relatedTarget instanceof Element && e.relatedTarget.closest('.menu-panel'))) return
           submit()
         }}
       />
-      {picked.map((tag) => (
-        <TagChip
-          key={tag.id}
-          name={tag.name}
-          color={tag.color}
-          size="sm"
-          onRemove={() => {
-            input.removeTag(tag.id)
-            input.inputRef.current?.focus()
-          }}
-        />
-      ))}
+      <TaskCaptureOptions input={input} tags={tags} onCreateTag={onCreateTag} canSetTime={canSetTime} />
       {input.open && <HashTagMenu anchorRef={input.inputRef} options={input.options} highlight={input.highlight} onPick={input.pick} />}
     </div>
   )
