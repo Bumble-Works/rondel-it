@@ -1,0 +1,19 @@
+.task-capture-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.task-capture-options .tag-picker {
+  display: contents;
+}
+
+.task-capture-time {
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 0.3rem 0.5rem;
+  background: var(--brand-tint);
+  color: var(--brand-ink);
+  font-size: 0.8rem;
+}

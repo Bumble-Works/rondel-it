@@ -86,6 +86,7 @@ describe('railsDataSource', () => {
       rondeled: false,
       bucket: null,
       tagIds: ['x'],
+      reminderTime: '10:00',
     })
     await railsDataSource.updateTask('1', { title: 'Task+', tagIds: ['x'], note: 'n' })
     await railsDataSource.advanceTask('1')
@@ -102,6 +103,7 @@ describe('railsDataSource', () => {
         rondeled: false,
         bucket: null,
         tag_ids: ['x'],
+        reminder_time: '10:00',
       }),
     })
     expect(fetchMock.mock.calls[1][0]).toContain('/tasks/1')

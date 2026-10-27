@@ -118,6 +118,7 @@ export const railsDataSource: DataSource = {
         rondeled: input.rondeled ?? false,
         bucket: input.bucket ?? null,
         tag_ids: input.tagIds || [],
+        reminder_time: input.dayDate && !input.rondeled && !input.bucket ? input.reminderTime ?? null : null,
       }),
     })
     return mapTask(response.task)

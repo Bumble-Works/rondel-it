@@ -274,6 +274,7 @@ export const localDataSource: DataSource = {
       bucket: input.bucket ?? null,
       position: tasks.length,
       tagIds: input.tagIds || [],
+      reminderTime: input.dayDate && !input.rondeled && !input.bucket ? input.reminderTime ?? null : null,
     })
     tasks.push(task)
     writeTasks(tasks)

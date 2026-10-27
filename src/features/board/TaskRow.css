@@ -165,46 +165,6 @@
   color: var(--muted);
 }
 
-.task-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.28rem;
-}
-
-.task-note-preview {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  min-width: 0;
-  max-width: 100%;
-  color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 500;
-}
-
-.task-reminder {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  color: var(--brand);
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.task-note-text {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.task-note-preview svg {
-  flex: none;
-  color: var(--faint);
-}
-
 .task-actions {
   /* Fixed columns (note, rondel, more) so actions line up on every row. */
   flex: none;

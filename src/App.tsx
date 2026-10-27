@@ -269,8 +269,8 @@ function App() {
     [attempt, loadBoard],
   )
 
-  const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[]) =>
-    run(() => dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds)))
+  const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[], time: string | null) =>
+    run(() => dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds, time)))
 
   const onQuickAdded = (id: string, nav: QuickAddNav) => {
     setPage('board')
@@ -754,6 +754,9 @@ function App() {
                 onCopy={copyTask}
                 onPickCopyDate={(task) => pickDate(task, 'copy')}
                 onOpenReminder={openReminder}
+                onToggleTag={toggleTag}
+                onCreateTaskTag={createTagForTask}
+                onChangeReminder={changeReminder}
                 onQuickAdd={quickAdd}
                 onCreateTag={createTagNamed}
                 onMove={move}

@@ -1,13 +1,13 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { rowDropId, type DropPosition } from './boardDrop'
 import type { RondelTarget } from '../../services/adapters/DataSource'
-import { formatClock } from '../../domain/dates'
 import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
 import { LinkifiedText } from '../../shared/ui/LinkifiedText'
-import { TagChip } from '../../shared/ui/TagChip'
+import type { ReminderScope } from '../reminders/ReminderField'
+import { TaskRowMetadata } from './TaskRowMetadata'
 import { RondelMenu } from '../rondel/RondelMenu'
 import { OPEN_IN_PANEL_HINT } from '../task/hints'
 import { TaskMoreMenu } from './TaskMoreMenu'
@@ -36,6 +36,9 @@ interface TaskRowProps {
   onCopy: (dayIso: string) => void
   onPickCopyDate: () => void
   onOpenReminder: () => void
+  onToggleTag: (id: string) => void
+  onCreateTag: (name: string) => void
+  onChangeReminder: (time: string | null, scope: ReminderScope) => void
   isDragged: boolean
   /** Where a task being dragged over this row would land. */
   dropPosition: DropPosition | null
@@ -58,11 +61,13 @@ export function TaskRow({
   onCopy,
   onPickCopyDate,
   onOpenReminder,
+  onToggleTag,
+  onCreateTag,
+  onChangeReminder,
   isDragged,
   dropPosition,
   weekStartDay,
 }: TaskRowProps) {
-  const tags = task.tagIds.map((id) => tagsById.get(id)).filter((t): t is Tag => Boolean(t))
   const carried = isCarriedForward(task)
   const taskIsCanceled = task.status === 'canceled'
   // While a task is open in the detail panel, the panel is its only editor.
@@ -148,27 +153,8 @@ export function TaskRow({
           )}
           <LinkifiedText text={task.title} />
         </span>
-        {(tags.length > 0 || task.note || task.reminderTime) && (
-          <span className="task-meta">
-            {task.reminderTime && (
-              <span className="task-reminder" title="Reminder">
-                <Icon name="bell" size={12} />
-                {formatClock(task.reminderTime)}
-              </span>
-            )}
-            {task.note && (
-              <span className="task-note-preview">
-                <Icon name="note" size={13} />
-                <span className="task-note-text">
-                  <LinkifiedText text={firstLine(task.note)} />
-                </span>
-              </span>
-            )}
-            {tags.map((tag) => (
-              <TagChip key={tag.id} name={tag.name} color={tag.color} size="sm" />
-            ))}
-          </span>
-        )}
+        <TaskRowMetadata task={task} tags={[...tagsById.values()]} locked={locked}
+          onToggleTag={onToggleTag} onCreateTag={onCreateTag} onChangeReminder={onChangeReminder} />
       </div>
 
       <div className="task-actions">
@@ -203,9 +189,4 @@ export function TaskRow({
       </div>
     </div>
   )
-}
-
-/** The note's first line; CSS trims it to fit (never cutting a link's address). */
-function firstLine(note: string): string {
-  return note.split('\n')[0].trim()
 }

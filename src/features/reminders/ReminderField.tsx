@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { canRemind } from '../../domain/rondel'
 import type { Task } from '../../domain/types'
-import { ensureNotificationPermission } from '../../shared/notify'
+import { useReminderChange } from './useReminderChange'
 import { ChoiceModal } from '../../shared/ui/ChoiceModal'
 import './ReminderField.css'
 
@@ -15,16 +15,7 @@ interface ReminderFieldProps {
 /** Reminder time on the task's day. On a recurring task, asks: only this one, or all? */
 export function ReminderField({ task, onChange }: ReminderFieldProps) {
   const [time, setTime] = useState(task.reminderTime ?? '')
-  // A change waiting for the "only this one / all" answer.
-  const [pending, setPending] = useState<{ value: string | null } | null>(null)
-
-  const commit = (value: string | null) => {
-    if (value === task.reminderTime) return
-    // Ask now, while the user is acting, so the macOS prompt makes sense.
-    if (value) void ensureNotificationPermission()
-    if (task.recurringRuleId) setPending({ value })
-    else onChange(value, 'one')
-  }
+  const { commit, choice } = useReminderChange(task, onChange)
 
   return (
     <div className="reminder-field">
@@ -58,20 +49,10 @@ export function ReminderField({ task, onChange }: ReminderFieldProps) {
         <p className="reminder-hint">{task.status === 'canceled' ? 'Reopen this task to set a reminder.' : 'Give it a day to set a reminder.'}</p>
       )}
       <ChoiceModal
-        open={pending !== null}
-        title="Change the reminder for…"
-        message="This is a recurring task. Change just this one, or the recurring rule and all its unfinished tasks?"
-        choices={[
-          { value: 'one', label: 'Only this one' },
-          { value: 'all', label: 'All', primary: true },
-        ]}
-        onChoose={(scope) => {
-          if (pending) onChange(pending.value, scope)
-          setPending(null)
-        }}
+        {...choice}
         onCancel={() => {
           setTime(task.reminderTime ?? '')
-          setPending(null)
+          choice.onCancel()
         }}
       />
     </div>
