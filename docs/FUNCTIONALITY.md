@@ -124,6 +124,16 @@ Today, Next week, Next month, Pick a date, Mark done.
 - `rondelCount`: how many times it's been rondeled.
 - `originTaskId` / `previousTaskId`: link copies back to the original and to
   the previous hop. `carriedToId` marks a history copy.
+- `doingRondelCount`: how many counted rondels happened while doing. Older
+  tasks can have an unknown split; they aren't assumed to have been todo.
+- `startedAt`: first recorded start, kept across carry-forward and reopening.
+- `rondelHistory`: dated source/destination observations for counted rondels,
+  including todo moves that don't leave a history copy. Scheduling and
+  dragging don't add observations. Each observation stays on its source
+  record; successor copies inherit totals without duplicating observations.
+- `bucketListOrigin`: whether the task began in the Bucket List. The marker
+  survives scheduling and carry-forward. Unknown legacy origins stay unknown.
+- `canceledAt`: when a task was canceled; cleared if it is reopened.
 
 ## Drag and drop
 

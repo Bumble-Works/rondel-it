@@ -37,6 +37,22 @@ function taskPayload(id: string, tagIds: string[] = []): Record<string, unknown>
 }
 
 describe('railsDataSource', () => {
+  it('fails clearly instead of returning a partial all-time report from Rails', async () => {
+    await expect(railsDataSource.listAllTasks()).rejects.toThrow('complete task export is not supported')
+  })
+
+  it('maps reporting observations and keeps absent legacy values unknown', async () => {
+    const legacy = { ...taskPayload('old'), rondelCount: 3 }
+    const observed = {
+      ...taskPayload('new'), doingRondelCount: 0, startedAt: '2026-09-19T12:00:00Z',
+      bucketListOrigin: true, canceledAt: '2026-09-20T12:00:00Z', rondelHistory: [],
+    }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ tasks: [legacy, observed] })))
+    const tasks = await railsDataSource.listTasksInRange('2026-09-01', '2026-09-30')
+    expect(tasks[0]).toMatchObject({ doingRondelCount: null, startedAt: null, bucketListOrigin: null, rondelHistory: [] })
+    expect(tasks[1]).toMatchObject(observed)
+  })
+
   it('listTasksInRange and listBucketTasks request expected endpoints and filter tags', async () => {
     const fetchMock = vi
       .fn()
