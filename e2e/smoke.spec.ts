@@ -466,7 +466,7 @@ test('quick add works from Settings and Recurring, then returns to the board', a
   const fromSettings = page.getByRole('dialog', { name: 'Add a task' })
   await expect(fromSettings).toBeVisible()
   await fromSettings.getByPlaceholder('What needs doing?').fill('Quick from settings')
-  await fromSettings.getByRole('button', { name: 'Add' }).click()
+  await fromSettings.getByRole('button', { name: 'Add', exact: true }).click()
 
   await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
   await expect(row(page, 'Quick from settings')).toBeVisible()
@@ -479,7 +479,7 @@ test('quick add works from Settings and Recurring, then returns to the board', a
   const fromRecurring = page.getByRole('dialog', { name: 'Add a task' })
   await expect(fromRecurring).toBeVisible()
   await fromRecurring.getByPlaceholder('What needs doing?').fill('Quick from recurring')
-  await fromRecurring.getByRole('button', { name: 'Add' }).click()
+  await fromRecurring.getByRole('button', { name: 'Add', exact: true }).click()
 
   await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
   await expect(row(page, 'Quick from recurring')).toBeVisible()
