@@ -128,31 +128,39 @@ export function TaskRow({
         links sit on top of it: siblings, not nested.
       */}
       <div className="task-main">
-        <button
-          type="button"
-          className="task-open"
-          aria-label={`Open ${task.title}`}
-          title={carried ? CARRIED_FORWARD_HINT : undefined}
-          onClick={onOpen}
-        />
-        <span className="task-title">
-          {task.flagged && (
-            <span className="task-flag-mark" title="Important">
-              <Icon name="flag-filled" size={13} />
+        <div className="task-content">
+          <button
+            type="button"
+            className="task-open"
+            aria-label={`Open ${task.title}`}
+            title={carried ? CARRIED_FORWARD_HINT : undefined}
+            onClick={onOpen}
+          />
+          <span className="task-title">
+            {task.flagged && (
+              <span className="task-flag-mark" title="Important">
+                <Icon name="flag-filled" size={13} />
+              </span>
+            )}
+            {task.recurringRuleId && (
+              <span
+                className="task-recur"
+                role="img"
+                aria-label="Recurring task"
+                title={repeatLabel ? `Recurring: ${repeatLabel}` : 'Recurring task'}
+              >
+                <Icon name="repeat" size={13} />
+              </span>
+            )}
+            <LinkifiedText text={task.title} />
+          </span>
+          {task.note && (
+            <span className="task-note-preview">
+              <Icon name="note" size={13} />
+              <span className="task-note-text"><LinkifiedText text={task.note.split('\n')[0].trim()} /></span>
             </span>
           )}
-          {task.recurringRuleId && (
-            <span
-              className="task-recur"
-              role="img"
-              aria-label="Recurring task"
-              title={repeatLabel ? `Recurring: ${repeatLabel}` : 'Recurring task'}
-            >
-              <Icon name="repeat" size={13} />
-            </span>
-          )}
-          <LinkifiedText text={task.title} />
-        </span>
+        </div>
         <TaskRowMetadata task={task} tags={[...tagsById.values()]} locked={locked}
           onToggleTag={onToggleTag} onCreateTag={onCreateTag} onChangeReminder={onChangeReminder} />
       </div>

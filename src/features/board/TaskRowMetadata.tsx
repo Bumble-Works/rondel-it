@@ -1,7 +1,5 @@
 import { canRemind, CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
-import { Icon } from '../../shared/ui/Icon'
-import { LinkifiedText } from '../../shared/ui/LinkifiedText'
 import { ChoiceModal } from '../../shared/ui/ChoiceModal'
 import { TagPicker } from '../tags/TagPicker'
 import { TimePicker } from '../reminders/TimePicker'
@@ -25,12 +23,6 @@ export function TaskRowMetadata({ task, tags, locked, onToggleTag, onCreateTag, 
   const { commit, choice } = useReminderChange(task, onChangeReminder)
   return (
     <div className="task-row-metadata">
-      {task.note && (
-        <span className="task-note-preview">
-          <Icon name="note" size={13} />
-          <span className="task-note-text"><LinkifiedText text={task.note.split('\n')[0].trim()} /></span>
-        </span>
-      )}
       <div className="task-row-controls">
         <TagPicker tags={tags} selectedIds={task.tagIds} onToggle={onToggleTag} onCreate={onCreateTag}
           disabledReason={disabledReason} recurringOccurrence={Boolean(task.recurringRuleId)} />

@@ -239,10 +239,10 @@ test('sets a reminder on a task; the row shows it and it survives a reload', asy
   const reminder = page.getByLabel('Reminder')
   await reminder.fill('09:30')
   await reminder.blur()
-  await expect(row(page, 'Call the bank').locator('.task-reminder')).toBeVisible()
+  await expect(row(page, 'Call the bank').getByRole('button', { name: /Change time:.*9:30/ })).toBeVisible()
 
   await page.reload()
-  await expect(row(page, 'Call the bank').locator('.task-reminder')).toContainText('9:30')
+  await expect(row(page, 'Call the bank').getByRole('button', { name: /Change time:.*9:30/ })).toBeVisible()
 })
 
 test('filters by a tag even when it is the only tag', async ({ page }) => {
@@ -406,8 +406,8 @@ test('tag filter: "Any selected" shows either tag, "All selected" only both', as
   // Both tags on one task.
   await page.getByRole('button', { name: 'Open Plan offsite' }).click()
   const panel = page.getByRole('complementary', { name: 'Task details' })
-  await panel.getByRole('button', { name: 'Tag' }).click()
-  await page.getByRole('menuitem', { name: 'home' }).click()
+  await panel.getByRole('button', { name: 'Tags', exact: true }).click()
+  await page.getByRole('menuitemcheckbox', { name: 'home', exact: true }).click()
   await panel.getByRole('button', { name: 'Close' }).click()
 
   await page.locator('.sidebar-pill', { hasText: 'home' }).click()

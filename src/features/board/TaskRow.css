@@ -107,7 +107,14 @@
   text-align: left;
 }
 
-/* Covers the text area; clicks on text fall through to it. */
+.task-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* Covers title and note only; tag and time controls have their own click area. */
 .task-open {
   position: absolute;
   inset: 0;
@@ -124,7 +131,7 @@
 }
 
 /* Text sits above the open button but lets clicks through, except on links. */
-.task-main > :not(.task-open) {
+.task-content > :not(.task-open) {
   position: relative;
   pointer-events: none;
 }
