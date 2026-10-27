@@ -1,0 +1,4 @@
+.report-status-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 0.45rem; }
+.report-status-filters > span { margin-right: 0.3rem; font-size: 0.8rem; font-weight: 700; color: var(--ink-soft); }
+.report-status-filters button[aria-pressed="true"] { background: var(--brand-tint); border-color: var(--brand); color: var(--brand-ink); }
+.report-status-filters .pill-btn--cancel[aria-pressed="true"] { background: color-mix(in srgb, var(--accent-red) 10%, var(--surface)); border-color: var(--accent-red); color: var(--accent-red); }

@@ -10,14 +10,14 @@ function csvCell(value: string | number | null): string {
 }
 
 export function reportCsv(rows: ReportTaskRow[], tags: Tag[]): string {
-  const headings = ['Task', 'Status', 'Tags', 'Scheduled date', 'Completed date', 'Canceled date',
-    'Days from first scheduled', 'Days from first started', 'Days in progress', 'Lifetime rondels',
+  const headings = ['Task', 'Status', 'Tags', 'First seen', 'Scheduled date', 'Completed date', 'Canceled date',
+    'Days from first scheduled', 'Days from first started', 'Days in progress', 'Start date source', 'Lifetime rondels',
     'Rondels while to do', 'Rondels while doing', 'From Bucket List', 'Rondels out of period',
     'Rondels into period', 'Rondels within period', 'Note', 'Task ID', 'Lineage ID']
   const body = rows.map((row) => [
     row.title, reportStatus[row.status], row.tagIds.map((id) => tags.find((tag) => tag.id === id)?.name).filter(Boolean).join('; '),
-    row.dayDate, row.completedDate, row.canceledDate, row.plannedDays, row.startedDays, row.inProgressDays,
-    row.rondelCount, row.todoRondelCount, row.doingRondelCount,
+    row.firstSeenDate, row.dayDate, row.completedDate, row.canceledDate, row.plannedDays, row.startedDays, row.inProgressDays,
+    row.startDateSource, row.rondelCount, row.todoRondelCount, row.doingRondelCount,
     row.bucketListOrigin === null ? 'Unknown' : row.bucketListOrigin ? 'Yes' : 'No',
     ...(['outgoing', 'incoming', 'within'] as const).map((direction) => row.flows.filter((flow) => flow.direction === direction).length),
     row.note, row.id, row.lineageId,

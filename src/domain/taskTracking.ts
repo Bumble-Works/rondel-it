@@ -1,6 +1,6 @@
 import type { Task } from './types'
 
-type Tracking = Pick<Task, 'doingRondelCount' | 'startedAt' | 'bucketListOrigin' | 'canceledAt' | 'rondelHistory'>
+type Tracking = Pick<Task, 'doingRondelCount' | 'startedAt' | 'bucketListOrigin' | 'canceledAt' | 'rondelHistory' | 'bucketHistory'>
 
 /** Missing legacy observations remain unknown instead of inventing a history. */
 export function taskTrackingDefaults(task: Partial<Task>): Tracking {
@@ -10,5 +10,6 @@ export function taskTrackingDefaults(task: Partial<Task>): Tracking {
     bucketListOrigin: task.bucketListOrigin === undefined ? (task.bucket === 'bucket-list' ? true : null) : task.bucketListOrigin,
     canceledAt: task.canceledAt ?? null,
     rondelHistory: task.rondelHistory ?? [],
+    bucketHistory: task.bucketHistory ?? [],
   }
 }

@@ -9,11 +9,12 @@ interface ReportSectionProps {
   onToggle: () => void
   children: ReactNode
   wide?: boolean
+  className?: string
 }
 
-export function ReportSection({ title, description, collapsed, onToggle, children, wide }: ReportSectionProps) {
+export function ReportSection({ title, description, collapsed, onToggle, children, wide, className = '' }: ReportSectionProps) {
   return (
-    <section className={`report-section${collapsed ? ' is-collapsed' : ''}${wide ? ' report-section--wide' : ''}`}>
+    <section className={`report-section${collapsed ? ' is-collapsed' : ''}${wide ? ' report-section--wide' : ''} ${className}`.trim()}>
       <button type="button" className="report-section-heading" aria-expanded={!collapsed} onClick={onToggle}>
         <span><h2>{title}</h2>{description && <span className="report-section-description">{description}</span>}</span>
         <Icon name={collapsed ? 'plus' : 'chevron-down'} size={18} />

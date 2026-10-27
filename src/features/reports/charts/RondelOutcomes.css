@@ -1,0 +1,9 @@
+.rondel-outcomes-chart { display: flex; justify-content: center; }
+.rondel-outcomes-chart svg { max-width: 100%; height: auto; }
+.rondel-outcomes dl { margin: 0.5rem 0 0; display: grid; gap: 0.6rem; }
+.rondel-outcomes dl > div { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 1px solid var(--border); padding: 0.4rem 0; }
+.rondel-outcomes dt { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+.rondel-outcomes dt i { width: 9px; height: 9px; border-radius: 50%; }
+.rondel-outcomes dd { display: flex; align-items: baseline; gap: 0.7rem; margin: 0; }
+.rondel-outcomes dd strong { font-size: 1rem; }
+.rondel-outcomes dd span { color: var(--muted); font-size: 0.72rem; }

@@ -14,3 +14,8 @@ export const STATUS_COLOR: Record<TaskStatus, string> = {
   canceled: 'var(--faint)',
 }
 export const FILTERABLE_STATUSES: TaskStatus[] = ['todo', 'doing', 'done', 'canceled']
+
+export function toggleStatusFilter(selected: TaskStatus[], status: TaskStatus): TaskStatus[] {
+  const next = selected.includes(status) ? selected.filter((item) => item !== status) : [...selected, status]
+  return next.length === FILTERABLE_STATUSES.length ? [] : next
+}

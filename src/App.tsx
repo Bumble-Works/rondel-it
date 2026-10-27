@@ -32,7 +32,7 @@ import { QuickAdd, type QuickAddNav } from './features/task/QuickAdd'
 import { toQuickAddCreateTaskInput } from './features/task/quickAddInput'
 import { TaskDetailPanel } from './features/task/TaskDetailPanel'
 import { Icon } from './shared/ui/Icon'
-import { STATUS_LABEL, FILTERABLE_STATUSES } from './shared/taskStatus'
+import { STATUS_LABEL, toggleStatusFilter } from './shared/taskStatus'
 import { ActiveFilters } from './features/board/ActiveFilters'
 import { IconButton } from './shared/ui/IconButton'
 import { containerDropDay, isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
@@ -281,6 +281,13 @@ function App() {
     scheduleSync()
   }
 
+  const openReportTask = (task: Task) => {
+    setSelectedTaskId(task.id)
+    setView('day')
+    setAnchorDate(task.dayDate ?? today)
+    setPage('board')
+  }
+
   /** Creates a tag the user explicitly chose to create while typing #name. */
   const createTagNamed = async (name: string): Promise<Tag | null> => {
     try {
@@ -342,11 +349,7 @@ function App() {
       : activeTagIds.some((id) => t.tagIds.includes(id)))
   const visible = (t: Task) => statusOk(t) && tagOk(t)
   const toggleStatus = (status: TaskStatus) =>
-    setActiveStatuses((prev) => {
-      const next = prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
-      // Selecting every status is the same as "All statuses".
-      return next.length === FILTERABLE_STATUSES.length ? [] : next
-    })
+    setActiveStatuses((prev) => toggleStatusFilter(prev, status))
   const resetStatuses = () => setActiveStatuses([])
   // Selecting every tag is still a filter: it hides untagged tasks, which
   // "All tags" shows. (With one tag, that's the only way to filter by it.)
@@ -631,7 +634,7 @@ function App() {
     <div className={`app ${sidebarOpen ? 'is-sidebar-open' : ''}`.trim()}>
       {page === 'reports' && features.reports ? (
         <Suspense fallback={<main className="app-main"><p role="status">Loading reports…</p></main>}>
-          <ReportsPage dataSource={dataSource} tags={tags} weekStartDay={weekStartDay} revision={reportsRevision} onBack={() => setPage('board')} onError={reportError} />
+          <ReportsPage dataSource={dataSource} tags={tags} revision={reportsRevision} onBack={() => setPage('board')} onError={reportError} onOpenTask={openReportTask} />
         </Suspense>
       ) : (
         <>

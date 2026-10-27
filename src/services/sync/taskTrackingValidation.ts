@@ -23,11 +23,19 @@ function isRondel(value: unknown): boolean {
     ['todo', 'doing', 'done', 'canceled'].includes(record.status as string)
 }
 
+function isBucketEvent(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+  const record = value as RecordValue
+  return typeof record.id === 'string' && record.id.length > 0 && isTimestamp(record.occurredAt)
+    && (record.kind === 'added' || record.kind === 'scheduled')
+}
+
 /** Older device files omit these fields; supplied observations must be valid. */
 export function taskTrackingValid(record: RecordValue): boolean {
   const count = record.doingRondelCount
   return (count == null || (Number.isInteger(count) && (count as number) >= 0 && (count as number) <= (record.rondelCount as number))) &&
     isOptionalTimestamp(record.startedAt) && isOptionalTimestamp(record.canceledAt) &&
     (record.bucketListOrigin == null || typeof record.bucketListOrigin === 'boolean') &&
-    (record.rondelHistory === undefined || (Array.isArray(record.rondelHistory) && record.rondelHistory.every(isRondel)))
+    (record.rondelHistory === undefined || (Array.isArray(record.rondelHistory) && record.rondelHistory.every(isRondel))) &&
+    (record.bucketHistory === undefined || (Array.isArray(record.bucketHistory) && record.bucketHistory.every(isBucketEvent)))
 }

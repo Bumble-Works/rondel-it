@@ -1,5 +1,1 @@
 .count-bars svg { display: block; width: 100%; height: auto; }
-.count-bars dl { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
-.count-bars dl > div { text-align: center; }
-.count-bars dt { color: var(--muted); font-size: 0.7rem; }
-.count-bars dd { margin: 0.2rem 0 0; font-size: 1rem; font-weight: 800; }

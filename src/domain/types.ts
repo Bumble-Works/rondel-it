@@ -15,6 +15,12 @@ export interface TaskRondel {
   status: TaskStatus
 }
 
+export interface TaskBucketEvent {
+  id: string
+  occurredAt: string
+  kind: 'added' | 'scheduled'
+}
+
 export interface Task {
   id: string
   title: string
@@ -36,6 +42,8 @@ export interface Task {
   canceledAt: string | null
   /** Only decisions made from this record; successor copies start an empty list. */
   rondelHistory: TaskRondel[]
+  /** Bucket transfers are distinct from counted rondels. Older records omit them. */
+  bucketHistory?: TaskBucketEvent[]
   flagged: boolean
   /** Reminder on the task's day, 'HH:mm' (local time); null for none. */
   reminderTime: string | null

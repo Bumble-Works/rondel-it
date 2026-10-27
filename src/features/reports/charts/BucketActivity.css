@@ -1,0 +1,7 @@
+.bucket-activity-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; }
+.bucket-activity-chip { display: inline-flex; align-items: baseline; gap: 0.6rem; padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); }
+.bucket-activity-chip dt { color: var(--ink-soft); font-size: 0.8rem; }
+.bucket-activity-chip dd { margin: 0; color: var(--ink); font-size: 1rem; font-weight: 700; }
+.bucket-activity-chip.is-active { background: #eaf7f2; border-color: #c6e9dc; }
+.bucket-activity-chip.is-active dd, .bucket-activity-feedback { color: #167d5f; }
+.bucket-activity-feedback { margin: 0.65rem 0 0; font-size: 0.8rem; }

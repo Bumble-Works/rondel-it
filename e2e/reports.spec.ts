@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { legacyReportTask, REPORT_NOW, seedReportData } from './helpers/reportData.ts'
+import { legacyReportTask, REPORT_NOW, seedReportData, selectFixtureReportDates } from './helpers/reportData.ts'
 
 test.use({ locale: 'en-US', timezoneId: 'UTC' })
 
@@ -9,19 +9,20 @@ const highlight = (page: Page, label: string) => page.locator('.report-highlight
 const section = (page: Page, title: string) => page.locator('.report-section')
   .filter({ has: page.getByRole('heading', { level: 2, name: title, exact: true }) })
 
-async function openReports(page: Page): Promise<void> {
+async function openReports(page: Page, preserveDefault = false): Promise<void> {
   const menu = page.getByRole('button', { name: 'Show sidebar' })
   if (await menu.isVisible()) await menu.click()
   await page.getByRole('button', { name: 'Reports', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Reports' })).toBeVisible()
   await expect(page.getByRole('status')).toHaveCount(0)
+  if (!preserveDefault) await selectFixtureReportDates(page)
 }
 
-async function openSeededReports(page: Page): Promise<void> {
+async function openSeededReports(page: Page, preserveDefault = false): Promise<void> {
   await seedReportData(page)
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
-  await openReports(page)
+  await openReports(page, preserveDefault)
 }
 
 test.beforeEach(async ({ page }) => {
@@ -34,15 +35,18 @@ test.afterEach(() => {
   expect(runtimeErrors, 'Reports must not trigger unhandled browser errors').toEqual([])
 })
 
-test('opens a fourteen-day dashboard with real charts, chain counts, flows and cancellations', async ({ page }) => {
-  await openSeededReports(page)
-  await expect(page.getByRole('combobox', { name: 'Period', exact: true })).toHaveValue('past-14-days')
-  await expect(page.locator('.reports-range-controls')).toContainText('Oct 14, 2026 – Oct 27, 2026')
-  await expect(highlight(page, 'Completed in this period')).toHaveText('4')
-  await expect(highlight(page, 'On this period’s list')).toHaveText('8')
-  await expect(highlight(page, 'Carried out')).toHaveText('1')
-  await expect(highlight(page, 'Let go')).toHaveText('1')
-  await expect(page.locator('.completion-donut-legend dd')).toHaveText(['2', '2', '4'])
+test('opens a full Sunday week with only six presets and renders scoped chart counts', async ({ page }) => {
+  await openSeededReports(page, true)
+  await expect(page.getByRole('combobox', { name: 'Period', exact: true })).toHaveValue('this-week')
+  await expect(page.locator('.reports-range-controls')).toContainText('Oct 25, 2026 – Oct 31, 2026')
+  await expect(page.getByRole('combobox', { name: 'Period', exact: true }).locator('option')).toHaveText(['This week', 'Last week', 'Next week', 'This month', 'Last month', 'Custom'])
+  await selectFixtureReportDates(page)
+  await expect(highlight(page, 'Done')).toHaveText('4')
+  await expect(highlight(page, 'In progress')).toHaveText('2')
+  await expect(highlight(page, 'To do')).toHaveText('3')
+  await expect(highlight(page, 'Rondeled')).toHaveText('2')
+  await expect(highlight(page, 'Canceled')).toHaveText('1')
+  await expect(page.locator('.completion-donut-legend dd')).toHaveText(['2', '3', '4'])
   await expect(page.locator('.completion-donut-graphic svg')).toBeVisible()
   await expect(page.getByRole('img', { name: '4 tasks completed in 2026 within the selected period' })).toBeVisible()
   for (const direction of ['outgoing', 'incoming', 'within']) {
@@ -59,36 +63,45 @@ test('recalculates tag filters for any/all matching and clears back to all work'
   await openSeededReports(page)
   const filters = page.getByRole('region', { name: 'Filter reports by tag' })
   await filters.getByRole('button', { name: '#work', exact: true }).click()
-  await expect(highlight(page, 'Completed in this period')).toHaveText('2')
-  await expect(highlight(page, 'On this period’s list')).toHaveText('5')
+  await expect(highlight(page, 'Done')).toHaveText('2')
+  await expect(highlight(page, 'To do')).toHaveText('2')
   await expect(page.locator('.report-bucket-celebration')).toHaveCount(0)
   await filters.getByRole('button', { name: '#fitness', exact: true }).click()
   await expect(filters.getByRole('combobox', { name: 'Match', exact: true })).toHaveValue('any')
-  await expect(highlight(page, 'Completed in this period')).toHaveText('4')
-  await expect(highlight(page, 'On this period’s list')).toHaveText('7')
+  await expect(highlight(page, 'Done')).toHaveText('4')
+  await expect(highlight(page, 'To do')).toHaveText('2')
   await filters.getByRole('combobox', { name: 'Match', exact: true }).selectOption('all')
-  await expect(highlight(page, 'Completed in this period')).toHaveText('1')
-  await expect(highlight(page, 'On this period’s list')).toHaveText('1')
+  await expect(highlight(page, 'Done')).toHaveText('1')
+  await expect(highlight(page, 'To do')).toHaveText('0')
   await filters.getByRole('button', { name: 'All tags', exact: true }).click()
-  await expect(highlight(page, 'On this period’s list')).toHaveText('8')
+  await expect(highlight(page, 'To do')).toHaveText('3')
   await expect(filters.getByRole('button', { name: '#work', exact: true })).toHaveAttribute('aria-pressed', 'false')
   await filters.getByRole('button', { name: '#bills', exact: true }).click()
-  await expect(highlight(page, 'Completed in this period')).toHaveText('0')
+  await expect(highlight(page, 'Done')).toHaveText('0')
   await expect(page.getByText('No recorded activity in this period.', { exact: false })).toBeVisible()
 })
 
 test('switches presets and honors both custom date endpoints without repeating the selected dates', async ({ page }) => {
   await openSeededReports(page)
   const period = page.getByRole('combobox', { name: 'Period', exact: true })
+  for (const [value, dates] of [
+    ['this-week', 'Oct 25, 2026 – Oct 31, 2026'],
+    ['last-week', 'Oct 18, 2026 – Oct 24, 2026'],
+    ['next-week', 'Nov 1, 2026 – Nov 7, 2026'],
+    ['this-month', 'Oct 1, 2026 – Oct 31, 2026'],
+  ]) {
+    await period.selectOption(value)
+    await expect(page.locator('.reports-range-controls')).toContainText(dates)
+  }
   await period.selectOption('last-month')
   await expect(page.locator('.reports-range-controls')).toContainText('Sep 1, 2026 – Sep 30, 2026')
-  await expect(highlight(page, 'Completed in this period')).toHaveText('0')
+  await expect(highlight(page, 'Done')).toHaveText('0')
   await period.selectOption('custom')
   await expect(page.getByLabel('From', { exact: true })).toHaveValue('2026-09-01')
   await expect(page.getByLabel('Through', { exact: true })).toHaveValue('2026-09-30')
   await page.getByLabel('From', { exact: true }).fill('2026-10-21')
   await page.getByLabel('Through', { exact: true }).fill('2026-10-23')
-  await expect(highlight(page, 'Completed in this period')).toHaveText('2')
+  await expect(highlight(page, 'Done')).toHaveText('2')
   await expect(page.locator('.reports-range-controls .reports-period')).toHaveCount(1)
   await expect(page.locator('.reports-range-controls .reports-period')).toContainText('Choose up to one year')
 })
@@ -102,7 +115,7 @@ test('rejects oversized and reversed custom ranges, accepts a leap year, and rec
   await from.fill('2024-01-01')
   await through.fill('2024-12-31')
   await expect(page.getByRole('alert')).toHaveCount(0)
-  await expect(highlight(page, 'Completed in this period')).toHaveText('0')
+  await expect(highlight(page, 'Done')).toHaveText('0')
   await through.fill('2025-01-01')
   await expect(page.getByRole('alert')).toHaveText('Choose a report period of no more than one year.')
   await expect(page.locator('.report-overview')).toHaveCount(0)
@@ -112,7 +125,7 @@ test('rejects oversized and reversed custom ranges, accepts a leap year, and rec
   await from.fill('2026-10-21')
   await through.fill('2026-10-23')
   await expect(page.getByRole('alert')).toHaveCount(0)
-  await expect(highlight(page, 'Completed in this period')).toHaveText('2')
+  await expect(highlight(page, 'Done')).toHaveText('2')
 })
 
 test('collapses a chart, keeps it collapsed after filtering, and reopens it with the keyboard', async ({ page }) => {
@@ -123,13 +136,13 @@ test('collapses a chart, keeps it collapsed after filtering, and reopens it with
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
   await expect(status.locator('.completion-donut')).toHaveCount(0)
   await page.getByRole('button', { name: '#work', exact: true }).click()
-  await expect(highlight(page, 'Completed in this period')).toHaveText('2')
+  await expect(highlight(page, 'Done')).toHaveText('2')
   await expect(toggle).toHaveAttribute('aria-expanded', 'false')
   await expect(section(page, 'What carried forward').locator('.report-flow')).toBeVisible()
   await toggle.focus()
   await page.keyboard.press('Enter')
   await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-  await expect(status.locator('.completion-donut-legend dd')).toHaveText(['1', '2', '2'])
+  await expect(status.locator('.completion-donut-legend dd')).toHaveText(['1', '3', '2'])
 })
 
 test('a todo rondeled beyond the period stays in outgoing reports after reloading', async ({ page }) => {
@@ -143,15 +156,15 @@ test('a todo rondeled beyond the period stays in outgoing reports after reloadin
   await page.getByRole('menuitem', { name: 'Tomorrow', exact: true }).click()
   await expect(row).toHaveCount(0)
   await openReports(page)
-  await expect(highlight(page, 'Carried out')).toHaveText('1')
-  await expect(highlight(page, 'On this period’s list')).toHaveText('0')
+  await expect(highlight(page, 'Rondeled')).toHaveText('1')
+  await expect(highlight(page, 'To do')).toHaveText('1')
   await page.getByRole('button', { name: 'Back to your list' }).click()
   await page.getByRole('button', { name: 'Next day', exact: true }).click()
   await expect(page.locator('.task-row', { hasText: 'Plan for later' })).toHaveCount(1)
   await page.reload()
   await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible()
   await openReports(page)
-  await expect(highlight(page, 'Carried out')).toHaveText('1')
+  await expect(highlight(page, 'Rondeled')).toHaveText('1')
   await expect(page.locator('.report-flow-item--outgoing small')).toHaveText('1 rondel')
 })
 
@@ -159,12 +172,13 @@ test('keeps unavailable legacy history unknown and avoids inventing a Bucket Lis
   await seedReportData(page, [legacyReportTask()])
   await page.goto('/')
   await openReports(page)
-  await expect(highlight(page, 'Completed in this period')).toHaveText('1')
-  await expect(page.locator('.report-history-note')).toContainText('Some older moves weren’t dated')
-  const split = page.locator('.report-split > div').filter({ hasText: 'Older, unknown status' })
-  await expect(split.locator('dd')).toHaveText('3')
-  await expect(section(page, 'From started to completed')).toContainText('Known for 0 of 1 completions')
+  await expect(highlight(page, 'Done')).toHaveText('1')
+  await expect(section(page, 'From started to completed').locator('.duration-summary-values strong')).toHaveText(['Unknown', 'Unknown'])
   await expect(page.locator('.report-bucket-celebration')).toHaveCount(0)
+  await page.getByRole('tab', { name: 'Tasks', exact: true }).click()
+  const cells = page.getByRole('table', { name: 'Tasks' }).locator('tbody tr').getByRole('cell')
+  await expect(cells.nth(3)).toHaveText('3')
+  await expect(cells.nth(4)).toHaveText('1 day')
 })
 
 test('shows a usable empty dashboard', async ({ page }) => {
@@ -172,8 +186,8 @@ test('shows a usable empty dashboard', async ({ page }) => {
   await page.goto('/')
   await openReports(page)
   await expect(page.getByText('No recorded activity in this period.', { exact: false })).toBeVisible()
-  await expect(highlight(page, 'Completed in this period')).toHaveText('0')
-  await expect(highlight(page, 'On this period’s list')).toHaveText('0')
+  await expect(highlight(page, 'Done')).toHaveText('0')
+  await expect(highlight(page, 'To do')).toHaveText('0')
   await expect(page.locator('.completion-donut-center strong')).toHaveText('—')
   await expect(page.locator('.report-bucket-celebration')).toHaveCount(0)
 })

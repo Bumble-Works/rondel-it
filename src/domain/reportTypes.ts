@@ -27,12 +27,14 @@ export interface ReportTaskRow {
   rondeled: boolean
   bucket: TaskBucket | null
   scheduledInRange: boolean
+  firstSeenDate: string | null
   completedDate: string | null
   canceledDate: string | null
   rondelCount: number
   doingRondelCount: number | null
   todoRondelCount: number | null
   plannedDays: number | null
+  startDateSource: 'recorded' | 'history' | 'scheduled' | 'unknown'
   startedDays: number | null
   inProgressDays: number | null
   bucketListOrigin: boolean | null
@@ -65,13 +67,30 @@ export interface ReportTagMetric {
   color: string
   total: number
   done: number
-  completionRate: number | null
+  inProgress: number
+  todo: number
+  canceled: number
   rondels: number
 }
+
+export interface ReportTaskStatuses {
+  todo: number
+  doing: number
+  done: number
+  canceled: number
+}
+
+export interface ReportActivity extends ReportTaskStatuses { rondeled: number }
+
+export interface ReportTimelineDay extends ReportActivity { date: string }
 
 export interface Dashboard {
   range: ReportRange
   completedCount: number
+  activity: ReportActivity
+  leftBehindIds: string[]
+  timeline: ReportTimelineDay[]
+  bucketActivity: { created: number; actualized: number }
   summary: {
     total: number
     todo: number
@@ -88,6 +107,7 @@ export interface Dashboard {
     todo: number
     doing: number
     unknown: number
+    outcomes: { total: number; todo: number; doing: number; done: number; canceled: number }
     buckets: { label: string; count: number }[]
     flow: { outgoing: ReportFlow; incoming: ReportFlow; within: ReportFlow }
   }
