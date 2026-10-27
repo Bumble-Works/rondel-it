@@ -8,7 +8,14 @@ Read these before doing any work:
 - `PLAN.md`: the product vision.
 - `docs/FUNCTIONALITY.md`: how the app is **meant** to behave. Anything that
   differs is a bug. When you change behavior, update it in the same change.
-- `Plan1.md`: the Stage 1 engineering spec (temporary; deleted once done).
+- `docs/TODO.md`: current status and remaining work.
+
+## Architecture
+
+The app is local-first: React + TypeScript owns the domain rules and local
+storage. Tauri provides native desktop features and optional folder sync
+through the user's cloud drive. Data access uses the local adapter in
+`src/services/adapters/`; domain rules live in `src/domain/`.
 
 ## Commit locally; the human pushes
 
@@ -23,7 +30,7 @@ If any question or clarification comes up, at any point in any task, stop and
 ask the user before continuing. Don't guess. This includes:
 
 - requirements that are ambiguous or conflict with each other
-- code that diverges from `PLAN.md` / `Plan1.md` when it's unclear whether that was intended
+- code that diverges from `PLAN.md` / `docs/FUNCTIONALITY.md` when it's unclear whether that was intended
 - any action that is destructive or outward-facing
 
 This rule applies to every tool, skill and subagent used in this repo.

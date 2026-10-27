@@ -22,7 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.ruby-lsp/
 
 # Playwright
 playwright-report

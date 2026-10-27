@@ -120,8 +120,6 @@
 
 - Legacy records can have unknown starts, Bucket List origins or todo/doing
   rondel splits, and missing dated moves. Preserve that uncertainty.
-- The Rails adapter is on hold and has no complete task-export endpoint;
-  Reports shows a clear load error with that adapter.
 - Older app versions editing synced records can drop newly added tracking
   fields. Use matching app versions when evaluating reporting across devices.
 
@@ -129,7 +127,7 @@
 
 - The only new persisted field on this stacked branch is optional bucketHistory,
   needed for dated Bucket List transfers that do not count as rondels. No new
-  Rails endpoints, snapshots, dependency packages or full status-event log.
+  snapshots, dependency packages or full status-event log.
 - Planned-duration aggregates, lifetime-rondel buckets and split counters remain
   in the existing report model although their dashboard sections are gone.
   Review unused derived results in an isolated cleanup, preserving useful AI data.
