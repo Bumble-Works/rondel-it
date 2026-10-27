@@ -67,3 +67,16 @@ it('uses a genuine legacy Bucket List idea’s retained scheduled day without co
   ], tags, range)
   expect(report.bucketActivity).toEqual({ created: 0, actualized: 1 })
 })
+
+it('does not count reentering Bucket List or a later reschedule as a new idea or first actualization', () => {
+  const dream = task({ bucketListOrigin: true, createdAt: '2026-10-01T12:00:00Z', dayDate: '2026-11-02',
+    bucketHistory: [
+      { id: 'created', kind: 'added', occurredAt: '2026-10-01T12:00:00Z' },
+      { id: 'first-day', kind: 'scheduled', occurredAt: '2026-10-02T12:00:00Z' },
+      { id: 'back', kind: 'added', occurredAt: '2026-10-20T12:00:00Z' },
+      { id: 'rescheduled', kind: 'scheduled', occurredAt: '2026-10-21T12:00:00Z' },
+    ] })
+  expect(buildDashboard([dream], [], range).bucketActivity).toEqual({ created: 0, actualized: 0 })
+  expect(buildDashboard([dream], [], { start: '2026-10-01', end: '2026-10-02' }).bucketActivity)
+    .toEqual({ created: 1, actualized: 1 })
+})

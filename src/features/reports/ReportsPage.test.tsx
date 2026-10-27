@@ -38,6 +38,11 @@ it('shares any/all tag filtering between Dashboard and Tasks without a separate 
   fireEvent.click(screen.getByRole('tab', { name: 'Dashboard' }))
   expect(screen.getByRole('button', { name: '#Work' })).toHaveAttribute('aria-pressed', 'true')
   expect(screen.getByLabelText('Match')).toHaveValue('all')
+  fireEvent.change(screen.getByLabelText('Period'), { target: { value: 'this-month' } })
+  fireEvent.change(screen.getByLabelText('Period'), { target: { value: 'custom' } })
+  fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-01-01' } })
+  fireEvent.change(screen.getByLabelText('Through'), { target: { value: '2026-12-31' } })
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(dataSource.listAllTasks).toHaveBeenCalledTimes(1)
 })
 
@@ -63,4 +68,18 @@ it('opens only filtered left-behind tasks, supports opening one for action, and 
   expect(onOpenTask).toHaveBeenCalledWith(past)
   fireEvent.click(screen.getByRole('button', { name: 'Show all tasks' }))
   expect(screen.getAllByRole('rowheader')).toHaveLength(3)
+})
+
+it('shows a load error and reconnects the retry action to the shared data load', async () => {
+  const failure = new Error('Cannot read saved tasks')
+  const listAllTasks = vi.fn().mockRejectedValueOnce(failure).mockResolvedValueOnce([task()])
+  const dataSource = { listAllTasks } as unknown as DataSource
+  const onError = vi.fn()
+  render(<ReportsPage dataSource={dataSource} tags={tags} revision={0} onBack={() => {}} onError={onError} />)
+  expect(await screen.findByRole('alert')).toHaveTextContent('Cannot read saved tasks')
+  expect(onError).toHaveBeenCalledWith('Unable to load reports', failure)
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  await screen.findByText('Dashboard summary')
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  expect(listAllTasks).toHaveBeenCalledTimes(2)
 })
