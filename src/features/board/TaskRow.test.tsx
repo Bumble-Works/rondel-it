@@ -51,6 +51,9 @@ function renderRow(
       onCopy={copies.onCopy}
       onPickCopyDate={copies.onPickCopyDate}
       onOpenReminder={noop}
+      onToggleTag={noop}
+      onCreateTag={noop}
+      onChangeReminder={noop}
       isDragged={false}
       dropPosition={null}
     />,
@@ -60,7 +63,7 @@ function renderRow(
 describe('TaskRow', () => {
   it('locks row actions while the task is open in the detail panel', () => {
     renderRow(true)
-    for (const name of ['More actions', 'Add note', 'Rondel this task', 'Mark as doing']) {
+    for (const name of ['More actions', 'Add note', 'Rondel this task', 'Mark as doing', 'Tags', 'Add time']) {
       expect(screen.getByRole('button', { name })).toBeDisabled()
     }
   })
@@ -112,6 +115,9 @@ describe('TaskRow', () => {
         onCopy={() => {}}
         onPickCopyDate={() => {}}
         onOpenReminder={() => {}}
+        onToggleTag={() => {}}
+        onCreateTag={() => {}}
+        onChangeReminder={() => {}}
         isDragged={false}
         dropPosition={null}
       />,

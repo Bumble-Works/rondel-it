@@ -1,0 +1,45 @@
+.time-picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.time-picker-trigger:hover:not(:disabled),
+.time-picker-trigger[aria-expanded='true'] {
+  color: var(--brand-ink);
+  border-color: var(--brand);
+}
+
+.time-picker-trigger:disabled {
+  opacity: 0.5;
+}
+
+.time-picker-form {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.time-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.time-picker-actions button {
+  border: 0;
+  border-radius: var(--r-sm);
+  padding: 0.4rem 0.6rem;
+  color: var(--brand-ink);
+  background: var(--brand-tint);
+  font-weight: 600;
+}

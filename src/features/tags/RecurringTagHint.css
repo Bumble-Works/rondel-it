@@ -1,0 +1,7 @@
+.recurring-tag-hint {
+  max-width: 225px;
+  margin: 0.35rem 0.6rem 0.25rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}

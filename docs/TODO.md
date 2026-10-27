@@ -30,7 +30,18 @@
   show no page overflow at 360px. Native Mac/Windows dialogs still need manual checks.
 - Preview: `npm run dev` → http://localhost:1420. Reports → Print on either tab,
   or Tasks → Export CSV. Only local commits; human reviews and publishes.
-
+- Add visible tag and reminder-time controls on task rows and both add flows.
+- Search, create and toggle several tags without closing the picker or opening
+  task details. Keep rapid changes serialized against current saved tags.
+- Offer explicit time suggestions for `@10:00` or `10:00`; preserve unpicked text.
+- Keep reminders restricted to dated tasks and retain recurring reminder scope.
+- Recurring tags remain per occurrence. A quiet explanation appears inside its
+  picker once per device, then stays gone; series edits stay on the recurring page.
+- Keep notes on their own line above the tags/time controls for clear alignment.
+- Implementation complete; lint, practices checks, all 324 unit/component tests
+  and production build pass. Local commit only; human reviews and publishes.
+- Preview: `npm run dev` → http://localhost:1420. Use Tags/Time beneath any
+  task or in either add flow; notes sit above those controls.
 
 ## in-pr — Reporting dashboard (`feat/make-reporting`)
 

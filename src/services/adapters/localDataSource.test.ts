@@ -1,6 +1,14 @@
 import { localDataSource } from './localDataSource'
 
 describe('localDataSource tasks', () => {
+  it('creates a dated task with a reminder and ignores reminders on undated placements', async () => {
+    const task = await localDataSource.createTask({ title: 'Call', dayDate: '2026-10-28', reminderTime: '10:00' })
+    expect((await localDataSource.getTask(task.id)).reminderTime).toBe('10:00')
+    for (const target of [{ bucket: 'bucket-list' as const }, { dayDate: '2026-10-28', rondeled: true }]) {
+      expect(await localDataSource.createTask({ title: 'Plan', ...target, reminderTime: '10:00' })).toMatchObject({ reminderTime: null })
+    }
+  })
+
   it('lists range, bucket, and rondel tasks with tag filters', async () => {
     const a = await localDataSource.createTask({
       title: 'A',

@@ -1,6 +1,7 @@
 .inline-add {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.62rem;
   padding: 0.36rem 0.56rem;
@@ -19,6 +20,9 @@
   justify-content: center;
   width: 20px;
   height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--faint);
   transition: color var(--dur) var(--ease);
 }
@@ -30,6 +34,7 @@
 
 .inline-add-input {
   flex: 1;
+  min-width: 100px;
   border: none;
   background: transparent;
   color: var(--ink);
@@ -45,4 +50,9 @@
 
 .inline-add-input:focus {
   outline: none;
+}
+
+.inline-add .task-capture-options {
+  flex-basis: 100%;
+  padding-left: 30px;
 }

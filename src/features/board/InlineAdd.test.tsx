@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Tag } from '../../domain/types'
 import { InlineAdd } from './InlineAdd'
@@ -21,7 +21,7 @@ describe('InlineAdd #tags', () => {
     expect(input).toHaveValue('Call mom')
 
     await userEvent.keyboard('{Enter}') // submits
-    expect(onAdd).toHaveBeenCalledWith('Call mom', ['fam'])
+    expect(onAdd).toHaveBeenCalledWith('Call mom', ['fam'], null)
   })
 
   it('creates a new tag only when "Create" is picked', async () => {
@@ -31,7 +31,7 @@ describe('InlineAdd #tags', () => {
     expect(onCreateTag).toHaveBeenCalledWith('travel')
 
     await userEvent.type(input, '{Enter}')
-    expect(onAdd).toHaveBeenCalledWith('Plan trip', ['new'])
+    expect(onAdd).toHaveBeenCalledWith('Plan trip', ['new'], null)
   })
 
   it('creates a new tag from the keyboard only after arrowing to "Create"', async () => {
@@ -46,7 +46,7 @@ describe('InlineAdd #tags', () => {
     // Enter never auto-picks "Create", so this submits the text as typed.
     await userEvent.type(input, 'Fix issue #42{Enter}')
     expect(onCreateTag).not.toHaveBeenCalled()
-    expect(onAdd).toHaveBeenCalledWith('Fix issue #42', [])
+    expect(onAdd).toHaveBeenCalledWith('Fix issue #42', [], null)
   })
 
   it('removing a picked tag chip does not submit the task', async () => {
@@ -57,5 +57,35 @@ describe('InlineAdd #tags', () => {
     expect(screen.queryByRole('button', { name: 'Remove family' })).not.toBeInTheDocument()
     expect(input).toHaveValue('Call mom')
     expect(input).toHaveFocus()
+  })
+
+  it('chooses tags and time without submitting when focus moves into the controls', async () => {
+    const { onAdd, input } = setup()
+    await userEvent.type(input, 'Call mom')
+    await userEvent.click(screen.getByRole('button', { name: 'Tags' }))
+    await userEvent.click(screen.getByRole('menuitemcheckbox', { name: 'family' }))
+    expect(onAdd).not.toHaveBeenCalled()
+    await userEvent.keyboard('{Escape}')
+    await userEvent.click(screen.getByRole('button', { name: 'Add time' }))
+    fireEvent.change(screen.getByLabelText('Reminder time'), { target: { value: '10:00' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Set time' }))
+    expect(onAdd).not.toHaveBeenCalled()
+    await userEvent.click(screen.getByRole('button', { name: 'Add task to this list' }))
+    expect(onAdd).toHaveBeenCalledExactlyOnceWith('Call mom', ['fam'], '10:00')
+  })
+
+  it.each(['@10:00', '10:00'])('picks %s explicitly before adding the task', async (token) => {
+    const { onAdd, input } = setup()
+    await userEvent.type(input, `Call mom ${token}{Enter}`)
+    expect(input).toHaveValue('Call mom')
+    expect(onAdd).not.toHaveBeenCalled()
+    await userEvent.keyboard('{Enter}')
+    expect(onAdd).toHaveBeenCalledExactlyOnceWith('Call mom', [], '10:00')
+  })
+
+  it('keeps an unpicked time in the title after Escape', async () => {
+    const { onAdd, input } = setup()
+    await userEvent.type(input, 'Call mom 10:00{Escape}{Enter}')
+    expect(onAdd).toHaveBeenCalledExactlyOnceWith('Call mom 10:00', [], null)
   })
 })
