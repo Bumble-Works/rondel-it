@@ -340,7 +340,10 @@ export const localDataSource: DataSource = {
     const occurredAt = nowIso()
     const bucketKind = bucket === 'bucket-list' && source.bucket !== 'bucket-list' ? 'added'
       : bucket === null && !rondeled && dayDate !== null && (source.bucket === 'bucket-list' || (source.bucketListOrigin === true && source.rondeled)) ? 'scheduled' : null
-    const bucketEvent: TaskBucketEvent | null = bucketKind ? { id: uid(), occurredAt, kind: bucketKind } : null
+    const bucketEvent: TaskBucketEvent | null = bucketKind ? {
+      id: uid(), occurredAt, kind: bucketKind,
+      fromDate: !source.bucket && !source.rondeled ? source.dayDate : null,
+    } : null
     const bucketHistory = bucketEvent ? [...(source.bucketHistory ?? []), bucketEvent] : source.bucketHistory ?? []
 
     if (rondel && !canRondel(source)) {

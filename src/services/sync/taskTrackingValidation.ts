@@ -28,6 +28,7 @@ function isBucketEvent(value: unknown): boolean {
   const record = value as RecordValue
   return typeof record.id === 'string' && record.id.length > 0 && isTimestamp(record.occurredAt)
     && (record.kind === 'added' || record.kind === 'scheduled')
+    && (record.fromDate === undefined || isDate(record.fromDate))
 }
 
 /** Older device files omit these fields; supplied observations must be valid. */

@@ -244,8 +244,11 @@ Today, Next week, Next month, Pick a date, Mark done.
   Optional bucketHistory observations date these actions separately from rondels,
   including plain drags, and survive copies and reloads. Scheduling out of Bucket
   List does not increase rondelCount. Proven legacy bucket origins can use their
-  saved first scheduled day when dated observations are unavailable; inferred
-  dates are never written into task storage. A completion celebration still appears
+  saved first scheduled day when dated observations are unavailable. Transfers
+  retain their observed real source day so later parking and rescheduling cannot
+  replace that legacy first actualization. Waiting-container dates do not prove
+  earlier actualization; inferred dates are never written into task storage.
+  A completion celebration still appears
   only for proven Bucket List origins finished in the selected range.
 - Tasks shows one row per logical task chain. Columns: Task (with tags), Status,
   First seen, Completed, Rondels, Days in progress. First seen uses the earliest
@@ -259,7 +262,8 @@ Today, Next week, Next month, Pick a date, Mark done.
   same as All. These filters affect the table only, never task state or charts.
   Show notes displays all full notes inline and hides them together. There are
   no per-row expanders, destination or rondel-split columns. At most 50 rows
-  render per page; changing dates/tags/status/sort resets to page one. Narrow
+  render per page; changing dates/tags/status/sort resets to page one, including
+  clearing a filter or returning to an earlier selection. Narrow
   tables scroll inside their panel.
 - Days in progress runs from the recorded first start to completion for done
   tasks, or through today for unfinished started tasks, including pauses and
@@ -268,7 +272,9 @@ Today, Next week, Next month, Pick a date, Mark done.
   written into task storage; recorded starts always win. Untouched to-dos have
   no invented start. No per-row estimate label is shown. Started-to-completed
   averages exclude estimates and invalid intervals. Same-day work is zero days.
-  The duration chart omits duplicate bucket summaries and coverage prose.
+  The duration chart exposes every bucket's count to screen readers and shows
+  exact counts on hover or keyboard focus, including small or empty buckets.
+  It omits duplicate bucket summaries and coverage prose.
 - There is no Meeting review tab. Existing Week printing serves meeting review;
   report print/export integration remains a follow-up in docs/TODO.md. Removed
   dashboard sections include planned-to-completed duration, the overall lifetime

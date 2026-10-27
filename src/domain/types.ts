@@ -19,6 +19,8 @@ export interface TaskBucketEvent {
   id: string
   occurredAt: string
   kind: 'added' | 'scheduled'
+  /** Real day observed before this transfer; null for waiting or unscheduled work. */
+  fromDate?: string | null
 }
 
 export interface Task {

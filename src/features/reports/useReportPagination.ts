@@ -4,6 +4,8 @@ export const REPORT_PAGE_SIZE = 50
 
 export function useReportPagination(total: number, selection: string) {
   const [requested, setRequested] = useState({ selection, page: 0 })
+  // Remember each change so clearing a filter cannot restore its previous page.
+  if (requested.selection !== selection) setRequested({ selection, page: 0 })
   const pageCount = Math.max(1, Math.ceil(total / REPORT_PAGE_SIZE))
   const page = requested.selection === selection ? Math.min(requested.page, pageCount - 1) : 0
   const start = page * REPORT_PAGE_SIZE

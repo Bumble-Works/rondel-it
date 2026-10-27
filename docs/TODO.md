@@ -16,10 +16,11 @@
   and date-field placement at 360px. Both Chromium and WebKit use the existing
   CI e2e job; browser execution remains in CI per `PRACTICES.md`.
 
-## wip — Task reports and activity charts (`feat/report-review-details`)
+## in-pr — Task reports and activity charts (`feat/report-review-details`, PR #40)
 
-- Stacked locally on `feat/make-reporting` at `f3b2d47`. All changes remain
-  uncommitted and unpushed for local review.
+- Built on `feat/make-reporting` at `f3b2d47`, now merged into main via PR #39.
+  PR #40 contains the task reports and activity charts; follow-up review fixes
+  are committed locally for the human to review and push.
 - Dashboard/Tasks tabs share sticky tag any/all filters and dates. Tasks has
   multi-select status pills including canceled, column sorting, 50-row pages
   and one toggle for full inline notes. Removed per-row expanders and jargon.
@@ -58,6 +59,14 @@
 - Added minimal optional bucketHistory observations with backward-compatible
   defaults and sync validation. Waiting containers and cancellation do not
   actualize an idea; scheduling it onto a real day never adds a rondel.
+- Review fixes preserve legacy first actualization through later Bucket List
+  transfers, reset pagination when filters are cleared, and expose duration
+  counts to screen readers and hover/keyboard tooltips. Bucket transfer source
+  dates are optional observed data; inferred legacy dates remain report-only.
+- Removed the unused timeline-note CSS. Local PR description text, including
+  preview instructions, is in `tmp/pr40-review-fixes.md` for manual use.
+- Review-fix validation: lint, practices checks, all 294 unit/component tests
+  and production build pass in a clean copy containing only the fixes.
 - Added domain, adapter, chart and interaction tests plus Chromium/WebKit coverage
   for loading, dates/timezone, notes, filters, cancellation, left-behind navigation,
   timeline overlaps, sizing, clipping, sticky filters, and bucket persistence.
