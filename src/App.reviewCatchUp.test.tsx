@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { renderWithQuery as render } from './test/queryTestUtils'
+import { screen } from '@testing-library/react'
 import App from './App'
 import type { Task } from './domain/types'
 

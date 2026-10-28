@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { Tag } from '../../domain/types'
+import type { Tag, Task } from '../../domain/types'
 import type { BoardGroupAddTarget } from '../board/WeekBoard'
-import { localDataSource as dataSource } from '../../services/adapters/localDataSource'
+import type { CreateTaskInput } from '../../services/adapters/DataSource'
 import { IconButton } from '../../shared/ui/IconButton'
 import { anyModalOpen } from '../../shared/ui/modalStack'
 import { QuickAddModal, type QuickAddNav } from './QuickAddModal'
@@ -15,6 +15,7 @@ interface QuickAddProps {
   /** Tag filters active on the board; the new task gets them too. */
   activeTagIds: string[]
   onCreateTag: (name: string) => Promise<Tag | null>
+  onCreateTask: (input: CreateTaskInput) => Promise<Task | null>
   /** After a task is filed: navigate to it and open it. */
   onAdded: (taskId: string, nav: QuickAddNav) => void
   onError: (context: string, e: unknown) => void
@@ -25,7 +26,7 @@ interface QuickAddProps {
  * opens a small composer. On add it files the task, then hands back its id and
  * where it landed so the board can go there and open it.
  */
-export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdded, onError }: QuickAddProps) {
+export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onCreateTask, onAdded, onError }: QuickAddProps) {
   const [open, setOpen] = useState(false)
 
   // Don't open behind another dialog (e.g. the review nag), which would steal focus.
@@ -50,7 +51,8 @@ export function QuickAdd({ tags, weekStartDay, activeTagIds, onCreateTag, onAdde
   const add = (title: string, tagIds: string[], target: BoardGroupAddTarget, nav: QuickAddNav, time: string | null): Promise<boolean> =>
     (async () => {
       try {
-        const created = await dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds, time))
+        const created = await onCreateTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds, time))
+        if (!created) return false
         onAdded(created.id, nav)
         return true
       } catch (e) {

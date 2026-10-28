@@ -44,8 +44,8 @@ and leaves a read-only history copy on the day you worked on it.
 **Next week** and **Next month** hold tasks in that period's **Unassigned** list
 until you give them a day. Once the period starts, they appear in reviews until
 resolved, including after the period ends. Starting or finishing a waiting task
-places it on today. Giving it a day is scheduling and adds no rondel; pushing it
-to another waiting period does.
+places it on today. Giving it a day is scheduling and adds no rondel. Choosing
+**Next week** or **Next month** again moves it to that period and adds one.
 
 ## Keep a Bucket List
 

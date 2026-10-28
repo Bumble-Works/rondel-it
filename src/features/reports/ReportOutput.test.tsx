@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { renderWithQuery as render } from '../../test/queryTestUtils'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { reportFixture, reportFixtureTags as tags, reportFixtureTask as task } from '../../test/reportFixtures'
 import { PrintDocument } from '../print/PrintDocument'
 import { printPage } from '../print/printPage'

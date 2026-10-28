@@ -10,6 +10,11 @@ export function canRemind(task: Task): boolean {
   return task.dayDate !== null && !task.rondeled && !isCarriedForward(task) && task.status !== 'canceled'
 }
 
+export function isUpcomingReminder(task: Task, fromDate: string): boolean {
+  return task.dayDate !== null && task.dayDate >= fromDate && canRemind(task) && task.reminderTime !== null &&
+    (task.status === 'todo' || task.status === 'doing')
+}
+
 export const CARRIED_FORWARD_HINT = 'Just a memory now. The real one rolled forward.'
 
 export const CANCELED_REOPEN_HINT = 'Canceled — reopen it to change it'

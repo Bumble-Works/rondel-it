@@ -18,7 +18,7 @@ import {
   weekDays,
   weekdayName,
 } from './domain/dates'
-import type { RecurringRule, Tag, Task, TaskStatus, UserSetting } from './domain/types'
+import type { Task, TaskStatus } from './domain/types'
 import type { BoardGroup, BoardGroupAddTarget } from './features/board/WeekBoard'
 import { WeekBoard } from './features/board/WeekBoard'
 import { useScrollToToday } from './features/board/useScrollToToday'
@@ -35,9 +35,8 @@ import { Icon } from './shared/ui/Icon'
 import { STATUS_LABEL, toggleStatusFilter } from './shared/taskStatus'
 import { ActiveFilters } from './features/board/ActiveFilters'
 import { IconButton } from './shared/ui/IconButton'
-import { containerDropDay, isWaitingForDecision, showsInRondelContainer } from './domain/rondel'
+import { containerDropDay } from './domain/rondel'
 import { describeRecurrence } from './domain/recurrence'
-import type { RecurringRuleInput, RondelTarget } from './services/adapters/DataSource'
 import { localDataSource as dataSource } from './services/adapters/localDataSource'
 import { useSync } from './features/sync/useSync'
 import { restoreMenuBarIcon } from './shared/startAtLogin'
@@ -49,6 +48,10 @@ import { useReminderAlerts } from './features/reminders/useReminderAlerts'
 import { ReminderModal } from './features/reminders/ReminderModal'
 import { announceReview } from './features/reminders/announceReview'
 import { features } from './shared/features'
+import { useAppData } from './features/app/useAppData'
+import { useMetadataActions } from './features/app/useMetadataActions'
+import { useBoardData } from './features/board/useBoardData'
+import { useTaskActions } from './features/task/useTaskActions'
 
 const ReportsPage = lazy(() => import('./features/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
 
@@ -63,8 +66,6 @@ interface Buckets {
   'bucket-list': Task[]
 }
 
-const EMPTY_BUCKETS: Buckets = { 'bucket-list': [] }
-
 const BUCKET_DEFS: Array<[keyof Buckets, string, string]> = [['bucket-list', 'Bucket List', 'Someday']]
 
 function errorMessage(e: unknown): string {
@@ -76,15 +77,6 @@ function sameWeek(a: string, b: string, weekStartDay: number): boolean {
 }
 
 function App() {
-  const [tags, setTags] = useState<Tag[]>([])
-  const [settings, setSettings] = useState<UserSetting | null>(null)
-  const [rules, setRules] = useState<RecurringRule[]>([])
-  const [rangeTasks, setRangeTasks] = useState<Task[]>([])
-  const [buckets, setBuckets] = useState<Buckets>(EMPTY_BUCKETS)
-  const [containerItems, setContainerItems] = useState<Task[]>([])
-  const [undecided, setUndecided] = useState<Task[]>([])
-  const [reminderTasks, setReminderTasks] = useState<Task[]>([])
-  const [leftUndone, setLeftUndone] = useState<Task[]>([])
   const [nagOpen, setNagOpen] = useState(false)
 
   const [view, setView] = useState<ViewKey>('day')
@@ -94,15 +86,20 @@ function App() {
   const [activeStatuses, setActiveStatuses] = useState<TaskStatus[]>([])
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [page, setPage] = useState<'board' | 'settings' | 'recurring' | 'reports'>('board')
-  const [reportsRevision, setReportsRevision] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [printRequest, setPrintRequest] = useState<{ dayIso: string | null; at: number } | null>(null)
 
   const [noteTaskId, setNoteTaskId] = useState<string | null>(null)
   const [dateTaskId, setDateTaskId] = useState<string | null>(null)
   const [datePurpose, setDatePurpose] = useState<'rondel' | 'copy'>('rondel')
-  const [boardReload, setBoardReload] = useState(0)
   const [error, setError] = useState<string | null>(null)
+
+  const reportError = useCallback((context: string, e: unknown) => {
+    console.error(`[rondel] ${context}`, e)
+    setError(`${context}: ${errorMessage(e)}`)
+  }, [])
+  const appData = useAppData(reportError)
+  const { tags, settings, rules, refresh } = appData
 
   const today = todayIso()
   const weekStartDay = settings?.weekStartDay ?? 1
@@ -124,103 +121,26 @@ function App() {
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
-  const recurringSyncedFor = useRef<string | null>(null)
-
-  const reportError = useCallback((context: string, e: unknown) => {
-    console.error(`[rondel] ${context}`, e)
-    setError(`${context}: ${errorMessage(e)}`)
-  }, [])
-
-  const loadedDayRef = useRef<string | null>(null)
+  const board = useBoardData({ rangeStart, rangeEnd, containerStart, containerEnd, today }, appData.preparation, reportError)
+  const { rangeTasks, bucketTasks, containerItems, undecided, reminderTasks, leftUndone } = board
+  const buckets: Buckets = useMemo(() => ({ 'bucket-list': bucketTasks }), [bucketTasks])
   const pendingReviewRef = useRef<'start' | 'end' | null>(null)
-
-  const openReview = useCallback(
-    (slot: 'start' | 'end', count: number) => {
-      setNagOpen(true)
-      announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
-    },
-    [reportError],
-  )
-
-  const loadBoard = useCallback(async () => {
-    try {
-      const recurringDay = today
-      if (recurringSyncedFor.current !== recurringDay) {
-        await dataSource.syncRecurring(recurringDay)
-        recurringSyncedFor.current = recurringDay
-      }
-      const [range, bl, rondelItems, withReminders, leftItems] = await Promise.all([
-        dataSource.listTasksInRange(rangeStart, rangeEnd),
-        dataSource.listBucketTasks('bucket-list'),
-        dataSource.listRondelItems(),
-        dataSource.listUpcomingReminders(today),
-        dataSource.listLeftUndone(today),
-      ])
-      setReminderTasks(withReminders)
-      setRangeTasks(range)
-      setReportsRevision((revision) => revision + 1)
-      setBuckets({ 'bucket-list': bl })
-
-      setContainerItems(rondelItems.filter((t) => showsInRondelContainer(t, { start: containerStart, end: containerEnd }, today)))
-
-      const undecidedItems = rondelItems.filter((t) => isWaitingForDecision(t, today))
-      setUndecided(undecidedItems)
-      setLeftUndone(leftItems)
-
-      const nagTotal = undecidedItems.length + leftItems.length
-      if (nagTotal === 0) setNagOpen(false)
-
-      loadedDayRef.current = today
-      // Open a queued review only once the board is on the real current day.
-      if (pendingReviewRef.current && today === todayIso()) {
-        const slot = pendingReviewRef.current
-        pendingReviewRef.current = null
-        if (nagTotal > 0) openReview(slot, nagTotal)
-      }
-
-      setError(null)
-    } catch (e) {
-      reportError('Unable to load tasks', e)
-    }
-  }, [reportError, openReview, rangeStart, rangeEnd, containerStart, containerEnd, today])
-
-  const loadAppData = useCallback(async () => {
-    try {
-      const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
-        dataSource.listTags(),
-        dataSource.getSettings(),
-        dataSource.listRecurringRules(),
-      ])
-      setTags(loadedTags)
-      setSettings(loadedSettings)
-      setRules(loadedRules)
-    } catch (e) {
-      reportError('Unable to load app data', e)
-    }
+  const openReview = useCallback((slot: 'start' | 'end', count: number) => {
+    setNagOpen(true)
+    announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
   }, [reportError])
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadAppData()
-  }, [loadAppData])
+  const sync = useSync({
+    onRemoteChange: useCallback(() => { void refresh({ metadata: true, recurring: true }) }, [refresh]),
+    reportError,
+  })
+  const mutationServices = { refresh, reportError, scheduleSync: sync.scheduleSync, clearError: () => setError(null) }
+  const taskActions = useTaskActions(mutationServices)
+  const metadataActions = useMetadataActions(mutationServices)
 
   useEffect(() => {
     restoreMenuBarIcon().catch((e) => reportError('Couldn’t show the menu-bar icon', e))
   }, [reportError])
-
-  const sync = useSync({
-    onRemoteChange: useCallback(() => {
-      recurringSyncedFor.current = null // another device may have changed rules
-      void loadAppData().then(() => loadBoard())
-    }, [loadAppData, loadBoard]),
-    reportError,
-  })
-  const { scheduleSync } = sync
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (settings) void loadBoard()
-  }, [settings, loadBoard, boardReload])
 
   useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
 
@@ -233,10 +153,17 @@ function App() {
   }, [printRequest, reportError])
 
   const nagCount = undecided.length + leftUndone.length
-  const nagCountRef = useRef(0)
   useEffect(() => {
-    nagCountRef.current = nagCount
-  }, [nagCount])
+    if (!board.ready) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setError((current) => current?.startsWith('Unable to load ') || current?.startsWith('Unable to prepare ') ? null : current)
+    if (nagCount === 0) setNagOpen(false)
+    if (pendingReviewRef.current && board.today === todayIso()) {
+      const slot = pendingReviewRef.current
+      pendingReviewRef.current = null
+      if (nagCount > 0) openReview(slot, nagCount)
+    }
+  }, [board.ready, board.today, board.updatedAt, nagCount, openReview])
 
   const allTasks = useMemo(
     () => [...rangeTasks, ...containerItems, ...buckets['bucket-list'], ...undecided, ...leftUndone],
@@ -245,98 +172,39 @@ function App() {
   const selectedTask = allTasks.find((t) => t.id === selectedTaskId) ?? null
   const noteTask = allTasks.find((t) => t.id === noteTaskId) ?? null
 
-  const attempt = useCallback(
-    async (context: string, fn: () => Promise<unknown>) => {
-      try {
-        recurringSyncedFor.current = null
-        await fn()
-        scheduleSync()
-      } catch (e) {
-        reportError(context, e)
-      }
-    },
-    [reportError, scheduleSync],
-  )
-
-  const run = useCallback(
-    (fn: () => Promise<unknown>) =>
-      attempt('Something went wrong', async () => {
-        await fn()
-        await loadBoard()
-      }),
-    [attempt, loadBoard],
-  )
-
   const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[], time: string | null) =>
-    run(() => dataSource.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds, time)))
+    taskActions.createTask(toQuickAddCreateTaskInput(target, title, tagIds, activeTagIds, time))
 
   const onQuickAdded = (id: string, nav: QuickAddNav) => {
     setPage('board')
     setSelectedTaskId(id)
     setView(nav.view)
     setAnchorDate(nav.anchorDate)
-    setBoardReload((n) => n + 1)
-    scheduleSync()
   }
-
   const openReportTask = (task: Task) => {
     setSelectedTaskId(task.id)
     setView('day')
     setAnchorDate(task.dayDate ?? today)
     setPage('board')
   }
-
-  /** Creates a tag the user explicitly chose to create while typing #name. */
-  const createTagNamed = async (name: string): Promise<Tag | null> => {
-    try {
-      const tag = await dataSource.createTag({ name })
-      await refreshTags()
-      return tag
-    } catch (e) {
-      reportError('Unable to create tag', e)
-      return null
-    }
+  const { advance, setDone, rondel, toggleFlag, changeReminder, addTag, toggleTag, createTagForTask, copyTask } = taskActions
+  const { createTag, updateTag, createRule, updateRule, deleteRule, updateSettings } = metadataActions
+  const createTagNamed = async (name: string) => (await createTag(name)) ?? null
+  const saveNote = (id: string, note: string) => taskActions.update(id, { note })
+  const changeTitle = (id: string, title: string) => taskActions.update(id, { title })
+  const cancelTask = async (id: string) => {
+    if (!await taskActions.cancel(id)) return
+    setSelectedTaskId((current) => current === id ? null : current)
+    setNoteTaskId((current) => current === id ? null : current)
+    setDateTaskId((current) => current === id ? null : current)
   }
-
-  const advance = (task: Task) => run(() => dataSource.advanceTask(task.id))
-  const setDone = (task: Task, options?: { onItsDay?: boolean }) =>
-    run(() => dataSource.setTaskStatus(task.id, 'done', options))
-  const rondel = (task: Task, target: RondelTarget) =>
-    run(() =>
-      dataSource.moveTask(
-        task.id,
-        {
-          dayDate: target.toDate ?? null,
-          rondeled: target.rondeled ?? false,
-          bucket: target.toBucket ?? null,
-        },
-        { rondel: true },
-      ),
-    )
-  const toggleFlag = (task: Task) => run(() => dataSource.updateTask(task.id, { flagged: !task.flagged }))
-  // "All" on a recurring task changes the rule and its unfinished tasks.
-  const changeReminder = (task: Task, reminderTime: string | null, scope: 'one' | 'all') =>
-    run(async () => {
-      if (scope === 'all' && task.recurringRuleId) {
-        await dataSource.updateRecurringRule(task.recurringRuleId, { reminderTime }, { applyToOpenTasks: true })
-        await refreshRules()
-      } else await dataSource.updateTask(task.id, { reminderTime })
-    })
-  const saveNote = (taskId: string, note: string) => run(() => dataSource.updateTask(taskId, { note }))
-  const changeTitle = (taskId: string, title: string) => run(() => dataSource.updateTask(taskId, { title }))
-  const cancelTask = (taskId: string) =>
-    run(async () => {
-      await dataSource.setTaskStatus(taskId, 'canceled')
-      if (selectedTaskId === taskId) setSelectedTaskId(null)
-      if (noteTaskId === taskId) setNoteTaskId(null)
-      if (dateTaskId === taskId) setDateTaskId(null)
-    })
-  const move = (taskId: string, target: BoardGroupAddTarget, beforeId: string | null) => {
-    const task = allTasks.find((t) => t.id === taskId)
-    // Reordering in the container keeps its rondeled period; day-drags take the container's.
-    const keepsPeriod = target.rondeled && task?.rondeled && task.dayDate
-    const placed = keepsPeriod ? { ...target, dayDate: task.dayDate ?? undefined } : target
-    return run(() => dataSource.moveTask(taskId, placed, { beforeId }))
+  const move = (id: string, target: BoardGroupAddTarget, beforeId: string | null) => {
+    const task = allTasks.find((item) => item.id === id)
+    if (task) return taskActions.move(task, target, beforeId)
+  }
+  const deleteTag = async (id: string) => {
+    const result = await metadataActions.deleteTag(id)
+    if (result !== null) setActiveTagIds((ids) => ids.filter((value) => value !== id))
   }
 
   const statusOk = (t: Task) => activeStatuses.length === 0 || activeStatuses.includes(t.status)
@@ -355,37 +223,6 @@ function App() {
     setActiveTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   const resetTagFilter = () => setActiveTagIds([])
 
-  // Tag changes run one at a time, each on the task's current tags, so quick
-  // picks (e.g. two #tags in a row) never undo each other.
-  const tagQueue = useRef<Promise<unknown>>(Promise.resolve())
-  const changeTags = (taskId: string, change: (tagIds: string[]) => string[]) => {
-    const job = tagQueue.current.then(async () => {
-      const { tagIds } = await dataSource.getTask(taskId)
-      await dataSource.updateTask(taskId, { tagIds: change(tagIds) })
-    })
-    tagQueue.current = job.catch(() => {})
-    return job
-  }
-  const addTag = (task: Task, tagId: string) =>
-    run(() => changeTags(task.id, (ids) => (ids.includes(tagId) ? ids : [...ids, tagId])))
-  const toggleTag = (task: Task, tagId: string) =>
-    run(() => changeTags(task.id, (ids) => (ids.includes(tagId) ? ids.filter((id) => id !== tagId) : [...ids, tagId])))
-
-  const createTagForTask = (task: Task, name: string) =>
-    void attempt('Unable to create tag', async () => {
-      const tag = await dataSource.createTag({ name })
-      await changeTags(task.id, (ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
-      await refreshTags()
-      await loadBoard()
-    })
-
-  // A fresh to-do on that day: new — not recurring, never rondeled, no history or reminder.
-  const copyTask = (task: Task, dayIso: string) =>
-    run(async () => {
-      const copy = await dataSource.createTask({ title: task.title, dayDate: dayIso, tagIds: task.tagIds })
-      if (task.note || task.flagged) await dataSource.updateTask(copy.id, { note: task.note, flagged: task.flagged })
-    })
-
   const openReminder = (task: Task) => {
     setSelectedTaskId(task.id)
     requestAnimationFrame(() => document.getElementById('reminder-time')?.focus())
@@ -400,14 +237,14 @@ function App() {
     setDateTaskId(null)
     if (!task) return
     if (datePurpose === 'copy') copyTask(task, dateIso)
-    else void run(() => dataSource.moveTask(task.id, { dayDate: dateIso }, { rondel: true }))
+    else void rondel(task, { toDate: dateIso })
   }
 
   // Review times, task reminders and midnight fire on time, even while hidden.
   const reminderAlerts = useReminderAlerts({
     reminderTasks,
     weekStartDay,
-    onSnooze: (task, reminderTime) => run(() => dataSource.updateTask(task.id, { reminderTime })),
+    onSnooze: (task, reminderTime) => { void taskActions.update(task.id, { reminderTime }) },
     onSetDone: (task) => setDone(task),
     onRondel: rondel,
   })
@@ -417,64 +254,18 @@ function App() {
     onReminder: reminderAlerts.add,
     onReview: (slot) => {
       // After overnight sleep the count can be stale until the board reloads for
-      // the new day. Queue the review; loadBoard opens it when that data lands.
-      if (loadedDayRef.current !== todayIso()) {
+      // the new day. Queue the review until a fresh snapshot arrives.
+      if (!board.ready || board.today !== todayIso()) {
         pendingReviewRef.current = slot
         return
       }
-      const count = nagCountRef.current
+      const count = nagCount
       if (count === 0) return
       openReview(slot, count)
     },
     // The new day's recurring tasks are created when the board reloads.
-    onNewDay: () => void loadBoard(),
+    onNewDay: () => { void refresh() },
   })
-
-  const updateSettings = (patch: Partial<UserSetting>) =>
-    void attempt('Unable to save settings', async () => {
-      setSettings(await dataSource.updateSettings(patch))
-    })
-
-  const refreshTags = async () => setTags(await dataSource.listTags())
-  const createTag = (name: string, color: string) =>
-    void attempt('Unable to create tag', async () => {
-      await dataSource.createTag({ name, color })
-      await refreshTags()
-      await loadBoard()
-    })
-  const updateTag = (id: string, patch: { name?: string; color?: string }) =>
-    void attempt('Unable to update tag', async () => {
-      await dataSource.updateTag(id, patch)
-      await refreshTags()
-      await loadBoard()
-    })
-  const deleteTag = (id: string) =>
-    void attempt('Unable to delete tag', async () => {
-      await dataSource.deleteTag(id)
-      setActiveTagIds((prev) => prev.filter((x) => x !== id))
-      await refreshTags()
-      await loadBoard()
-    })
-
-  const refreshRules = async () => setRules(await dataSource.listRecurringRules())
-  const createRule = (input: RecurringRuleInput) =>
-    void attempt('Unable to create recurring task', async () => {
-      await dataSource.createRecurringRule(input)
-      await refreshRules()
-      await loadBoard()
-    })
-  const updateRule = (id: string, input: RecurringRuleInput) =>
-    void attempt('Unable to update recurring task', async () => {
-      // The task already on the list follows the edit too.
-      await dataSource.updateRecurringRule(id, input, { applyToOpenTasks: true })
-      await refreshRules()
-      await loadBoard()
-    })
-  const deleteRule = (id: string) =>
-    void attempt('Unable to delete recurring task', async () => {
-      await dataSource.deleteRecurringRule(id)
-      await refreshRules()
-    })
 
   const dayGroup = (iso: string): BoardGroup => {
     const dayTasks = rangeTasks.filter((t) => t.dayDate === iso && !t.rondeled && visible(t))
@@ -587,7 +378,7 @@ function App() {
   const printTitle = view === 'week' ? `Week of ${subtitle}` : view === 'rondel' ? 'Bucket List' : subtitle
 
   const quickAddEl = (
-    <QuickAdd tags={tags} weekStartDay={weekStartDay} activeTagIds={activeTagIds} onCreateTag={createTagNamed} onAdded={onQuickAdded} onError={reportError} />
+    <QuickAdd tags={tags} weekStartDay={weekStartDay} activeTagIds={activeTagIds} onCreateTag={createTagNamed} onCreateTask={taskActions.createTask} onAdded={onQuickAdded} onError={reportError} />
   )
 
   if (page === 'settings' && settings) {
@@ -632,7 +423,7 @@ function App() {
     <div className={`app ${sidebarOpen ? 'is-sidebar-open' : ''}`.trim()}>
       {page === 'reports' && features.reports ? (
         <Suspense fallback={<main className="app-main"><p role="status">Loading reports…</p></main>}>
-          <ReportsPage dataSource={dataSource} tags={tags} revision={reportsRevision} onBack={() => setPage('board')} onError={reportError} onOpenTask={openReportTask} />
+          <ReportsPage dataSource={dataSource} tags={tags} preparation={appData.preparation} onBack={() => setPage('board')} onError={reportError} onOpenTask={openReportTask} />
         </Suspense>
       ) : (
         <>

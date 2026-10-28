@@ -3,7 +3,7 @@ import { nextTagColor } from '../../domain/hashTags'
 import { occurrencesBetween, type Occurrence } from '../../domain/recurrence'
 import { nextStatus } from '../../domain/status'
 import { taskTrackingDefaults } from '../../domain/taskTracking'
-import { canRondel, isCarriedForward, isLeftUndone, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
+import { canRondel, isCarriedForward, isLeftUndone, isUpcomingReminder, isSchedulingDecision, keepsHistoryOnRondel } from '../../domain/rondel'
 import type { RecurringRule, Tag, Task, TaskBucketEvent, TaskRondel, TaskStatus, UserSetting } from '../../domain/types'
 import { readRaw, readSettingsRaw, writeCollection, writeSettings } from '../storage/localStore'
 import type { CreateTaskInput, DataSource, RecurringRuleInput } from './DataSource'
@@ -243,15 +243,7 @@ export const localDataSource: DataSource = {
   },
 
   async listUpcomingReminders(fromDate) {
-    return readTasks().filter(
-      (t) =>
-        t.reminderTime !== null &&
-        t.dayDate !== null &&
-        t.dayDate >= fromDate &&
-        (t.status === 'todo' || t.status === 'doing') &&
-        !t.rondeled &&
-        !isCarriedForward(t),
-    )
+    return readTasks().filter((task) => isUpcomingReminder(task, fromDate))
   },
 
   async listLeftUndone(date) {
