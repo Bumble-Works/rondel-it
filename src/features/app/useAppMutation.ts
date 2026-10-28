@@ -17,9 +17,8 @@ export function useAppMutation<Input, Output>(
   const { mutateAsync } = useMutation({
     mutationFn,
     onSuccess: async (_result, input) => {
-      // The write is durable even if reloading its views fails.
-      scheduleSync()
       await refresh({ metadata: typeof metadata === 'function' ? metadata(input) : metadata, recurring: true })
+      scheduleSync()
     },
     onError: (error) => reportError(context, error),
   })
