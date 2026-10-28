@@ -15,14 +15,15 @@ export type RefreshData = (options?: RefreshOptions) => Promise<void>
 
 export function useAppData(reportError: ReportError) {
   const client = useQueryClient()
-  const [ready, setReady] = useState(false)
+  const [preparation, setPreparation] = useState({ ready: false, request: 0 })
+  const { ready } = preparation
   const [recurringSync] = useState(() => createRecurringSync(localDataSource))
   const request = useRef(0)
   const metadata = useQuery({ ...appDataOptions(localDataSource), enabled: ready })
 
   const refresh: RefreshData = useCallback(async ({ metadata: reloadMetadata = false, recurring = false } = {}) => {
     const current = ++request.current
-    setReady(false)
+    setPreparation({ ready: false, request: current })
     await client.cancelQueries({ queryKey: appKeys.tasks })
     await client.invalidateQueries({ queryKey: appKeys.tasks, refetchType: 'none' })
     if (reloadMetadata) {
@@ -34,12 +35,19 @@ export function useAppData(reportError: ReportError) {
       await recurringSync.ensure(todayIso())
       if (current !== request.current) return
       await client.fetchQuery(appDataOptions(localDataSource))
-      if (current === request.current) setReady(true)
+      if (current === request.current) setPreparation({ ready: true, request: current })
     } catch (error) {
       if (current === request.current) reportError('Unable to load app data', error)
       else console.error('[rondel] Superseded app-data refresh failed', error)
     }
   }, [client, recurringSync, reportError])
+
+  useEffect(() => {
+    if (!preparation.ready) return
+    // Refetch after fresh metadata has rendered, even if React batched preparation into one render.
+    // Enabling a new range may already have started its read; reuse that request.
+    void client.refetchQueries({ queryKey: appKeys.tasks }, { cancelRefetch: false })
+  }, [client, preparation])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

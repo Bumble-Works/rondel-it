@@ -44,7 +44,7 @@ it('reports load errors and lets a successful retry clear the error and supply d
   expect(result.current.loading).toBe(false)
   expect(onError).toHaveBeenCalledWith('Unable to load reports', error)
   await act(() => result.current.reload())
-  expect(result.current.error).toBeNull()
+  await waitFor(() => expect(result.current.error).toBeNull())
   expect(result.current.tasks).toHaveLength(1)
 })
 

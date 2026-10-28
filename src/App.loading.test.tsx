@@ -112,6 +112,7 @@ it.each(['resolve', 'reject'] as const)('ignores superseded app data that finish
     .mockResolvedValueOnce([{ id: 'old', name: 'Old tag', color: '#5486f5' }])
     .mockResolvedValue([{ id: 'new', name: 'New tag', color: '#5486f5' }])
   render(<App />)
+  await waitFor(() => expect(dataSource.getSettings).toHaveBeenCalledTimes(1))
   act(() => remoteChange())
   await screen.findByRole('button', { name: 'New tag' })
   await act(async () => {
@@ -135,7 +136,7 @@ it('rejects an old board result as soon as remote sync begins reloading app data
   await act(async () => oldBoard.resolve([monday]))
   expect(screen.queryByRole('button', { name: 'Open Monday task' })).not.toBeInTheDocument()
   await act(async () => syncedSettings.resolve({ ...settings }))
-  expect(screen.getByRole('button', { name: 'Open Synced task' })).toBeInTheDocument()
+  await screen.findByRole('button', { name: 'Open Synced task' })
   expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(2)
 })
 
@@ -168,5 +169,5 @@ it('loads reminders for the new day when midnight fires', async () => {
   await waitFor(() => expect(dataSource.listUpcomingReminders).toHaveBeenCalledWith('2026-10-26'))
   vi.setSystemTime(new Date(2026, 9, 27, 0))
   await act(async () => schedule.onNewDay())
-  expect(dataSource.listUpcomingReminders).toHaveBeenLastCalledWith('2026-10-27')
+  await waitFor(() => expect(dataSource.listUpcomingReminders).toHaveBeenLastCalledWith('2026-10-27'))
 })
