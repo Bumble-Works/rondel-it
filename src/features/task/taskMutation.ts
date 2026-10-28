@@ -45,7 +45,8 @@ async function write(action: TaskAction, before: Task | null): Promise<Task> {
     case 'update': return source.updateTask(action.id, action.input)
     case 'flag': return source.updateTask(action.id, { flagged: !before.flagged })
     case 'move': {
-      const target = action.target.rondeled && before.rondeled && before.dayDate ? { ...action.target, dayDate: before.dayDate } : action.target
+      const keepsPeriod = !action.options?.rondel && action.target.rondeled && before.rondeled && before.dayDate !== null
+      const target = keepsPeriod ? { ...action.target, dayDate: before.dayDate } : action.target
       return source.moveTask(action.id, target, action.options)
     }
     case 'tags': return source.updateTask(action.id, { tagIds: action.change(before.tagIds) })

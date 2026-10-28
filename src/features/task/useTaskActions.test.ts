@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { isWaitingForDecision } from '../../domain/rondel'
 import type { Task } from '../../domain/types'
 import { localDataSource as source } from '../../services/adapters/localDataSource'
 import { boardOptions, type BoardData } from '../../services/queries/appQueries'
@@ -34,6 +35,30 @@ async function mountActions() {
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(2026, 9, 27, 8))
+})
+
+it.each([
+  ['next week', '2026-11-02'],
+  ['next month', '2026-11-01'],
+])('postpones a waiting task to %s and records the new period', async (_period, dayDate) => {
+  const task = await source.createTask({ title: 'Waiting', dayDate: range.containerStart, rondeled: true })
+  const { result } = await mountActions()
+  await act(() => result.current.rondel(task, { toDate: dayDate, rondeled: true }))
+  const saved = await source.getTask(task.id)
+  expect(saved).toMatchObject({
+    dayDate, rondeled: true, status: 'todo', rondelCount: 1,
+    rondelHistory: [{ fromDate: range.containerStart, toDate: dayDate }],
+  })
+  expect(isWaitingForDecision(saved, range.today)).toBe(false)
+})
+
+it('keeps a waiting task in its original period when dragging within Unassigned', async () => {
+  const task = await source.createTask({ title: 'Waiting', dayDate: '2026-10-19', rondeled: true })
+  const { result } = await mountActions()
+  await act(() => result.current.move(task, { dayDate: range.today, rondeled: true }, null))
+  expect(await source.getTask(task.id)).toMatchObject({
+    dayDate: '2026-10-19', rondeled: true, rondelCount: 0, rondelHistory: [],
+  })
 })
 
 it('shows a title optimistically in board, reminder, and report caches without reloading collections', async () => {
