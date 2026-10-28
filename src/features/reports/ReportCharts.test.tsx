@@ -6,12 +6,19 @@ import { CompletionCalendar } from './charts/CompletionCalendar'
 import { TagBars } from './charts/TagBars'
 import { DurationSummary } from './DurationSummary'
 import { ReportOverview } from './ReportOverview'
+import { useDashboardDisplay } from './useDashboardDisplay'
+import type { Dashboard } from '../../domain/reportTypes'
 import { RondelOutcomes } from './charts/RondelOutcomes'
 import { BucketActivity } from './charts/BucketActivity'
 
 vi.mock('@nivo/pie', () => ({ Pie: ({ data }: { data: unknown }) => <div data-testid="pie-data">{JSON.stringify(data)}</div> }))
 vi.mock('@nivo/bar', () => ({ Bar: ({ data, fill }: { data: unknown; fill?: unknown }) => <div data-testid="bar-data" data-fill={JSON.stringify(fill)}>{JSON.stringify(data)}</div> }))
 vi.mock('@nivo/calendar', () => ({ Calendar: ({ data }: { data: unknown }) => <div data-testid="calendar-data">{JSON.stringify(data)}</div> }))
+
+function Overview({ dashboard }: { dashboard: Dashboard }) {
+  const display = useDashboardDisplay(dashboard.range, '2026-10-27')
+  return <ReportOverview dashboard={dashboard} display={display} />
+}
 
 const chartData = (id: string) => JSON.parse(screen.getByTestId(id).textContent ?? 'null')
 
@@ -36,7 +43,7 @@ it('shows compact Bucket List counts and celebrates positive activity only', () 
 })
 
 it('keeps the Bucket List chart visible even without identifiable Bucket List history', () => {
-  render(<ReportOverview dashboard={reportFixture([])} collapsed={[]} onToggle={() => {}} calendarYear={2026} onCalendarYear={() => {}} />)
+  render(<Overview dashboard={reportFixture([])} />)
   const bucket = screen.getByRole('heading', { name: 'Bucket List' }).closest('section')!
   expect(bucket).toBeVisible()
   expect(within(bucket).getAllByRole('definition').map((count) => count.textContent)).toEqual(['0', '0'])
@@ -46,7 +53,7 @@ it('shows Doing beyond the current schedule and keeps the legacy period count pl
   const dashboard = reportFixture([
     task({ id: 'legacy', status: 'doing', originDate: '2026-10-01', dayDate: '2026-11-02', rondelCount: 14 }),
   ])
-  render(<ReportOverview dashboard={dashboard} collapsed={[]} onToggle={() => {}} calendarYear={2026} onCalendarYear={() => {}} />)
+  render(<Overview dashboard={dashboard} />)
   const doing = screen.getByText('In progress', { selector: '.report-highlight > span' }).parentElement!
   const rondels = screen.getByText('Rondeled', { selector: '.report-highlight > span' }).parentElement!
   expect(doing.querySelector('strong')).toHaveTextContent('1')

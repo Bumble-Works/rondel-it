@@ -1,10 +1,10 @@
-import type { ReportTaskRow } from '../../domain/reportTypes'
+import type { ReportRange, ReportTaskRow } from '../../domain/reportTypes'
 import type { Tag } from '../../domain/types'
 import { isDesktopApp } from '../../services/sync/folder'
-import { reportCsv, type ReportCsvContext } from './reportCsv'
+import { reportCsv } from './reportCsv'
 
-export async function downloadReportCsv(rows: ReportTaskRow[], tags: Tag[], context: ReportCsvContext): Promise<void> {
-  const filename = `rondel-report-${context.range.start}-${context.range.end}.csv`
+export async function downloadReportCsv(rows: ReportTaskRow[], tags: Tag[], range: ReportRange): Promise<void> {
+  const filename = `rondel-report-${range.start}-${range.end}.csv`
   const csv = reportCsv(rows, tags)
   if (isDesktopApp()) {
     const { save } = await import('@tauri-apps/plugin-dialog')

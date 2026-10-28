@@ -6,7 +6,7 @@ import type { Tag, Task } from '../../domain/types'
 import type { DataSource } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
-import { ReportPrintButton } from './ReportPrintButton'
+import { ReportPrint } from './ReportPrint'
 import { reportTags } from './reportPresentation'
 import { ReportOverview } from './ReportOverview'
 import { ReportTaskTable } from './ReportTaskTable'
@@ -15,6 +15,7 @@ import { ReportTagFilters } from './ReportTagFilters'
 import { getReportRange, reportPresets, type ReportPreset } from './reportRange'
 import { reportDate } from './reportPresentation'
 import { useReportTasks } from './useReportTasks'
+import { useDashboardDisplay } from './useDashboardDisplay'
 import type { DataPreparation } from '../app/useAppData'
 import './ReportsPage.css'
 
@@ -34,9 +35,6 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
   const [custom, setCustom] = useState<ReportRange>(() => getReportRange('this-week', today))
   const [tagIds, setTagIds] = useState<string[]>([])
   const [tagMatch, setTagMatch] = useState<'any' | 'all'>('any')
-  const [collapsed, setCollapsed] = useState<string[]>([])
-  const [calendarYear, setCalendarYear] = useState(Number(today.slice(0, 4)))
-  const [hiddenTimeline, setHiddenTimeline] = useState<string[]>([])
   const [view, setView] = useState<ReportView>('dashboard')
   const [leftBehindOnly, setLeftBehindOnly] = useState(false)
   useEffect(() => {
@@ -54,15 +52,17 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
   const dashboard = useMemo(() => range
     ? buildDashboard(tasks, tags, range, { tagIds: selectedTags, tagMatch, includeCanceled: true }, today)
     : null, [tasks, tags, range, selectedTags, tagMatch, today])
-  const year = range ? Math.max(Number(range.start.slice(0, 4)), Math.min(calendarYear, Number(range.end.slice(0, 4)))) : calendarYear
+  const display = useDashboardDisplay(range, today)
   const toggleTag = (id: string) => setTagIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id])
-  const toggleSection = (id: string) => setCollapsed((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id])
   const selection = JSON.stringify([range, selectedTags, tagMatch, leftBehindOnly])
   const showLeftBehind = () => { setLeftBehindOnly(true); setView('tasks') }
   const openTask = (id: string) => {
     const task = tasks.find((item) => item.id === id)
     if (task) onOpenTask?.(task)
   }
+
+  const renderDashboard = (printMode = false) => dashboard && <ReportOverview dashboard={dashboard} display={display}
+    onLeftBehind={showLeftBehind} printMode={printMode} />
 
   const outputSummary = range ? `${reportDate(range.start)} – ${reportDate(range.end)} · ${selectedTags.length
     ? `Tags (${tagMatch}): ${reportTags(selectedTags, tags)}` : 'All tags'}` : ''
@@ -97,9 +97,8 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
 
         <div className="reports-tab-actions">
           <ReportTabs view={view} onChange={setView} />
-          {view === 'dashboard' && <ReportPrintButton title="Reports — Dashboard" summary={outputSummary} disabled={loading || Boolean(error) || !dashboard}
-            onError={onError} renderContent={() => dashboard && <ReportOverview dashboard={dashboard} collapsed={collapsed}
-              onToggle={toggleSection} calendarYear={year} onCalendarYear={setCalendarYear} hiddenTimeline={hiddenTimeline} printMode />} />}
+          {view === 'dashboard' && <ReportPrint title="Reports — Dashboard" summary={outputSummary} disabled={loading || Boolean(error) || !dashboard}
+            onError={onError} renderContent={() => renderDashboard(true)} />}
         </div>
         <section id="report-view-panel" className="report-view-panel" role="tabpanel" aria-labelledby={`report-tab-${view}`} tabIndex={0}>
           <ReportTagFilters tags={tags} selected={selectedTags} match={tagMatch} onToggle={toggleTag} onClear={() => setTagIds([])} onMatch={setTagMatch} />
@@ -107,7 +106,7 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
           {error && <div className="app-error" role="alert"><p>{error}</p><Button size="sm" onClick={() => void reload()}>Try again</Button></div>}
           {!loading && !error && dashboard && (view === 'dashboard' ? <>
             {dashboard.rows.length === 0 && dashboard.summary.total + dashboard.summary.canceled === 0 && dashboard.bucketActivity.created + dashboard.bucketActivity.actualized === 0 && <p className="reports-no-activity">No recorded activity in this period. Try another date range or tag.</p>}
-            <ReportOverview dashboard={dashboard} collapsed={collapsed} onToggle={toggleSection} calendarYear={year} onCalendarYear={setCalendarYear} onLeftBehind={showLeftBehind} hiddenTimeline={hiddenTimeline} onHiddenTimelineChange={setHiddenTimeline} />
+            {renderDashboard()}
           </> : <>
             <header className="report-details-heading">
               <h2>{leftBehindOnly ? 'Left behind' : 'Follow each task’s story'}</h2>

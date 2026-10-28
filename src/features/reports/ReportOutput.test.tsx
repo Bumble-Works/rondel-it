@@ -4,7 +4,7 @@ import { reportFixture, reportFixtureTags as tags, reportFixtureTask as task } f
 import { PrintDocument } from '../print/PrintDocument'
 import { printPage } from '../print/printPage'
 import { downloadReportCsv } from './downloadReportCsv'
-import { ReportPrintButton } from './ReportPrintButton'
+import { ReportPrint } from './ReportPrint'
 import { ReportTaskTable } from './ReportTaskTable'
 
 vi.mock('../print/printPage', () => ({ printPage: vi.fn(async () => {}) }))
@@ -25,11 +25,11 @@ it('prints all matching sorted rows across pages, follows Show notes and exports
   expect(screen.queryByText('Note 0')).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
   await waitFor(() => expect(downloadReportCsv).toHaveBeenCalledOnce())
-  const [rows, , context] = vi.mocked(downloadReportCsv).mock.calls[0]
+  const [rows, , range] = vi.mocked(downloadReportCsv).mock.calls[0]
   expect(rows).toHaveLength(55)
   expect(rows[0]).toMatchObject({ title: 'Task 00', note: 'Note 0' })
   expect(rows.at(-1)!.title).toBe('Task 54')
-  expect(context.range).toEqual(dashboard.range)
+  expect(range).toEqual(dashboard.range)
   fireEvent.click(screen.getByRole('button', { name: 'Print' }))
   await waitFor(() => expect(printPage).toHaveBeenCalledOnce())
   const sheet = document.querySelector('.print-sheet[data-print-active]')!
@@ -60,7 +60,7 @@ it('surfaces print failures, clears the document and allows retry', async () => 
   const failure = new Error('Printer unavailable')
   vi.mocked(printPage).mockRejectedValueOnce(failure)
   const onError = vi.fn()
-  render(<ReportPrintButton title="Dashboard" summary="October" onError={onError} renderContent={() => <p>Chart content</p>} />)
+  render(<ReportPrint title="Dashboard" summary="October" onError={onError} renderContent={() => <p>Chart content</p>} />)
   fireEvent.click(screen.getByRole('button', { name: 'Print' }))
   await waitFor(() => expect(onError).toHaveBeenCalledWith('Couldn’t print report', failure))
   expect(document.querySelector('.print-sheet')).toBeNull()
@@ -70,7 +70,7 @@ it('surfaces print failures, clears the document and allows retry', async () => 
 it('activates only the requested print document even with an earlier board sheet mounted', async () => {
   const { rerender } = render(<>
     <PrintDocument key="board-1" title="Board" summary="A day"><p>Board tasks</p></PrintDocument>
-    <ReportPrintButton title="Dashboard" summary="October" onError={vi.fn()} renderContent={() => <p>Charts</p>} />
+    <ReportPrint title="Dashboard" summary="October" onError={vi.fn()} renderContent={() => <p>Charts</p>} />
   </>)
   fireEvent.click(screen.getByRole('button', { name: 'Print' }))
   await waitFor(() => expect(printPage).toHaveBeenCalled())

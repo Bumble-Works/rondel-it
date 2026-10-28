@@ -11,3 +11,8 @@
 .completion-calendar-key i:nth-of-type(4) { background: #16a777; }
 @media (max-width: 560px) { .completion-calendar-head { align-items: flex-start; flex-direction: column; } }
 @media print { .completion-calendar-scroll { overflow: visible; } .completion-calendar-head label { display: none; } }
+
+@media print {
+  .report-print .completion-calendar-scroll { overflow: visible; }
+  .report-print .completion-calendar-scroll svg { min-width: 0; max-width: 100%; }
+}

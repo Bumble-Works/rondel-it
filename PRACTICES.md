@@ -7,6 +7,8 @@ Code and testing standards for Rondel It. Agent workflow is in [AGENTS.md](AGENT
 - Keep code simple, readable and well named; avoid speculative abstractions.
 - Share repeated logic through focused helpers and services.
 - Keep functions and files short, with one clear responsibility.
+- Extract components for a clear responsibility or reuse; keep trivial single-use
+  helpers with their owner so routine edits stay local.
 - Separate domain/data rules, orchestration and presentation; keep components thin.
 - Comment on useful context and surprising behavior rather than restating the code.
 
@@ -25,7 +27,19 @@ Code and testing standards for Rondel It. Agent workflow is in [AGENTS.md](AGENT
 ## UI
 
 - Use one stylesheet per component.
+- Keep a component's screen and print rules together. Document-wide print rules
+  belong to the print document; chart and table rules belong to those components.
 - Keep the interface clean and uncluttered, with reusable components where useful.
+
+## Documentation
+
+- Write for the person using the document. Make each explanation clear in its
+  context, brief, and easy to understand; explain necessary technical terms in
+  plain language.
+- README.md helps readers understand the repository, set it up locally, and find
+  important gotchas.
+- `docs/FUNCTIONALITY.md` is a concise user guide. Explain how features work
+  without repeating information or tiring the reader with unnecessary detail.
 
 ## Toolchain
 
@@ -49,4 +63,5 @@ builds also run when their files change. Playwright covers Chromium and WebKit.
 - Components stay within 250 lines, except for App.tsx's capped allowance.
 - Source files contain no duplicated 20-line blocks.
 
-The remaining standards require code review.
+The remaining standards require code review, including whether documentation is
+clear, relevant to its audience, and concise.

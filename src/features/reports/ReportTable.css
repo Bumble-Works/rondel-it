@@ -8,3 +8,31 @@
 .report-table-scroll thead th[aria-sort] button { color: var(--brand-ink); }
 .report-table-scroll thead button:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 .report-table-scroll tbody tr:last-child td, .report-table-scroll tbody tr:last-child th { border-bottom: none; }
+
+@media print {
+  .report-print .report-table-scroll { overflow: visible; border-radius: 0; }
+  .report-print .report-table-scroll table { min-width: 0; }
+  .report-print thead { display: table-header-group; }
+  .report-print .report-table-scroll thead th { padding: 6pt 4pt; font-size: 8pt; }
+}
+
+.report-task-row th, .report-task-row td { vertical-align: top; padding: 0.85rem 0.7rem; border-bottom: 1px solid var(--border); text-align: left; overflow-wrap: anywhere; font-size: 0.8rem; }
+.report-task-row th { font-weight: 600; }
+.report-task-title { font-size: 0.9rem; line-height: 1.5; }
+.report-task-row td > strong { font-size: 0.78rem; }
+.report-task-row small { display: block; margin-top: 0.3rem; font-size: 0.7rem; line-height: 1.5; color: var(--muted); }
+.report-task-row--canceled .report-task-title { color: var(--muted); text-decoration: line-through; }
+.report-task-row--canceled td > strong { color: var(--accent-red); }
+.report-task-note { margin-top: 0.6rem; font-weight: 400; }
+.report-open-task { display: block; margin-top: 0.5rem; padding: 0; border: none; background: none; color: var(--brand-ink); text-decoration: underline; text-underline-offset: 3px; font-size: 0.75rem; }
+.report-open-task:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+@media print {
+  .report-print .report-task-row { break-inside: avoid; }
+  .report-print .report-task-row th, .report-print .report-task-row td { padding: 6pt 4pt; font-size: 8pt; }
+  .report-print .report-task-title { font-size: 9pt; }
+}
+
+.report-context { margin-top: 0.5rem; min-width: 0; }
+.report-context-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.report-context-note { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-soft); font-size: 0.85rem; font-weight: 400; line-height: 1.55; margin-top: 0.6rem; }

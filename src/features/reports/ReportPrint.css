@@ -1,0 +1,10 @@
+@media print {
+  .report-print {
+    color: var(--ink) !important;
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .report-print .print-head { border-color: var(--border); }
+  .report-print .print-head h1 { color: var(--brand-ink); letter-spacing: -0.04em; }
+}

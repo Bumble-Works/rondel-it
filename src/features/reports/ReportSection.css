@@ -26,3 +26,10 @@
   .report-section.is-collapsed { display: none; }
   .report-section-heading > svg { display: none; }
 }
+
+@media print {
+  .report-print .report-section { overflow: visible; border-radius: var(--r-xl); }
+  .report-print .report-section-heading { padding: 10pt 12pt; }
+  .report-print .report-section-body { padding: 0 12pt 12pt; }
+  .report-print .report-section-heading { break-after: avoid; }
+}

@@ -10,3 +10,12 @@
 .tag-bars-key .tag-bars-striped { background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.8) 3px, rgba(255,255,255,0.8) 5px); }
 .tag-bars-key .tag-bars-outline { background: transparent; border: 1.5px solid #94a3b8; }
 .tag-bars-tooltip { display: grid; gap: 0.3rem; padding: 0.6rem 0.8rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); box-shadow: var(--shadow-sm); font-size: 0.78rem; }
+
+@media print {
+  .report-print .tag-bars-chart { max-height: none; overflow: visible; }
+  .report-print .tag-bars { display: block; }
+  .report-print .tag-bars-page { break-inside: avoid; }
+  .report-print .tag-bars-page + .tag-bars-page { margin-top: 12pt; }
+  .report-print .report-section:has(.tag-bars-page + .tag-bars-page) { break-inside: auto; display: block; }
+  .report-print .report-section:has(.tag-bars-page + .tag-bars-page) .report-section-body { display: block; }
+}
