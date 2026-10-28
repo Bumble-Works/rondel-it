@@ -205,3 +205,14 @@ it('materializes once and loads successfully through StrictMode effect replay', 
   expect(dataSource.syncRecurring).toHaveBeenCalledTimes(1)
   expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(1)
 })
+
+it('keeps loaded reminders when browsing to another day fails', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.mocked(dataSource.listTasksInRange).mockResolvedValueOnce([monday]).mockRejectedValueOnce(new Error('Day unavailable'))
+  vi.mocked(dataSource.listUpcomingReminders).mockResolvedValue([{ ...monday, reminderTime: '10:00' }])
+  render(<App />)
+  await screen.findByRole('button', { name: 'Open Monday task' })
+  fireEvent.click(screen.getByRole('button', { name: 'Next day' }))
+  await screen.findByText('Unable to load tasks: Day unavailable')
+  expect(schedule.reminders.map((item) => item.id)).toEqual(['monday'])
+})

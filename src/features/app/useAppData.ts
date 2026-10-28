@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { isCancelledError, useQuery, useQueryClient } from '@tanstack/react-query'
 import { todayIso } from '../../domain/dates'
 import type { RecurringRule, Tag } from '../../domain/types'
 import { localDataSource } from '../../services/adapters/localDataSource'
@@ -38,6 +38,7 @@ export function useAppData(reportError: ReportError) {
       await client.fetchQuery(appDataOptions(localDataSource))
       if (current === request.current) setPreparation({ ready: true, request: current })
     } catch (error) {
+      if (isCancelledError(error)) return
       if (current === request.current) reportError('Unable to load app data', error)
       else console.error('[rondel] Superseded app-data refresh failed', error)
     }

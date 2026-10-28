@@ -2,6 +2,7 @@ import { act, fireEvent, renderHook, screen, waitFor } from '@testing-library/re
 import { onlineManager } from '@tanstack/react-query'
 import App from './App'
 import { useAppData } from './features/app/useAppData'
+import { useMetadataActions } from './features/app/useMetadataActions'
 import { useReportTasks } from './features/reports/useReportTasks'
 import { useTaskActions } from './features/task/useTaskActions'
 import { localDataSource as source } from './services/adapters/localDataSource'
@@ -49,5 +50,30 @@ it('invalidates open reports after a task mutation without reloading metadata', 
   expect(listAll).toHaveBeenCalledTimes(2)
   expect(listTags).toHaveBeenCalledTimes(1)
   expect(scheduleSync).toHaveBeenCalledTimes(1)
+  expect(reportError).not.toHaveBeenCalled()
+})
+
+it('keeps a settings edit when an earlier remote refresh finishes later', async () => {
+  const initial = await source.getSettings()
+  let resolve!: (settings: typeof initial) => void
+  const pending = new Promise<typeof initial>((done) => { resolve = done })
+  const readSettings = source.getSettings
+  const getSettings = vi.spyOn(source, 'getSettings').mockResolvedValueOnce(initial).mockReturnValueOnce(pending).mockImplementation(readSettings)
+  const reportError = vi.fn()
+  const { wrapper } = createQueryWrapper()
+  const { result } = renderHook(() => {
+    const data = useAppData(reportError)
+    const metadata = useMetadataActions({ refresh: data.refresh, reportError, scheduleSync: vi.fn() })
+    return { data, metadata }
+  }, { wrapper })
+  await waitFor(() => expect(result.current.data.ready).toBe(true))
+  let remotePass!: Promise<void>
+  act(() => { remotePass = result.current.data.refresh({ metadata: true, recurring: true }) })
+  await waitFor(() => expect(getSettings).toHaveBeenCalledTimes(2))
+  await act(() => result.current.metadata.updateSettings({ weekStartDay: 0 }))
+  await waitFor(() => expect(result.current.data.settings?.weekStartDay).toBe(0))
+  await act(async () => { resolve(initial); await remotePass })
+  expect(result.current.data.settings?.weekStartDay).toBe(0)
+  expect(result.current.data.ready).toBe(true)
   expect(reportError).not.toHaveBeenCalled()
 })

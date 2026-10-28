@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Task } from '../../domain/types'
 import { localDataSource } from '../../services/adapters/localDataSource'
@@ -16,6 +16,10 @@ export function useBoardData(range: BoardRange, preparation: DataPreparation, re
   }), [rangeStart, rangeEnd, containerStart, containerEnd, today])
   // Keep reminders available while a newly selected range is still loading.
   const query = useQuery({ ...options, enabled, placeholderData: keepPreviousData })
+  // Preserve reminders and review items if loading a different range fails.
+  const [previous, setPrevious] = useState(query.data)
+  if (query.data && !query.isPlaceholderData && query.data !== previous) setPrevious(query.data)
+  const snapshot = query.data ?? previous
   useEffect(() => {
     if (!preparation.ready) return
     // A fast refresh can batch preparation into one render without toggling enabled.
@@ -29,12 +33,12 @@ export function useBoardData(range: BoardRange, preparation: DataPreparation, re
   return {
     ready: enabled && query.isSuccess && !query.isFetching && !query.isStale && !query.isPlaceholderData,
     updatedAt: query.dataUpdatedAt,
-    today: query.data?.today,
-    rangeTasks: query.data?.rangeTasks ?? EMPTY,
-    bucketTasks: query.data?.bucketTasks ?? EMPTY,
-    containerItems: query.data?.containerItems ?? EMPTY,
-    reminderTasks: query.data?.reminderTasks ?? EMPTY,
-    undecided: query.data?.undecided ?? EMPTY,
-    leftUndone: query.data?.leftUndone ?? EMPTY,
+    today: snapshot?.today,
+    rangeTasks: snapshot?.rangeTasks ?? EMPTY,
+    bucketTasks: snapshot?.bucketTasks ?? EMPTY,
+    containerItems: snapshot?.containerItems ?? EMPTY,
+    reminderTasks: snapshot?.reminderTasks ?? EMPTY,
+    undecided: snapshot?.undecided ?? EMPTY,
+    leftUndone: snapshot?.leftUndone ?? EMPTY,
   }
 }
