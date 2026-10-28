@@ -83,3 +83,22 @@ it('shows a load error and reconnects the retry action to the shared data load',
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   expect(listAllTasks).toHaveBeenCalledTimes(2)
 })
+
+it('makes Print unavailable during loading, after a load failure and for invalid dates', async () => {
+  let rejectLoad: (error: Error) => void = () => {}
+  const loading = new Promise<never>((_, reject) => { rejectLoad = reject })
+  const listAllTasks = vi.fn().mockReturnValueOnce(loading).mockResolvedValueOnce([task()])
+  render(<ReportsPage dataSource={{ listAllTasks } as unknown as DataSource} tags={tags} revision={0} onBack={() => {}} onError={vi.fn()} />)
+  expect(screen.getByRole('button', { name: 'Print' })).toBeDisabled()
+  expect(screen.queryByRole('button', { name: 'Export CSV' })).not.toBeInTheDocument()
+  rejectLoad(new Error('Cannot load tasks'))
+  await screen.findByRole('alert')
+  expect(screen.getByRole('button', { name: 'Print' })).toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  await screen.findByText('Dashboard summary')
+  expect(screen.getByRole('button', { name: 'Print' })).toBeEnabled()
+  fireEvent.change(screen.getByLabelText('Period'), { target: { value: 'custom' } })
+  fireEvent.change(screen.getByLabelText('From'), { target: { value: '2025-01-01' } })
+  fireEvent.change(screen.getByLabelText('Through'), { target: { value: '2026-10-27' } })
+  expect(screen.getByRole('button', { name: 'Print' })).toBeDisabled()
+})

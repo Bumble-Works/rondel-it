@@ -1,0 +1,129 @@
+import { readFile } from 'node:fs/promises'
+import { expect, test } from '@playwright/test'
+import { REPORT_NOW, seedReportData, selectFixtureReportDates } from './helpers/reportData.ts'
+
+test.use({ locale: 'en-US', timezoneId: 'UTC' })
+
+test.beforeEach(async ({ page }) => {
+  await page.clock.setFixedTime(new Date(REPORT_NOW))
+  await seedReportData(page)
+  // Preserve the prepared print document so its print-media DOM can be inspected.
+  await page.addInitScript(() => { window.print = () => {} })
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Reports', exact: true }).click()
+  await expect(page.getByRole('status')).toHaveCount(0)
+  await selectFixtureReportDates(page)
+})
+
+test('prints the selected dashboard design, sections, line choices and calendar year', async ({ page }) => {
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toHaveCount(0)
+  const timeline = page.locator('.activity-timeline')
+  await timeline.getByRole('button', { name: 'To do', exact: true }).click()
+  await page.getByRole('button', { name: /Your little wins/ }).click()
+  await page.getByRole('button', { name: 'Print', exact: true }).click()
+  const sheet = page.locator('.print-sheet[data-print-active]')
+  await expect(sheet.locator('.report-highlights')).toHaveCount(1)
+  await expect(sheet.locator('.activity-timeline [data-series="todo"]')).toHaveCount(0)
+  await expect(sheet.locator('.activity-timeline [data-series="done"]')).toHaveCount(1)
+  await expect(sheet.locator('.activity-timeline-tooltip')).toHaveCount(0)
+  await page.emulateMedia({ media: 'print' })
+  await expect(sheet).toBeVisible()
+  await expect(page.locator('#root')).toBeHidden()
+  await expect(sheet.locator('.report-section.is-collapsed')).toBeHidden()
+  await expect(sheet.locator('.completion-donut svg')).toBeVisible()
+  await expect(sheet.locator('.report-overview-grid')).toHaveCSS('display', 'grid')
+  await page.emulateMedia({ media: 'screen' })
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')))
+  await expect(page.locator('.print-sheet')).toHaveCount(0)
+  await page.getByRole('button', { name: /Your little wins/ }).click()
+  await page.getByLabel('From', { exact: true }).fill('2025-12-20')
+  await page.getByLabel('Through', { exact: true }).fill('2026-01-10')
+  await page.getByRole('combobox', { name: 'Year', exact: true }).selectOption('2025')
+  await page.getByRole('button', { name: 'Print', exact: true }).click()
+  await expect(sheet.locator('.completion-calendar-head')).toContainText('in 2025')
+  await expect(sheet.locator('.completion-calendar-scroll svg')).toHaveAttribute('viewBox', '0 0 900 175')
+  await page.emulateMedia({ media: 'print' })
+  const december = sheet.locator('.completion-calendar-scroll svg').getByText('Dec', { exact: true })
+  const calendarBox = await sheet.locator('.completion-calendar-scroll').boundingBox()
+  const decemberBox = await december.boundingBox()
+  expect(decemberBox!.x + decemberBox!.width).toBeLessThanOrEqual(calendarBox!.x + calendarBox!.width + 1)
+})
+
+test('downloads ten-column filtered CSV with full notes while printing only displayed table columns', async ({ page }) => {
+  await page.getByRole('button', { name: '#work', exact: true }).click()
+  await page.getByRole('tab', { name: 'Tasks', exact: true }).click()
+  await page.getByRole('button', { name: 'Completed', exact: true }).click()
+  await expect(page.getByText('Client update shipped.', { exact: false })).toHaveCount(0)
+  const downloaded = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Export CSV' }).click()
+  const download = await downloaded
+  expect(download.suggestedFilename()).toBe('rondel-report-2026-10-14-2026-10-27.csv')
+  const csv = await readFile((await download.path())!, 'utf8')
+  expect(csv.split('\r\n')[0]).toBe('\uFEFF"Task","Status","Tags","First seen","Scheduled date","Completed date","Canceled date","Days in progress","Rondels","Note"')
+  expect(csv).not.toContain('Task ID')
+  expect(csv).not.toContain('Lineage ID')
+  expect(csv).toContain('Client update shipped.\nReady for the manager review.')
+  expect(csv).toContain('"work-done"')
+  expect(csv).toContain('"shared-done"')
+  expect(csv).not.toContain('"fitness-done"')
+  await page.getByRole('checkbox', { name: 'Show notes' }).check()
+  await page.getByRole('button', { name: 'Print', exact: true }).click()
+  const sheet = page.locator('.print-sheet[data-print-active]')
+  await expect(sheet.locator('tbody tr')).toHaveCount(2)
+  await expect(sheet.locator('thead th')).toHaveCount(6)
+  await expect(sheet.locator('.print-head')).toContainText('Tags (any): #work')
+  await expect(sheet.locator('.print-head')).toContainText('Status: Completed')
+  await page.emulateMedia({ media: 'print' })
+  await expect(sheet.locator('.report-task-note').first()).toBeVisible()
+  await expect(sheet.locator('.report-table-scroll')).toHaveCSS('overflow', 'visible')
+  await expect(sheet.locator('thead')).toHaveCSS('display', 'table-header-group')
+})
+
+test('keeps report actions unavailable for invalid dates', async ({ page }) => {
+  await page.getByLabel('From', { exact: true }).fill('2025-01-01')
+  await expect(page.getByRole('alert')).toContainText('no more than one year')
+  await expect(page.getByRole('button', { name: 'Print', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Export CSV' })).toHaveCount(0)
+})
+
+
+test('prints long charts and all table pages without clipping at paper width', async ({ page }) => {
+  await page.evaluate(() => {
+    const template = JSON.parse(localStorage.getItem('rondel.v6.tasks')!)[0]
+    const tags = Array.from({ length: 35 }, (_, index) => ({ id: `tag-${index}`,
+      name: index === 34 ? `Project ${'x'.repeat(180)}` : `Project migration ${index}`, color: '#5486f5' }))
+    const tasks = Array.from({ length: 65 }, (_, index) => ({ ...template, id: `task-${index}`,
+      title: `Task ${String(index).padStart(2, '0')}`, tagIds: [tags[index % tags.length].id], rondelCount: 1, doingRondelCount: 1 }))
+    localStorage.setItem('rondel.v6.tags', JSON.stringify(tags))
+    localStorage.setItem('rondel.v6.tasks', JSON.stringify(tasks))
+  })
+  await page.reload()
+  await page.getByRole('button', { name: 'Reports', exact: true }).click()
+  await selectFixtureReportDates(page)
+  await page.getByRole('button', { name: 'Print', exact: true }).click()
+  await page.setViewportSize({ width: 794, height: 1122 })
+  await page.emulateMedia({ media: 'print' })
+  const sheet = page.locator('.print-sheet[data-print-active]')
+  await expect(sheet.locator('.tag-bars-page')).toHaveCount(6)
+  await expect(sheet.getByText('#Project migration 0', { exact: true })).toHaveCount(2)
+  await expect(sheet.getByText('#Project migration 1', { exact: true })).toHaveCount(2)
+  await expect(sheet.locator('.tag-bars-print-labels li')).toHaveCount(70)
+  for (const label of await sheet.locator('.tag-bars-print-labels li').all()) {
+    expect(await label.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  }
+  for (const chart of await sheet.locator('.tag-bars-page svg').all()) {
+    expect(await chart.getAttribute('viewBox')).toMatch(/^0 0 540 /)
+    const chartBox = await chart.boundingBox()
+    expect(chartBox!.x + chartBox!.width).toBeLessThanOrEqual(795)
+  }
+  await page.emulateMedia({ media: 'screen' })
+  await page.evaluate(() => window.dispatchEvent(new Event('afterprint')))
+  await page.getByRole('tab', { name: 'Tasks', exact: true }).click()
+  await page.getByRole('button', { name: 'Next page' }).click()
+  await expect(page.locator('.report-task-row')).toHaveCount(15)
+  await page.getByRole('button', { name: 'Print', exact: true }).click()
+  await expect(sheet.locator('tbody tr')).toHaveCount(65)
+  await page.emulateMedia({ media: 'print' })
+  await expect(sheet.locator('tbody tr').last()).toContainText('Task 64')
+  await expect(sheet.locator('.report-table-scroll')).toHaveCSS('overflow', 'visible')
+})

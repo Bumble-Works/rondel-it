@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "report-export",
+  "description": "Allow the main window to choose a CSV export destination. The save picker scopes file access to the selected path.",
+  "windows": ["main"],
+  "permissions": ["dialog:allow-save"]
+}

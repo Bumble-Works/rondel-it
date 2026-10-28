@@ -6,6 +6,8 @@ import type { Tag, Task } from '../../domain/types'
 import type { DataSource } from '../../services/adapters/DataSource'
 import { Button } from '../../shared/ui/Button'
 import { Icon } from '../../shared/ui/Icon'
+import { ReportPrintButton } from './ReportPrintButton'
+import { reportTags } from './reportPresentation'
 import { ReportOverview } from './ReportOverview'
 import { ReportTaskTable } from './ReportTaskTable'
 import { ReportTabs, type ReportView } from './ReportTabs'
@@ -33,6 +35,7 @@ export function ReportsPage({ dataSource, tags, revision, onBack, onError, onOpe
   const [tagMatch, setTagMatch] = useState<'any' | 'all'>('any')
   const [collapsed, setCollapsed] = useState<string[]>([])
   const [calendarYear, setCalendarYear] = useState(Number(today.slice(0, 4)))
+  const [hiddenTimeline, setHiddenTimeline] = useState<string[]>([])
   const [view, setView] = useState<ReportView>('dashboard')
   const [leftBehindOnly, setLeftBehindOnly] = useState(false)
   useEffect(() => {
@@ -59,6 +62,9 @@ export function ReportsPage({ dataSource, tags, revision, onBack, onError, onOpe
     const task = tasks.find((item) => item.id === id)
     if (task) onOpenTask?.(task)
   }
+
+  const outputSummary = range ? `${reportDate(range.start)} – ${reportDate(range.end)} · ${selectedTags.length
+    ? `Tags (${tagMatch}): ${reportTags(selectedTags, tags)}` : 'All tags'}` : ''
 
   return (
     <main className="reports-page">
@@ -88,21 +94,27 @@ export function ReportsPage({ dataSource, tags, revision, onBack, onError, onOpe
           </div>
         </header>
 
-        <ReportTabs view={view} onChange={setView} />
+        <div className="reports-tab-actions">
+          <ReportTabs view={view} onChange={setView} />
+          {view === 'dashboard' && <ReportPrintButton title="Reports — Dashboard" summary={outputSummary} disabled={loading || Boolean(error) || !dashboard}
+            onError={onError} renderContent={() => dashboard && <ReportOverview dashboard={dashboard} collapsed={collapsed}
+              onToggle={toggleSection} calendarYear={year} onCalendarYear={setCalendarYear} hiddenTimeline={hiddenTimeline} printMode />} />}
+        </div>
         <section id="report-view-panel" className="report-view-panel" role="tabpanel" aria-labelledby={`report-tab-${view}`} tabIndex={0}>
           <ReportTagFilters tags={tags} selected={selectedTags} match={tagMatch} onToggle={toggleTag} onClear={() => setTagIds([])} onMatch={setTagMatch} />
           {loading && <p role="status">Loading your reports…</p>}
           {error && <div className="app-error" role="alert"><p>{error}</p><Button size="sm" onClick={() => void reload()}>Try again</Button></div>}
           {!loading && !error && dashboard && (view === 'dashboard' ? <>
             {dashboard.rows.length === 0 && dashboard.summary.total + dashboard.summary.canceled === 0 && dashboard.bucketActivity.created + dashboard.bucketActivity.actualized === 0 && <p className="reports-no-activity">No recorded activity in this period. Try another date range or tag.</p>}
-            <ReportOverview dashboard={dashboard} collapsed={collapsed} onToggle={toggleSection} calendarYear={year} onCalendarYear={setCalendarYear} onLeftBehind={showLeftBehind} />
+            <ReportOverview dashboard={dashboard} collapsed={collapsed} onToggle={toggleSection} calendarYear={year} onCalendarYear={setCalendarYear} onLeftBehind={showLeftBehind} hiddenTimeline={hiddenTimeline} onHiddenTimelineChange={setHiddenTimeline} />
           </> : <>
             <header className="report-details-heading">
               <h2>{leftBehindOnly ? 'Left behind' : 'Follow each task’s story'}</h2>
               {leftBehindOnly && <Button variant="ghost" size="sm" onClick={() => setLeftBehindOnly(false)}>Show all tasks</Button>}
             </header>
             <ReportTaskTable rows={leftBehindOnly ? dashboard.rows.filter((row) => dashboard.leftBehindIds.includes(row.id)) : dashboard.rows}
-              tags={tags} selection={selection} onOpenTask={leftBehindOnly && onOpenTask ? openTask : undefined} />
+              tags={tags} selection={selection} output={{ range: dashboard.range, summary: leftBehindOnly ? `${outputSummary} · Left behind only` : outputSummary,
+                title: leftBehindOnly ? 'Reports — Left behind' : 'Reports — Tasks', onError }} onOpenTask={leftBehindOnly && onOpenTask ? openTask : undefined} />
           </>)}
         </section>
       </div>

@@ -279,11 +279,44 @@ Today, Next week, Next month, Pick a date, Mark done.
   The duration chart exposes every bucket's count to screen readers and shows
   exact counts on hover or keyboard focus, including small or empty buckets.
   It omits duplicate bucket summaries and coverage prose.
-- There is no Meeting review tab. Existing Week printing serves meeting review;
-  report print/export integration remains a follow-up in docs/TODO.md. Removed
-  dashboard sections include planned-to-completed duration, the overall lifetime
+- There is no Meeting review tab. Existing Week printing serves meeting review.
+  Removed dashboard sections include planned-to-completed duration, the overall lifetime
   rondel histogram and the to-do/doing rondel split. Their existing derived
   calculations remain candidates for later cleanup.
+
+### Report printing and CSV
+
+- **Print** on Dashboard and Tasks opens the existing system print dialog,
+  including Save as PDF. The printed view resembles the selected screen tab:
+  the same cards, colors, charts, section order or table columns, adapted to paper.
+  It identifies the selected dates and active tag any/all filters. Tasks also
+  identifies its status filters and Left behind focus.
+- Dashboard printing preserves collapsed sections, calendar display year and
+  timeline line choices. Hover/focus highlights and tooltips are omitted.
+  Scrollable content expands for printing; long tag charts are divided into
+  readable groups with a shared scale. Printed tag bars use numbers with a matching
+  full-name key in each group; long names wrap so tags with a shared prefix remain
+  distinguishable. Only the requested report or board sheet prints, with no
+  surrounding app or dialogs.
+- Tasks printing includes **all matching rows**, in current sort order, across
+  every table page. Show notes controls full inline notes on paper too. Column
+  headings repeat across pages; pagination and task-action buttons are omitted.
+  The screen's filters, selected page and chart choices are unchanged by printing.
+- **Export CSV** is available only on Tasks. It exports every matching row in
+  current sort order, including Left behind focus and all status/tag/date filters.
+  It contains exactly ten columns: Task, Status, Tags, First seen, Scheduled date,
+  Completed date, Canceled date, Days in progress, Rondels and Note. Full notes
+  are included even when Show notes is off. Internal IDs are not exported.
+  Same-titled independent tasks remain separate; history copies are grouped into
+  their logical chain. Column meanings are documented in docs/REPORT-EXPORT.md.
+- CSV uses UTF-8, ISO dates, numeric counts/durations and spreadsheet-safe text
+  escaping. Missing numeric/date evidence stays blank. Export never invents
+  history or changes saved task data.
+  The filename includes the report dates. The browser downloads it; desktop opens
+  a native save picker, and canceling that picker leaves everything unchanged.
+- Printing is unavailable while loading or when loading/range validation fails.
+  CSV is also unavailable when no tasks match. Empty task printing says Nothing
+  to print. Print and export failures appear through the existing error banner.
 
 ## Drag and drop
 
