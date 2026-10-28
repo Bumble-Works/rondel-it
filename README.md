@@ -102,8 +102,3 @@ Task copies retain links and dated carry-forward history for reports. Missing
 historical dates stay unknown; report estimates must not be written back as facts.
 Reports recalculate from retained records, so editing a task can change past totals.
 Scheduling uses the device's timezone.
-
-Reports keeps dashboard display choices in `useDashboardDisplay` and table column
-labels, cells and sorting in `reportTableColumns`. Screen and paper share the same
-renderers; each component owns its print styles. CSV formatting and file saving
-remain separate from table presentation and cached task loading.

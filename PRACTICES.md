@@ -36,8 +36,9 @@ Code and testing standards for Rondel It. Agent workflow is in [AGENTS.md](AGENT
 - Write for the person using the document. Make each explanation clear in its
   context, brief, and easy to understand; explain necessary technical terms in
   plain language.
-- README.md helps readers understand the repository, set it up locally, and find
-  important gotchas.
+- Keep README.md limited to the essentials for getting the app running and a
+  very high-level architecture overview. Routine refactors should not require
+  README changes; keep feature internals and refactor notes out of it.
 - `docs/FUNCTIONALITY.md` is a concise user guide. Explain how features work
   without repeating information or tiring the reader with unnecessary detail.
 
