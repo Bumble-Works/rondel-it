@@ -6,7 +6,7 @@ import { appKeys } from '../../services/queries/queryClient'
 import type { DataPreparation } from '../app/useAppData'
 
 const EMPTY: Task[] = []
-const READY: DataPreparation = { ready: true, request: 0 }
+const READY: DataPreparation = { ready: true }
 
 export function useReportTasks(source: DataSource, onError: (context: string, error: unknown) => void, preparation = READY) {
   const { ready: enabled } = preparation
@@ -39,5 +39,6 @@ export function useReportTasks(source: DataSource, onError: (context: string, er
     window.addEventListener('focus', focus)
     return () => window.removeEventListener('focus', focus)
   }, [reload])
-  return { tasks: query.data ?? EMPTY, loading: query.isPending, error: query.error?.message ?? null, reload }
+  const error = query.error === null ? null : query.error instanceof Error ? query.error.message : String(query.error)
+  return { tasks: query.data ?? EMPTY, loading: query.isPending, error, reload }
 }

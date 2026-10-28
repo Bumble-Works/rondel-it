@@ -6,6 +6,7 @@ import { useMetadataActions } from './features/app/useMetadataActions'
 import { useReportTasks } from './features/reports/useReportTasks'
 import { useTaskActions } from './features/task/useTaskActions'
 import { localDataSource as source } from './services/adapters/localDataSource'
+import type { RecurringRuleInput } from './services/adapters/DataSource'
 import { createQueryWrapper, renderWithQuery } from './test/queryTestUtils'
 
 beforeEach(() => {
@@ -76,4 +77,27 @@ it('keeps a settings edit when an earlier remote refresh finishes later', async 
   expect(result.current.data.settings?.weekStartDay).toBe(0)
   expect(result.current.data.ready).toBe(true)
   expect(reportError).not.toHaveBeenCalled()
+})
+
+it('keeps recurring rules available for repair if materialization fails', async () => {
+  const input: RecurringRuleInput = {
+    title: 'Daily task', kind: 'repeat',
+    repeat: { unit: 'day', every: 1, startDate: '2026-10-26', endDate: null },
+  }
+  const rule = await source.createRecurringRule(input)
+  const error = new Error('Unable to materialize this rule')
+  vi.spyOn(source, 'syncRecurring').mockRejectedValueOnce(error)
+  const reportError = vi.fn()
+  const { wrapper } = createQueryWrapper()
+  const { result } = renderHook(() => {
+    const data = useAppData(reportError)
+    const metadata = useMetadataActions({ refresh: data.refresh, reportError, scheduleSync: vi.fn() })
+    return { data, metadata }
+  }, { wrapper })
+  await waitFor(() => expect(result.current.data.rules).toHaveLength(1))
+  expect(result.current.data.ready).toBe(false)
+  expect(reportError).toHaveBeenCalledWith('Unable to prepare recurring tasks', error)
+  await act(() => result.current.metadata.updateRule(rule.id, { ...input, title: 'Repaired task' }))
+  await waitFor(() => expect(result.current.data.ready).toBe(true))
+  expect(result.current.data.rules[0].title).toBe('Repaired task')
 })
