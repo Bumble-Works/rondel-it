@@ -3,6 +3,8 @@ import type { Task } from '../../domain/types'
 import type { DataSource } from '../../services/adapters/DataSource'
 import { reportFixtureTask as task } from '../../test/reportFixtures'
 import { useReportTasks } from './useReportTasks'
+import { createQueryWrapper } from '../../test/queryTestUtils'
+import { appKeys } from '../../services/queries/queryClient'
 
 function deferred() {
   let resolve!: (tasks: Task[]) => void
@@ -15,12 +17,13 @@ it('shares one loaded dataset until task changes or window focus request a refre
   const listAllTasks = vi.fn().mockResolvedValue([task({ title: 'Original' })])
   const source = { listAllTasks } as unknown as DataSource
   const onError = vi.fn()
-  const { result, rerender } = renderHook(({ revision }) => useReportTasks(source, revision, onError), { initialProps: { revision: 0 } })
+  const { client, wrapper } = createQueryWrapper()
+  const { result, rerender } = renderHook(() => useReportTasks(source, onError), { wrapper })
   await waitFor(() => expect(result.current.tasks[0]?.title).toBe('Original'))
-  rerender({ revision: 0 })
+  rerender()
   expect(listAllTasks).toHaveBeenCalledTimes(1)
   listAllTasks.mockResolvedValue([task({ title: 'Edited' })])
-  rerender({ revision: 1 })
+  await act(() => client.invalidateQueries({ queryKey: appKeys.tasks }))
   await waitFor(() => expect(result.current.tasks[0]?.title).toBe('Edited'))
   expect(listAllTasks).toHaveBeenCalledTimes(2)
   listAllTasks.mockResolvedValue([task({ title: 'Synced' })])
@@ -35,7 +38,8 @@ it('reports load errors and lets a successful retry clear the error and supply d
   const listAllTasks = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce([task()])
   const source = { listAllTasks } as unknown as DataSource
   const onError = vi.fn()
-  const { result } = renderHook(() => useReportTasks(source, 0, onError))
+  const { wrapper } = createQueryWrapper()
+  const { result } = renderHook(() => useReportTasks(source, onError), { wrapper })
   await waitFor(() => expect(result.current.error).toBe('Storage unavailable'))
   expect(result.current.loading).toBe(false)
   expect(onError).toHaveBeenCalledWith('Unable to load reports', error)
@@ -49,7 +53,8 @@ it.each(['resolve', 'reject'] as const)('ignores an older load that finishes wit
   const listAllTasks = vi.fn().mockReturnValueOnce(old.promise).mockResolvedValueOnce([task({ title: 'Latest' })])
   const source = { listAllTasks } as unknown as DataSource
   const onError = vi.fn()
-  const { result } = renderHook(() => useReportTasks(source, 0, onError))
+  const { wrapper } = createQueryWrapper()
+  const { result } = renderHook(() => useReportTasks(source, onError), { wrapper })
   act(() => window.dispatchEvent(new Event('focus')))
   await waitFor(() => expect(result.current.tasks[0]?.title).toBe('Latest'))
   await act(async () => {

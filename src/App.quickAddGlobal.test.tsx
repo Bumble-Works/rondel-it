@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { renderWithQuery as render } from './test/queryTestUtils'
+import { fireEvent, screen } from '@testing-library/react'
 import App from './App'
 
 describe('App quick add availability', () => {

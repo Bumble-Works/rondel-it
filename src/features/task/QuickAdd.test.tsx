@@ -17,6 +17,7 @@ describe('QuickAdd', () => {
           weekStartDay={1}
           activeTagIds={[]}
           onCreateTag={async () => null}
+          onCreateTask={async () => null}
           onAdded={() => {}}
           onError={() => {}}
         />

@@ -20,14 +20,14 @@ import './ReportsPage.css'
 interface ReportsPageProps {
   dataSource: DataSource
   tags: Tag[]
-  revision: number
+  enabled?: boolean
   onBack: () => void
   onError: (context: string, error: unknown) => void
   onOpenTask?: (task: Task) => void
 }
 
-export function ReportsPage({ dataSource, tags, revision, onBack, onError, onOpenTask }: ReportsPageProps) {
-  const { tasks, loading, error, reload } = useReportTasks(dataSource, revision, onError)
+export function ReportsPage({ dataSource, tags, enabled = true, onBack, onError, onOpenTask }: ReportsPageProps) {
+  const { tasks, loading, error, reload } = useReportTasks(dataSource, onError, enabled)
   const today = todayIso()
   const [preset, setPreset] = useState<ReportPreset>('this-week')
   const [custom, setCustom] = useState<ReportRange>(() => getReportRange('this-week', today))

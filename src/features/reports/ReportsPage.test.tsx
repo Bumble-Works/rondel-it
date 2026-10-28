@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { renderWithQuery as render } from '../../test/queryTestUtils'
+import { fireEvent, screen, within } from '@testing-library/react'
 import type { DataSource } from '../../services/adapters/DataSource'
 import type { Dashboard } from '../../domain/reportTypes'
 import { reportFixtureTags as tags, reportFixtureTask as task } from '../../test/reportFixtures'
@@ -20,7 +21,7 @@ it('shares any/all tag filtering between Dashboard and Tasks without a separate 
     task({ id: 'other', title: 'Other work' }),
     task({ id: 'cancel', title: 'Let go', tagIds: ['work'], status: 'canceled', canceledAt: '2026-10-27T12:00:00Z' }),
   ]) } as unknown as DataSource
-  render(<ReportsPage dataSource={dataSource} tags={[...tags, { id: 'health', name: 'Health', color: '#16b98a' }]} revision={0} onBack={() => {}} onError={vi.fn()} />)
+  render(<ReportsPage dataSource={dataSource} tags={[...tags, { id: 'health', name: 'Health', color: '#16b98a' }]} onBack={() => {}} onError={vi.fn()} />)
   await screen.findByText('Dashboard summary')
   expect(screen.queryByRole('tab', { name: 'Meeting review' })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '#Work' }))
@@ -56,7 +57,7 @@ it('opens only filtered left-behind tasks, supports opening one for action, and 
     task({ id: 'doing', title: 'Already started', status: 'doing', dayDate: '2026-10-20', tagIds: ['work'] }),
   ]) } as unknown as DataSource
   const onOpenTask = vi.fn()
-  render(<ReportsPage dataSource={dataSource} tags={tags} revision={0} onBack={() => {}} onError={vi.fn()} onOpenTask={onOpenTask} />)
+  render(<ReportsPage dataSource={dataSource} tags={tags} onBack={() => {}} onError={vi.fn()} onOpenTask={onOpenTask} />)
   await screen.findByText('Dashboard summary')
   fireEvent.click(screen.getByRole('button', { name: '#Work' }))
   fireEvent.click(screen.getByRole('button', { name: 'Show 1 task left behind' }))
@@ -75,7 +76,7 @@ it('shows a load error and reconnects the retry action to the shared data load',
   const listAllTasks = vi.fn().mockRejectedValueOnce(failure).mockResolvedValueOnce([task()])
   const dataSource = { listAllTasks } as unknown as DataSource
   const onError = vi.fn()
-  render(<ReportsPage dataSource={dataSource} tags={tags} revision={0} onBack={() => {}} onError={onError} />)
+  render(<ReportsPage dataSource={dataSource} tags={tags} onBack={() => {}} onError={onError} />)
   expect(await screen.findByRole('alert')).toHaveTextContent('Cannot read saved tasks')
   expect(onError).toHaveBeenCalledWith('Unable to load reports', failure)
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
@@ -88,7 +89,7 @@ it('makes Print unavailable during loading, after a load failure and for invalid
   let rejectLoad: (error: Error) => void = () => {}
   const loading = new Promise<never>((_, reject) => { rejectLoad = reject })
   const listAllTasks = vi.fn().mockReturnValueOnce(loading).mockResolvedValueOnce([task()])
-  render(<ReportsPage dataSource={{ listAllTasks } as unknown as DataSource} tags={tags} revision={0} onBack={() => {}} onError={vi.fn()} />)
+  render(<ReportsPage dataSource={{ listAllTasks } as unknown as DataSource} tags={tags} onBack={() => {}} onError={vi.fn()} />)
   expect(screen.getByRole('button', { name: 'Print' })).toBeDisabled()
   expect(screen.queryByRole('button', { name: 'Export CSV' })).not.toBeInTheDocument()
   rejectLoad(new Error('Cannot load tasks'))

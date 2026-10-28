@@ -17,7 +17,6 @@ export function useMetadataActions(services: MutationServices) {
     if (action.type === 'create') return source.createTag({ name: action.name, color: action.color })
     if (action.type === 'update') return source.updateTag(action.id, action.patch)
     await source.deleteTag(action.id)
-    return null
   }, 'Unable to save tag', services, true)
   const rule = useAppMutation(async (action: RuleAction) => {
     if (action.type === 'create') return source.createRecurringRule(action.input)

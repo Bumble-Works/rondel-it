@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { renderWithQuery as render } from './test/queryTestUtils'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import App from './App'
 import type { Task, UserSetting } from './domain/types'
 import { useSchedule } from './features/reminders/useSchedule'
