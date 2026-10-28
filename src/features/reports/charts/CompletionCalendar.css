@@ -13,6 +13,5 @@
 
 @media print {
   .completion-calendar-scroll { overflow: visible; } .completion-calendar-head label { display: none; }
-  .report-print .completion-calendar-scroll { overflow: visible; }
   .report-print .completion-calendar-scroll svg { min-width: 0; max-width: 100%; }
 }

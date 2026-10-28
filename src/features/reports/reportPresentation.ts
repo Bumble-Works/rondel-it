@@ -1,4 +1,4 @@
-import type { ReportFlowEvent, ReportTaskRow } from '../../domain/reportTypes'
+import type { ReportTaskRow } from '../../domain/reportTypes'
 import type { Tag, TaskStatus } from '../../domain/types'
 
 export const reportStatus: Record<TaskStatus, string> = {
@@ -20,10 +20,6 @@ export function reportTags(tagIds: string[], tags: Tag[]): string {
     const tag = tags.find((item) => item.id === id)
     return tag ? [`#${tag.name}`] : []
   }).join(' · ')
-}
-
-export function flowDestination(flow: ReportFlowEvent): string {
-  return flow.toBucket ? 'Bucket List' : `${reportDate(flow.toDate)}${flow.toRondeled ? ' (unassigned)' : ''}`
 }
 
 export function progressDays(row: ReportTaskRow): number | null {

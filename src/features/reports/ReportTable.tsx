@@ -26,7 +26,7 @@ export function ReportTable({ rows, tags, showNotes, sort, direction, onSort, on
         </th>)}</tr></thead>
         <tbody>{rows.map((row) => <tr key={row.lineageId} className={`report-task-row report-task-row--${row.status}`}>
           {reportTableColumns.map((column) => column.key === 'title'
-            ? <th scope="row" key={column.key}><TaskTitle row={row} tags={tags} showNotes={showNotes} onOpen={onOpenTask} /></th>
+            ? <th scope="row" key={column.key}><TaskTitleCell row={row} tags={tags} showNotes={showNotes} onOpen={onOpenTask} /></th>
             : <td key={column.key}>{column.key === 'status' ? <strong>{column.text(row)}</strong> : column.text(row)}</td>)}
         </tr>)}</tbody>
       </table>
@@ -34,7 +34,7 @@ export function ReportTable({ rows, tags, showNotes, sort, direction, onSort, on
   )
 }
 
-function TaskTitle({ row, tags, showNotes, onOpen }: {
+function TaskTitleCell({ row, tags, showNotes, onOpen }: {
   row: TaskRow; tags: Tag[]; showNotes: boolean; onOpen?: (id: string) => void
 }) {
   const attached = row.tagIds.flatMap((id) => {
@@ -43,12 +43,10 @@ function TaskTitle({ row, tags, showNotes, onOpen }: {
   })
   return <>
     <span className="report-task-title"><LinkifiedText text={row.title} /></span>
-    {attached.length > 0 && <div className="report-context"><div className="report-context-tags" aria-label="Tags">
+    {attached.length > 0 && <div className="report-task-tags" aria-label="Tags">
       {attached.map((tag) => <TagChip key={tag.id} name={tag.name} color={tag.color} size="sm" />)}
-    </div></div>}
+    </div>}
     {onOpen && <button type="button" className="report-open-task" aria-label={`Open ${row.title}`} onClick={() => onOpen(row.id)}>Open task</button>}
-    {row.note && showNotes && <div className="report-task-note"><div className="report-context">
-      <p className="report-context-note"><LinkifiedText text={row.note} /></p>
-    </div></div>}
+    {row.note && showNotes && <p className="report-task-note"><LinkifiedText text={row.note} /></p>}
   </>
 }
