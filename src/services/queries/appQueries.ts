@@ -1,7 +1,9 @@
 import { queryOptions } from '@tanstack/react-query'
 import { isWaitingForDecision, showsInRondelContainer } from '../../domain/rondel'
 import type { DataSource } from '../adapters/DataSource'
+import type { Task } from '../../domain/types'
 import { appKeys } from './queryClient'
+import { applyPendingTaskEdits } from './taskCache'
 
 export function appDataOptions(source: DataSource) {
   return queryOptions({
@@ -28,11 +30,21 @@ export interface BoardRange {
   today: string
 }
 
+export interface BoardData {
+  rangeTasks: Task[]
+  bucketTasks: Task[]
+  reminderTasks: Task[]
+  leftUndone: Task[]
+  containerItems: Task[]
+  undecided: Task[]
+  today: string
+}
+
 export function boardOptions(source: DataSource, range: BoardRange) {
   const { rangeStart, rangeEnd, containerStart, containerEnd, today } = range
   return queryOptions({
-    queryKey: [...appKeys.tasks, 'board', range],
-    queryFn: async ({ signal }) => {
+    queryKey: [...appKeys.boards, range],
+    queryFn: async ({ signal, client }): Promise<BoardData> => {
       try {
         const [rangeTasks, bucketTasks, rondelItems, reminderTasks, leftUndone] = await Promise.all([
           source.listTasksInRange(rangeStart, rangeEnd),
@@ -42,9 +54,12 @@ export function boardOptions(source: DataSource, range: BoardRange) {
           source.listLeftUndone(today),
         ])
         return {
-          rangeTasks, bucketTasks, reminderTasks, leftUndone, today,
-          containerItems: rondelItems.filter((task) => showsInRondelContainer(task, { start: containerStart, end: containerEnd }, today)),
-          undecided: rondelItems.filter((task) => isWaitingForDecision(task, today)),
+          rangeTasks: applyPendingTaskEdits(client, rangeTasks),
+          bucketTasks: applyPendingTaskEdits(client, bucketTasks),
+          reminderTasks: applyPendingTaskEdits(client, reminderTasks),
+          leftUndone: applyPendingTaskEdits(client, leftUndone), today,
+          containerItems: applyPendingTaskEdits(client, rondelItems.filter((task) => showsInRondelContainer(task, { start: containerStart, end: containerEnd }, today))),
+          undecided: applyPendingTaskEdits(client, rondelItems.filter((task) => isWaitingForDecision(task, today))),
         }
       } catch (error) {
         if (signal.aborted) console.error('[rondel] Superseded task load failed', error)

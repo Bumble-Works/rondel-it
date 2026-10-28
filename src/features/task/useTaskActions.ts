@@ -1,60 +1,29 @@
-import { useRef } from 'react'
-import type { Task, TaskStatus } from '../../domain/types'
-import type { CreateTaskInput, DataSource, MoveOptions, RondelTarget } from '../../services/adapters/DataSource'
-import { localDataSource as source } from '../../services/adapters/localDataSource'
-import { useAppMutation, type MutationServices } from '../app/useAppMutation'
+import { MutationObserver, useQueryClient } from '@tanstack/react-query'
+import type { Task } from '../../domain/types'
+import type { CreateTaskInput, DataSource, RondelTarget } from '../../services/adapters/DataSource'
+import type { MutationServices } from '../app/useAppMutation'
 import type { BoardGroupAddTarget } from '../board/WeekBoard'
-
-type TaskAction =
-  | { type: 'create'; input: CreateTaskInput }
-  | { type: 'advance'; id: string }
-  | { type: 'status'; id: string; status: TaskStatus; options?: { onItsDay?: boolean } }
-  | { type: 'update'; id: string; input: Parameters<DataSource['updateTask']>[1] }
-  | { type: 'move'; id: string; target: Parameters<DataSource['moveTask']>[1]; options?: MoveOptions }
-  | { type: 'tags'; id: string; change: (ids: string[]) => string[] }
-  | { type: 'createTag'; id: string; name: string }
-  | { type: 'reminder'; task: Task; time: string | null; scope: 'one' | 'all' }
-  | { type: 'copy'; task: Task; day: string }
+import { executeTaskAction, type TaskAction } from './taskMutation'
 
 export function useTaskActions(services: MutationServices) {
-  const tagQueue = useRef<Promise<unknown>>(Promise.resolve())
-  const changeTags = (id: string, change: (ids: string[]) => string[]) => {
-    const job = tagQueue.current.then(async () => {
-      const task = await source.getTask(id)
-      return source.updateTask(id, { tagIds: change(task.tagIds) })
+  const client = useQueryClient()
+  const run = async (action: TaskAction): Promise<Task | null> => {
+    // Each dispatch needs its task's scope; a shared useMutation would give every row one scope.
+    const observer = new MutationObserver(client, {
+      mutationKey: ['task-action'],
+      scope: 'id' in action ? { id: `task:${action.id}` } : undefined,
+      mutationFn: (input: TaskAction) => executeTaskAction(client, input, services),
+      onError: (error) => services.reportError('Something went wrong', error),
     })
-    // Each rejected job is reported by the mutation; subsequent picks must still run.
-    tagQueue.current = job.catch(() => {})
-    return job
-  }
-
-  const execute = async (action: TaskAction): Promise<Task> => {
-    switch (action.type) {
-      case 'create': return source.createTask(action.input)
-      case 'advance': return source.advanceTask(action.id)
-      case 'status': return source.setTaskStatus(action.id, action.status, action.options)
-      case 'update': return source.updateTask(action.id, action.input)
-      case 'move': return source.moveTask(action.id, action.target, action.options)
-      case 'tags': return changeTags(action.id, action.change)
-      case 'createTag': {
-        const tag = await source.createTag({ name: action.name })
-        return changeTags(action.id, (ids) => ids.includes(tag.id) ? ids : [...ids, tag.id])
-      }
-      case 'reminder':
-        if (action.scope === 'all' && action.task.recurringRuleId) {
-          await source.updateRecurringRule(action.task.recurringRuleId, { reminderTime: action.time }, { applyToOpenTasks: true })
-          return source.getTask(action.task.id)
-        }
-        return source.updateTask(action.task.id, { reminderTime: action.time })
-      case 'copy': {
-        const { task, day } = action
-        const copy = await source.createTask({ title: task.title, dayDate: day, tagIds: task.tagIds })
-        return task.note || task.flagged ? source.updateTask(copy.id, { note: task.note, flagged: task.flagged }) : copy
-      }
+    try {
+      return await observer.mutate(action)
+    } catch {
+      // The mutation reports the failure; event handlers can safely ignore the result.
+      return null
+    } finally {
+      observer.reset()
     }
   }
-  const run = useAppMutation(execute, 'Something went wrong', services,
-    (action) => action.type === 'createTag' || (action.type === 'reminder' && action.scope === 'all'))
 
   return {
     createTask: (input: CreateTaskInput) => run({ type: 'create', input }),
@@ -69,15 +38,14 @@ export function useTaskActions(services: MutationServices) {
     }),
     move: (task: Task, target: BoardGroupAddTarget, beforeId: string | null) => run({
       type: 'move', id: task.id,
-      // Reordering within a container preserves its original waiting period.
-      target: target.rondeled && task.rondeled && task.dayDate ? { ...target, dayDate: task.dayDate } : target,
+      target,
       options: { beforeId },
     }),
-    toggleFlag: (task: Task) => run({ type: 'update', id: task.id, input: { flagged: !task.flagged } }),
+    toggleFlag: (task: Task) => run({ type: 'flag', id: task.id }),
     addTag: (task: Task, tagId: string) => run({ type: 'tags', id: task.id, change: (ids) => ids.includes(tagId) ? ids : [...ids, tagId] }),
     toggleTag: (task: Task, tagId: string) => run({ type: 'tags', id: task.id, change: (ids) => ids.includes(tagId) ? ids.filter((id) => id !== tagId) : [...ids, tagId] }),
     createTagForTask: (task: Task, name: string) => run({ type: 'createTag', id: task.id, name }),
-    changeReminder: (task: Task, time: string | null, scope: 'one' | 'all') => run({ type: 'reminder', task, time, scope }),
-    copyTask: (task: Task, day: string) => run({ type: 'copy', task, day }),
+    changeReminder: (task: Task, time: string | null, scope: 'one' | 'all') => run({ type: 'reminder', id: task.id, time, scope }),
+    copyTask: (task: Task, day: string) => run({ type: 'copy', id: task.id, day }),
   }
 }

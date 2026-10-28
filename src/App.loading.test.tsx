@@ -37,6 +37,7 @@ beforeEach(() => {
   vi.spyOn(dataSource, 'listRecurringRules').mockResolvedValue([])
   vi.spyOn(dataSource, 'syncRecurring').mockResolvedValue()
   vi.spyOn(dataSource, 'listTasksInRange').mockResolvedValue([])
+  vi.spyOn(dataSource, 'getTask').mockImplementation(async (id) => id === monday.id ? monday : tuesday)
   vi.spyOn(dataSource, 'listBucketTasks').mockResolvedValue([])
   vi.spyOn(dataSource, 'listRondelItems').mockResolvedValue([])
   vi.spyOn(dataSource, 'listUpcomingReminders').mockResolvedValue([])

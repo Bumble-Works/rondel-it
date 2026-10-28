@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Task } from '../../domain/types'
 import type { DataSource } from '../../services/adapters/DataSource'
 import { appKeys } from '../../services/queries/queryClient'
+import { applyPendingTaskEdits } from '../../services/queries/taskCache'
 import type { DataPreparation } from '../app/useAppData'
 
 const EMPTY: Task[] = []
@@ -16,7 +17,7 @@ export function useReportTasks(source: DataSource, onError: (context: string, er
     enabled,
     queryFn: async ({ signal }) => {
       try {
-        return await source.listAllTasks()
+        return applyPendingTaskEdits(client, await source.listAllTasks())
       } catch (error) {
         if (signal.aborted) console.error('[rondel] Superseded report load failed', error)
         throw error

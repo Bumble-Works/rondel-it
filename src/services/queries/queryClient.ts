@@ -18,5 +18,6 @@ export function createAppQueryClient() {
 export const appKeys = {
   metadata: ['metadata'] as const,
   tasks: ['tasks'] as const,
+  boards: ['tasks', 'board'] as const,
   reports: ['tasks', 'reports'] as const,
 }

@@ -5,6 +5,7 @@ export interface MutationServices {
   refresh: RefreshData
   reportError: ReportError
   scheduleSync: () => void
+  clearError?: () => void
 }
 
 export function useAppMutation<Input, Output>(
@@ -12,12 +13,17 @@ export function useAppMutation<Input, Output>(
   context: string,
   services: MutationServices,
   metadata: boolean | ((input: Input) => boolean) = false,
+  recurring: boolean | ((input: Input) => boolean) = false,
 ) {
   const { refresh, reportError, scheduleSync } = services
   const { mutateAsync } = useMutation({
     mutationFn,
     onSuccess: async (_result, input) => {
-      await refresh({ metadata: typeof metadata === 'function' ? metadata(input) : metadata, recurring: true })
+      services.clearError?.()
+      await refresh({
+        metadata: typeof metadata === 'function' ? metadata(input) : metadata,
+        recurring: typeof recurring === 'function' ? recurring(input) : recurring,
+      })
       scheduleSync()
     },
     onError: (error) => reportError(context, error),

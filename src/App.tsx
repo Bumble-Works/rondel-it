@@ -134,7 +134,7 @@ function App() {
     onRemoteChange: useCallback(() => { void refresh({ metadata: true, recurring: true }) }, [refresh]),
     reportError,
   })
-  const mutationServices = { refresh, reportError, scheduleSync: sync.scheduleSync }
+  const mutationServices = { refresh, reportError, scheduleSync: sync.scheduleSync, clearError: () => setError(null) }
   const taskActions = useTaskActions(mutationServices)
   const metadataActions = useMetadataActions(mutationServices)
 
@@ -156,7 +156,7 @@ function App() {
   useEffect(() => {
     if (!board.ready) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setError(null)
+    setError((current) => current?.startsWith('Unable to load ') || current?.startsWith('Unable to prepare ') ? null : current)
     if (nagCount === 0) setNagOpen(false)
     if (pendingReviewRef.current && board.today === todayIso()) {
       const slot = pendingReviewRef.current

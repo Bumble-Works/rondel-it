@@ -23,8 +23,9 @@ export function useMetadataActions(services: MutationServices) {
     if (action.type === 'update') return source.updateRecurringRule(action.id, action.input, { applyToOpenTasks: true })
     await source.deleteRecurringRule(action.id)
     return null
-  }, 'Unable to save recurring task', services, true)
-  const updateSettings = useAppMutation((patch: Partial<UserSetting>) => source.updateSettings(patch), 'Unable to save settings', services, true)
+  }, 'Unable to save recurring task', services, true, (action) => action.type !== 'delete')
+  const updateSettings = useAppMutation((patch: Partial<UserSetting>) => source.updateSettings(patch), 'Unable to save settings', services, true,
+    (patch) => patch.weekStartDay !== undefined)
 
   return {
     createTag: (name: string, color?: string) => tag({ type: 'create', name, color }),
