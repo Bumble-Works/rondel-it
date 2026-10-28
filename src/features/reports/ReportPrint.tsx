@@ -13,6 +13,7 @@ interface ReportPrintProps {
   onError: (context: string, error: unknown) => void
 }
 
+/** Keep the selected view fixed while the system print dialog is open. */
 export function ReportPrint({ title, summary, disabled, renderContent, onError }: ReportPrintProps) {
   const [request, setRequest] = useState<{ title: string; summary: string; content: ReactNode } | null>(null)
   const [busy, setBusy] = useState(false)

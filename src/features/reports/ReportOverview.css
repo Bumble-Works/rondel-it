@@ -29,9 +29,9 @@
 .report-flow-item p { font-size: 0.78rem; margin-top: 0.1rem; color: var(--muted); }
 .report-flow-item small { color: var(--muted); font-size: 0.7rem; }
 @media (max-width: 650px) { .report-overview-grid, .report-overview-bottom { grid-template-columns: minmax(0, 1fr); } }
-@media print { .report-overview-grid, .report-overview-bottom, .report-overview-stack { gap: 12pt; } }
 
 @media print {
+  .report-overview-grid, .report-overview-bottom, .report-overview-stack { gap: 12pt; }
   .report-print .report-overview { display: block; }
   .report-print .report-overview > * + * { margin-top: 12pt; }
   .report-print .report-overview-grid, .report-print .report-overview-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); }

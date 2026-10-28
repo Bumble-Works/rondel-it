@@ -94,3 +94,18 @@ it('surfaces CSV save errors and re-enables the export action', async () => {
   await waitFor(() => expect(onError).toHaveBeenCalledWith('Couldn’t export report CSV', failure))
   expect(screen.getByRole('button', { name: 'Export CSV' })).toBeEnabled()
 })
+
+it('prevents duplicate exports while a save is pending and enables export again afterward', async () => {
+  let finishSave = () => {}
+  vi.mocked(downloadReportCsv).mockImplementationOnce(() => new Promise<void>((resolve) => { finishSave = resolve }))
+  const dashboard = reportFixture([task()])
+  render(<ReportTaskTable rows={dashboard.rows} tags={tags} selection="october"
+    output={{ range: dashboard.range, summary: 'All tags', title: 'Tasks', onError: vi.fn() }} />)
+  const button = screen.getByRole('button', { name: 'Export CSV' })
+  fireEvent.click(button)
+  expect(button).toBeDisabled()
+  fireEvent.click(button)
+  expect(downloadReportCsv).toHaveBeenCalledOnce()
+  await act(async () => finishSave())
+  expect(button).toBeEnabled()
+})
