@@ -1,7 +1,7 @@
 import type { DataSource } from '../adapters/DataSource'
 
 /** Serialize materialization; a rule edit during a pass needs a subsequent pass. */
-export function createRecurringSync(source: DataSource) {
+export function createRecurringSync(source: Pick<DataSource, 'syncRecurring'>) {
   let tail = Promise.resolve()
   let revision = 0
   let syncedRevision = -1

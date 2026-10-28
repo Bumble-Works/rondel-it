@@ -7,6 +7,7 @@ import { announceReview } from './features/reminders/announceReview'
 import { useSync } from './features/sync/useSync'
 import { localDataSource as dataSource } from './services/adapters/localDataSource'
 import { reportFixtureTask as task } from './test/reportFixtures'
+import { StrictMode } from 'react'
 
 vi.mock('./features/sync/useSync', () => ({ useSync: vi.fn() }))
 vi.mock('./features/reminders/useSchedule', () => ({ useSchedule: vi.fn() }))
@@ -170,4 +171,37 @@ it('loads reminders for the new day when midnight fires', async () => {
   vi.setSystemTime(new Date(2026, 9, 27, 0))
   await act(async () => schedule.onNewDay())
   await waitFor(() => expect(dataSource.listUpcomingReminders).toHaveBeenLastCalledWith('2026-10-27'))
+})
+
+it('reuses a cached day without materializing recurring tasks again when browsing', async () => {
+  vi.mocked(dataSource.listTasksInRange).mockImplementation(async (start) => start === monday.dayDate ? [monday] : [tuesday])
+  render(<App />)
+  await screen.findByRole('button', { name: 'Open Monday task' })
+  fireEvent.click(screen.getByRole('button', { name: 'Next day' }))
+  await screen.findByRole('button', { name: 'Open Tuesday task' })
+  fireEvent.click(screen.getByRole('button', { name: 'Previous day' }))
+  await screen.findByRole('button', { name: 'Open Monday task' })
+  expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(2)
+  expect(dataSource.syncRecurring).toHaveBeenCalledTimes(1)
+})
+
+it('keeps reminders available while a newly selected range is loading', async () => {
+  const nextDay = deferred<Task[]>()
+  vi.mocked(dataSource.listTasksInRange).mockResolvedValueOnce([monday]).mockReturnValueOnce(nextDay.promise)
+  vi.mocked(dataSource.listUpcomingReminders).mockResolvedValue([{ ...monday, reminderTime: '10:00' }])
+  render(<App />)
+  await screen.findByRole('button', { name: 'Open Monday task' })
+  fireEvent.click(screen.getByRole('button', { name: 'Next day' }))
+  await waitFor(() => expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(2))
+  expect(schedule.reminders.map((item) => item.id)).toEqual(['monday'])
+  await act(async () => nextDay.resolve([tuesday]))
+  await screen.findByRole('button', { name: 'Open Tuesday task' })
+})
+
+it('materializes once and loads successfully through StrictMode effect replay', async () => {
+  vi.mocked(dataSource.listTasksInRange).mockResolvedValue([monday])
+  render(<StrictMode><App /></StrictMode>)
+  await screen.findByRole('button', { name: 'Open Monday task' })
+  expect(dataSource.syncRecurring).toHaveBeenCalledTimes(1)
+  expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(1)
 })
