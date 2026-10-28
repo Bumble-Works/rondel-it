@@ -1,8 +1,6 @@
-import type { ReportRange, ReportTaskRow } from '../../domain/reportTypes'
+import type { ReportTaskRow } from '../../domain/reportTypes'
 import type { Tag } from '../../domain/types'
 import { progressDays, reportStatus } from './reportPresentation'
-
-export interface ReportCsvContext { range: ReportRange }
 
 function csvCell(value: string | number | null): string {
   if (typeof value === 'number') return String(value)

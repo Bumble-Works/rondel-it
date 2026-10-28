@@ -7,3 +7,7 @@
 .rondel-outcomes dd { display: flex; align-items: baseline; gap: 0.7rem; margin: 0; }
 .rondel-outcomes dd strong { font-size: 1rem; }
 .rondel-outcomes dd span { color: var(--muted); font-size: 0.72rem; }
+
+@media print {
+  .report-print .rondel-outcomes { flex-wrap: wrap; }
+}

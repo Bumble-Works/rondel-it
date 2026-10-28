@@ -2,3 +2,4 @@
 .report-table-tools label { display: flex; gap: 0.6rem; align-items: center; font-weight: 700; font-size: 0.8rem; }
 .report-table-tools p { color: var(--muted); font-size: 0.78rem; }
 .report-output-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.report-export-button { white-space: nowrap; }

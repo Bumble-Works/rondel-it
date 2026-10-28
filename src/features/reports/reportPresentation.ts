@@ -1,4 +1,4 @@
-import type { ReportFlowEvent, ReportTaskRow } from '../../domain/reportTypes'
+import type { ReportTaskRow } from '../../domain/reportTypes'
 import type { Tag, TaskStatus } from '../../domain/types'
 
 export const reportStatus: Record<TaskStatus, string> = {
@@ -22,38 +22,6 @@ export function reportTags(tagIds: string[], tags: Tag[]): string {
   }).join(' · ')
 }
 
-export function flowDestination(flow: ReportFlowEvent): string {
-  return flow.toBucket ? 'Bucket List' : `${reportDate(flow.toDate)}${flow.toRondeled ? ' (unassigned)' : ''}`
-}
-
 export function progressDays(row: ReportTaskRow): number | null {
   return row.status === 'done' ? row.startedDays : row.inProgressDays
-}
-
-export type ReportSort = 'title' | 'status' | 'first-seen' | 'completed' | 'rondels' | 'in-progress'
-export type ReportSortDirection = 'ascending' | 'descending'
-
-function sortValue(row: ReportTaskRow, sort: ReportSort): string | number | null {
-  switch (sort) {
-    case 'title': return row.title
-    case 'status': return ['todo', 'doing', 'done', 'canceled'].indexOf(row.status)
-    case 'first-seen': return row.firstSeenDate
-    case 'completed': return row.completedDate
-    case 'in-progress': return progressDays(row)
-    case 'rondels': return row.rondelCount
-  }
-}
-
-export function sortReportRows(
-  rows: ReportTaskRow[], sort: ReportSort, direction: ReportSortDirection = sort === 'title' ? 'ascending' : 'descending',
-): ReportTaskRow[] {
-  return [...rows].sort((a, b) => {
-    const left = sortValue(a, sort), right = sortValue(b, sort)
-    if (left === null && right !== null) return 1
-    if (right === null && left !== null) return -1
-    const compared = typeof left === 'number' && typeof right === 'number'
-      ? left - right : String(left ?? '').localeCompare(String(right ?? ''))
-    return compared * (direction === 'ascending' ? 1 : -1)
-      || a.title.localeCompare(b.title) || a.lineageId.localeCompare(b.lineageId)
-  })
 }

@@ -1,5 +1,6 @@
 import { reportFixture, reportFixtureTask as task } from '../../test/reportFixtures'
-import { progressDays, sortReportRows } from './reportPresentation'
+import { progressDays } from './reportPresentation'
+import { sortReportRows } from './reportTableColumns'
 
 describe('report table sorting', () => {
   it('sorts completed and unfinished progress together, preserves zero, and keeps unknowns last', () => {

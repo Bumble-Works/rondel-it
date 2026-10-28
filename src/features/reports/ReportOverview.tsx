@@ -1,4 +1,5 @@
 import type { Dashboard } from '../../domain/reportTypes'
+import type { DashboardDisplay } from './useDashboardDisplay'
 import { ReportSection } from './ReportSection'
 import { DurationSummary } from './DurationSummary'
 import { ReportHighlights } from './ReportHighlights'
@@ -12,30 +13,26 @@ import './ReportOverview.css'
 
 interface ReportOverviewProps {
   dashboard: Dashboard
-  collapsed: string[]
-  onToggle: (section: string) => void
-  calendarYear: number
-  onCalendarYear: (year: number) => void
+  display: DashboardDisplay
   printMode?: boolean
-  hiddenTimeline?: string[]
-  onHiddenTimelineChange?: (hidden: string[]) => void
   onLeftBehind?: () => void
 }
 
-export function ReportOverview({ dashboard, collapsed, onToggle, calendarYear, onCalendarYear, onLeftBehind = () => {}, printMode = false, hiddenTimeline, onHiddenTimelineChange }: ReportOverviewProps) {
+export function ReportOverview({ dashboard, display, onLeftBehind = () => {}, printMode = false }: ReportOverviewProps) {
+  const { collapsed, calendarYear, hiddenTimeline, toggleSection, setCalendarYear, setHiddenTimeline } = display
   const { summary, rondels } = dashboard
   const longPrintCharts = printMode && dashboard.tagMetrics.length > 12
-  const section = (id: string) => ({ collapsed: collapsed.includes(id), onToggle: () => onToggle(id) })
+  const section = (id: string) => ({ collapsed: collapsed.includes(id), onToggle: () => toggleSection(id) })
   return (
     <div className="report-overview">
       <ReportHighlights dashboard={dashboard} onLeftBehind={onLeftBehind} />
 
       <ReportSection title="A little progress, day by day" description="One day, one little step at a time." {...section('timeline')}>
-        <ActivityTimeline days={dashboard.timeline} hiddenSeries={hiddenTimeline} onHiddenSeriesChange={onHiddenTimelineChange} printMode={printMode} />
+        <ActivityTimeline days={dashboard.timeline} hiddenSeries={hiddenTimeline} onHiddenSeriesChange={setHiddenTimeline} printMode={printMode} />
       </ReportSection>
 
       <ReportSection title="Your little wins" description="Completions, one square at a time." {...section('calendar')}>
-        <CompletionCalendar dashboard={dashboard} year={calendarYear} onYearChange={onCalendarYear} />
+        <CompletionCalendar dashboard={dashboard} year={calendarYear} onYearChange={setCalendarYear} />
       </ReportSection>
 
       {dashboard.bucketCompletions.length > 0 && <aside className="report-bucket-celebration">

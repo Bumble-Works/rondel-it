@@ -9,3 +9,7 @@
 .completion-donut-legend dt { display: flex; gap: 0.35rem; align-items: center; font-size: 0.78rem; color: var(--ink-soft); }
 .completion-donut-legend dd { margin: 0; font-size: 0.85rem; font-weight: 800; }
 .completion-donut-legend i { width: 8px; height: 8px; border-radius: 50%; }
+
+@media print {
+  .report-print .completion-donut { flex-wrap: wrap; }
+}

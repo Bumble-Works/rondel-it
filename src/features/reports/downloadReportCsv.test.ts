@@ -7,7 +7,7 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({ save: mocks.save }))
 vi.mock('@tauri-apps/plugin-fs', () => ({ writeTextFile: mocks.write }))
 const tasks = [task()]
 const dashboard = reportFixture(tasks)
-const context = { range: dashboard.range }
+const range = dashboard.range
 
 beforeEach(() => { mocks.desktop = false; mocks.save.mockReset(); mocks.write.mockReset() })
 
@@ -21,7 +21,7 @@ it('downloads a UTF-8 CSV with report dates in its filename and releases the URL
     expect(this.href).toBe('blob:report')
   })
   try {
-    await downloadReportCsv(dashboard.rows, tags, context)
+    await downloadReportCsv(dashboard.rows, tags, range)
     expect(click).toHaveBeenCalledOnce()
     expect(create.mock.calls[0]?.[0]).toBeInstanceOf(Blob)
     expect(document.querySelector('a[download]')).toBeNull()
@@ -34,11 +34,11 @@ it('saves through the native picker and treats cancellation as a normal result',
   mocks.desktop = true
   mocks.save.mockResolvedValueOnce('/chosen/report.csv').mockResolvedValueOnce(null)
   mocks.write.mockResolvedValue(undefined)
-  await downloadReportCsv(dashboard.rows, tags, context)
+  await downloadReportCsv(dashboard.rows, tags, range)
   expect(mocks.save).toHaveBeenCalledWith({ defaultPath: 'rondel-report-2026-10-01-2026-10-31.csv',
     filters: [{ name: 'CSV spreadsheet', extensions: ['csv'] }] })
   expect(mocks.write).toHaveBeenCalledWith('/chosen/report.csv', expect.stringContaining('Days in progress'))
-  await downloadReportCsv(dashboard.rows, tags, context)
+  await downloadReportCsv(dashboard.rows, tags, range)
   expect(mocks.write).toHaveBeenCalledTimes(1)
 })
 
@@ -46,5 +46,5 @@ it('propagates native save failures so the caller can show the error', async () 
   mocks.desktop = true
   mocks.save.mockResolvedValue('/chosen/report.csv')
   mocks.write.mockRejectedValue(new Error('Disk full'))
-  await expect(downloadReportCsv(dashboard.rows, tags, context)).rejects.toThrow('Disk full')
+  await expect(downloadReportCsv(dashboard.rows, tags, range)).rejects.toThrow('Disk full')
 })
