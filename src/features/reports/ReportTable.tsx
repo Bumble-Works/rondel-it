@@ -43,7 +43,7 @@ function TaskTitle({ row, tags, showNotes, onOpen }: {
   })
   return <>
     <span className="report-task-title"><LinkifiedText text={row.title} /></span>
-    {attached.length > 0 && <div className="report-context"><div className="report-context-tags">
+    {attached.length > 0 && <div className="report-context"><div className="report-context-tags" aria-label="Tags">
       {attached.map((tag) => <TagChip key={tag.id} name={tag.name} color={tag.color} size="sm" />)}
     </div></div>}
     {onOpen && <button type="button" className="report-open-task" aria-label={`Open ${row.title}`} onClick={() => onOpen(row.id)}>Open task</button>}
