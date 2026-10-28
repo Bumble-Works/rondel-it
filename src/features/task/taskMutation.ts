@@ -102,7 +102,7 @@ export async function executeTaskAction(client: QueryClient, action: TaskAction,
     if (fields) patchTaskCaches(client, saved.id, fieldsFrom(saved, fields), saved)
     else await services.refresh({
       metadata: action.type === 'createTag' || action.type === 'reminder',
-      recurring: (action.type === 'advance' || action.type === 'status') && saved.recurringRuleId !== null,
+      recurring: (action.type === 'advance' || action.type === 'status') && Boolean(saved.recurringRuleId),
     })
     services.scheduleSync()
     return saved
