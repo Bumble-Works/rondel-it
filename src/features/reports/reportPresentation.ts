@@ -29,4 +29,3 @@ export function flowDestination(flow: ReportFlowEvent): string {
 export function progressDays(row: ReportTaskRow): number | null {
   return row.status === 'done' ? row.startedDays : row.inProgressDays
 }
-
