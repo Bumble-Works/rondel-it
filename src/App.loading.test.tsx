@@ -126,7 +126,7 @@ it.each(['resolve', 'reject'] as const)('ignores superseded app data that finish
 it('rejects an old board result as soon as remote sync begins reloading app data', async () => {
   const oldBoard = deferred<Task[]>()
   const syncedSettings = deferred<UserSetting>()
-  vi.mocked(dataSource.listTasksInRange).mockReturnValueOnce(oldBoard.promise).mockResolvedValue([tuesday])
+  vi.mocked(dataSource.listTasksInRange).mockReturnValueOnce(oldBoard.promise).mockResolvedValue([{ ...monday, title: 'Synced task' }])
   render(<App />)
   await waitFor(() => expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(1))
   vi.mocked(dataSource.getSettings).mockReturnValueOnce(syncedSettings.promise)
@@ -134,7 +134,7 @@ it('rejects an old board result as soon as remote sync begins reloading app data
   await act(async () => oldBoard.resolve([monday]))
   expect(screen.queryByRole('button', { name: 'Open Monday task' })).not.toBeInTheDocument()
   await act(async () => syncedSettings.resolve({ ...settings }))
-  // The refreshed board is still on Monday, so supply a synced Monday record.
+  expect(screen.getByRole('button', { name: 'Open Synced task' })).toBeInTheDocument()
   expect(dataSource.listTasksInRange).toHaveBeenCalledTimes(2)
 })
 
