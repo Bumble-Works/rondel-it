@@ -15,19 +15,20 @@ import { ReportTagFilters } from './ReportTagFilters'
 import { getReportRange, reportPresets, type ReportPreset } from './reportRange'
 import { reportDate } from './reportPresentation'
 import { useReportTasks } from './useReportTasks'
+import type { DataPreparation } from '../app/useAppData'
 import './ReportsPage.css'
 
 interface ReportsPageProps {
   dataSource: DataSource
   tags: Tag[]
-  enabled?: boolean
+  preparation?: DataPreparation
   onBack: () => void
   onError: (context: string, error: unknown) => void
   onOpenTask?: (task: Task) => void
 }
 
-export function ReportsPage({ dataSource, tags, enabled = true, onBack, onError, onOpenTask }: ReportsPageProps) {
-  const { tasks, loading, error, reload } = useReportTasks(dataSource, onError, enabled)
+export function ReportsPage({ dataSource, tags, preparation, onBack, onError, onOpenTask }: ReportsPageProps) {
+  const { tasks, loading, error, reload } = useReportTasks(dataSource, onError, preparation)
   const today = todayIso()
   const [preset, setPreset] = useState<ReportPreset>('this-week')
   const [custom, setCustom] = useState<ReportRange>(() => getReportRange('this-week', today))

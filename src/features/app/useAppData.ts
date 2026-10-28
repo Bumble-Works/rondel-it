@@ -12,6 +12,7 @@ const EMPTY_RULES: RecurringRule[] = []
 export type ReportError = (context: string, error: unknown) => void
 export interface RefreshOptions { metadata?: boolean; recurring?: boolean }
 export type RefreshData = (options?: RefreshOptions) => Promise<void>
+export interface DataPreparation { ready: boolean; request: number }
 
 export function useAppData(reportError: ReportError) {
   const client = useQueryClient()
@@ -43,13 +44,6 @@ export function useAppData(reportError: ReportError) {
   }, [client, recurringSync, reportError])
 
   useEffect(() => {
-    if (!preparation.ready) return
-    // Refetch after fresh metadata has rendered, even if React batched preparation into one render.
-    // Enabling a new range may already have started its read; reuse that request.
-    void client.refetchQueries({ queryKey: appKeys.tasks }, { cancelRefetch: false })
-  }, [client, preparation])
-
-  useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh({ metadata: true })
     return () => {
@@ -60,7 +54,7 @@ export function useAppData(reportError: ReportError) {
   }, [client, refresh])
 
   return {
-    ready, refresh,
+    ready, preparation, refresh,
     tags: metadata.data?.tags ?? EMPTY_TAGS,
     settings: metadata.data?.settings ?? null,
     rules: metadata.data?.rules ?? EMPTY_RULES,

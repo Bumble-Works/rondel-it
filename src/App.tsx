@@ -121,7 +121,7 @@ function App() {
 
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
-  const board = useBoardData({ rangeStart, rangeEnd, containerStart, containerEnd, today }, appData.ready, reportError)
+  const board = useBoardData({ rangeStart, rangeEnd, containerStart, containerEnd, today }, appData.preparation, reportError)
   const { rangeTasks, bucketTasks, containerItems, undecided, reminderTasks, leftUndone } = board
   const buckets: Buckets = useMemo(() => ({ 'bucket-list': bucketTasks }), [bucketTasks])
   const pendingReviewRef = useRef<'start' | 'end' | null>(null)
@@ -423,7 +423,7 @@ function App() {
     <div className={`app ${sidebarOpen ? 'is-sidebar-open' : ''}`.trim()}>
       {page === 'reports' && features.reports ? (
         <Suspense fallback={<main className="app-main"><p role="status">Loading reports…</p></main>}>
-          <ReportsPage dataSource={dataSource} tags={tags} enabled={appData.ready} onBack={() => setPage('board')} onError={reportError} onOpenTask={openReportTask} />
+          <ReportsPage dataSource={dataSource} tags={tags} preparation={appData.preparation} onBack={() => setPage('board')} onError={reportError} onOpenTask={openReportTask} />
         </Suspense>
       ) : (
         <>
