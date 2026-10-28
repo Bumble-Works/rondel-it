@@ -125,6 +125,14 @@ function App() {
   const tagsById = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
   const repeatLabels = useMemo(() => new Map(rules.map((r) => [r.id, describeRecurrence(r)])), [rules])
   const recurringSyncedFor = useRef<string | null>(null)
+  const boardRequest = useRef(0)
+  const appDataRequest = useRef(0)
+
+  // Resolve the current range in the loading effect, even when an edit began on another day.
+  const reloadBoard = useCallback(() => {
+    boardRequest.current += 1
+    setBoardReload((revision) => revision + 1)
+  }, [])
 
   const reportError = useCallback((context: string, e: unknown) => {
     console.error(`[rondel] ${context}`, e)
@@ -143,10 +151,12 @@ function App() {
   )
 
   const loadBoard = useCallback(async () => {
+    const request = ++boardRequest.current
     try {
       const recurringDay = today
       if (recurringSyncedFor.current !== recurringDay) {
         await dataSource.syncRecurring(recurringDay)
+        if (request !== boardRequest.current) return
         recurringSyncedFor.current = recurringDay
       }
       const [range, bl, rondelItems, withReminders, leftItems] = await Promise.all([
@@ -156,6 +166,7 @@ function App() {
         dataSource.listUpcomingReminders(today),
         dataSource.listLeftUndone(today),
       ])
+      if (request !== boardRequest.current) return
       setReminderTasks(withReminders)
       setRangeTasks(range)
       setReportsRevision((revision) => revision + 1)
@@ -180,28 +191,33 @@ function App() {
 
       setError(null)
     } catch (e) {
-      reportError('Unable to load tasks', e)
+      if (request === boardRequest.current) reportError('Unable to load tasks', e)
+      else console.error('[rondel] Superseded task load failed', e)
     }
   }, [reportError, openReview, rangeStart, rangeEnd, containerStart, containerEnd, today])
 
   const loadAppData = useCallback(async () => {
+    const request = ++appDataRequest.current
     try {
       const [loadedTags, loadedSettings, loadedRules] = await Promise.all([
         dataSource.listTags(),
         dataSource.getSettings(),
         dataSource.listRecurringRules(),
       ])
+      if (request !== appDataRequest.current) return
       setTags(loadedTags)
       setSettings(loadedSettings)
       setRules(loadedRules)
     } catch (e) {
-      reportError('Unable to load app data', e)
+      if (request === appDataRequest.current) reportError('Unable to load app data', e)
+      else console.error('[rondel] Superseded app-data load failed', e)
     }
   }, [reportError])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAppData()
+    return () => { appDataRequest.current += 1 }
   }, [loadAppData])
 
   useEffect(() => {
@@ -211,8 +227,10 @@ function App() {
   const sync = useSync({
     onRemoteChange: useCallback(() => {
       recurringSyncedFor.current = null // another device may have changed rules
-      void loadAppData().then(() => loadBoard())
-    }, [loadAppData, loadBoard]),
+      boardRequest.current += 1
+      // Applying the loaded settings triggers the board effect with their current week start.
+      void loadAppData()
+    }, [loadAppData]),
     reportError,
   })
   const { scheduleSync } = sync
@@ -220,6 +238,7 @@ function App() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (settings) void loadBoard()
+    return () => { boardRequest.current += 1 }
   }, [settings, loadBoard, boardReload])
 
   useScrollToToday((view === 'week' || view === 'month') && todayInRange, `${view}:${rangeStart}`)
@@ -262,9 +281,9 @@ function App() {
     (fn: () => Promise<unknown>) =>
       attempt('Something went wrong', async () => {
         await fn()
-        await loadBoard()
+        reloadBoard()
       }),
-    [attempt, loadBoard],
+    [attempt, reloadBoard],
   )
 
   const quickAdd = (target: BoardGroupAddTarget, title: string, tagIds: string[], time: string | null) =>
@@ -275,7 +294,7 @@ function App() {
     setSelectedTaskId(id)
     setView(nav.view)
     setAnchorDate(nav.anchorDate)
-    setBoardReload((n) => n + 1)
+    reloadBoard()
     scheduleSync()
   }
 
@@ -376,7 +395,7 @@ function App() {
       const tag = await dataSource.createTag({ name })
       await changeTags(task.id, (ids) => (ids.includes(tag.id) ? ids : [...ids, tag.id]))
       await refreshTags()
-      await loadBoard()
+      reloadBoard()
     })
 
   // A fresh to-do on that day: new — not recurring, never rondeled, no history or reminder.
@@ -427,7 +446,7 @@ function App() {
       openReview(slot, count)
     },
     // The new day's recurring tasks are created when the board reloads.
-    onNewDay: () => void loadBoard(),
+    onNewDay: reloadBoard,
   })
 
   const updateSettings = (patch: Partial<UserSetting>) =>
@@ -440,20 +459,20 @@ function App() {
     void attempt('Unable to create tag', async () => {
       await dataSource.createTag({ name, color })
       await refreshTags()
-      await loadBoard()
+      reloadBoard()
     })
   const updateTag = (id: string, patch: { name?: string; color?: string }) =>
     void attempt('Unable to update tag', async () => {
       await dataSource.updateTag(id, patch)
       await refreshTags()
-      await loadBoard()
+      reloadBoard()
     })
   const deleteTag = (id: string) =>
     void attempt('Unable to delete tag', async () => {
       await dataSource.deleteTag(id)
       setActiveTagIds((prev) => prev.filter((x) => x !== id))
       await refreshTags()
-      await loadBoard()
+      reloadBoard()
     })
 
   const refreshRules = async () => setRules(await dataSource.listRecurringRules())
@@ -461,14 +480,14 @@ function App() {
     void attempt('Unable to create recurring task', async () => {
       await dataSource.createRecurringRule(input)
       await refreshRules()
-      await loadBoard()
+      reloadBoard()
     })
   const updateRule = (id: string, input: RecurringRuleInput) =>
     void attempt('Unable to update recurring task', async () => {
       // The task already on the list follows the edit too.
       await dataSource.updateRecurringRule(id, input, { applyToOpenTasks: true })
       await refreshRules()
-      await loadBoard()
+      reloadBoard()
     })
   const deleteRule = (id: string) =>
     void attempt('Unable to delete recurring task', async () => {
