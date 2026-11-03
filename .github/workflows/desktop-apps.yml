@@ -77,9 +77,10 @@ jobs:
         # A release stamps its version into the app; a PR check uses the one in tauri.conf.json.
         run: |
           if [ -n "$VERSION" ]; then
-            npx tauri build $TAURI_ARGS --config "{\"version\":\"$VERSION\"}"
+            npx tauri build $TAURI_ARGS --config "{\"version\":\"$VERSION\",\"bundle\":{\"createUpdaterArtifacts\":true}}"
           else
-            npx tauri build $TAURI_ARGS
+            # PR checks don't publish updater artifacts, so avoid requiring a signing key.
+            npx tauri build $TAURI_ARGS --config '{"bundle":{"createUpdaterArtifacts":false}}'
           fi
 
       - name: Package (Mac)
