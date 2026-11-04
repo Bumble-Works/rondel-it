@@ -62,7 +62,7 @@ export async function installUpdate(
   const handle = asUpdateHandle(update.handle)
   if (!handle) {
     console.error('[updates] Update handle is missing downloadAndInstall')
-    throw 'unknown' as UpdateErrorCode
+    throwUpdateCode('unknown')
   }
 
   let totalBytes: number | null = null
@@ -71,14 +71,17 @@ export async function installUpdate(
   try {
     await handle.downloadAndInstall((event) => {
       if (event.event === 'Started') {
-        totalBytes = event.data.contentLength ?? null
+        const contentLength = event.data.contentLength
+        totalBytes = typeof contentLength === 'number' && contentLength > 0 ? contentLength : null
         downloadedBytes = 0
         onProgress(totalBytes === null ? null : 0)
         return
       }
 
       if (event.event === 'Progress') {
-        downloadedBytes += event.data.chunkLength
+        const chunkLength = event.data.chunkLength
+        if (!Number.isFinite(chunkLength) || chunkLength <= 0) return
+        downloadedBytes += chunkLength
         if (totalBytes === null || totalBytes <= 0) {
           onProgress(null)
         } else {
@@ -157,4 +160,8 @@ function mapUpdateError(error: unknown): UpdateErrorCode {
   }
 
   return 'unknown'
+}
+
+function throwUpdateCode(code: UpdateErrorCode): never {
+  throw code
 }

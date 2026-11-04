@@ -24,13 +24,17 @@ vi.mock('@tauri-apps/plugin-process', () => fake.process)
 vi.mock('@tauri-apps/api/app', () => fake.app)
 
 describe('updateService', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>
+
   beforeEach(() => {
     ;(window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {}
     vi.clearAllMocks()
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
   })
 
   afterEach(() => {
     delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+    consoleErrorSpy.mockRestore()
   })
 
   it('returns null when no update is available', async () => {
@@ -117,6 +121,18 @@ describe('updateService', () => {
     expect(progress).toEqual([null, null, 1])
   })
 
+  it('rejects updates with a missing install handle', async () => {
+    const update: AvailableUpdate = {
+      version: '0.2.0',
+      currentVersion: '0.1.0',
+      notes: '',
+      date: null,
+      handle: {},
+    }
+
+    await expect(installUpdate(update, vi.fn())).rejects.toBe('unknown')
+  })
+
   it('maps signature failures during install', async () => {
     const handle = {
       downloadAndInstall: vi.fn(async () => {
@@ -134,6 +150,23 @@ describe('updateService', () => {
     await expect(installUpdate(update, vi.fn())).rejects.toBe('bad-signature')
   })
 
+  it('maps install/restart failures during install', async () => {
+    const handle = {
+      downloadAndInstall: vi.fn(async () => {
+        throw new Error('install permission denied')
+      }),
+    }
+    const update: AvailableUpdate = {
+      version: '0.2.0',
+      currentVersion: '0.1.0',
+      notes: '',
+      date: null,
+      handle,
+    }
+
+    await expect(installUpdate(update, vi.fn())).rejects.toBe('install-failed')
+  })
+
   it('calls process.relaunch in desktop mode', async () => {
     await relaunchApp()
 
@@ -143,5 +176,19 @@ describe('updateService', () => {
   it('reads the running app version from Tauri app API', async () => {
     await expect(getRunningVersion()).resolves.toBe('0.1.0')
     expect(fake.app.getVersion).toHaveBeenCalledTimes(1)
+  })
+
+  it('skips relaunch in browser mode', async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+
+    await relaunchApp()
+    expect(fake.process.relaunch).not.toHaveBeenCalled()
+  })
+
+  it('returns empty running version in browser mode', async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+
+    await expect(getRunningVersion()).resolves.toBe('')
+    expect(fake.app.getVersion).not.toHaveBeenCalled()
   })
 })
