@@ -3,6 +3,7 @@ import {
   getRunningVersion,
   installUpdate,
   relaunchApp,
+  UpdateServiceError,
   type AvailableUpdate,
 } from './updateService'
 
@@ -65,7 +66,7 @@ describe('updateService', () => {
   it('maps network errors from check to offline', async () => {
     fake.updater.check.mockRejectedValueOnce(new Error('Network connection reset'))
 
-    await expect(checkForUpdate()).rejects.toBe('offline')
+    await expect(checkForUpdate()).rejects.toEqual(expect.objectContaining({ code: 'offline' }))
   })
 
   it('does nothing in browser mode and never calls updater', async () => {
@@ -130,7 +131,7 @@ describe('updateService', () => {
       handle: {},
     }
 
-    await expect(installUpdate(update, vi.fn())).rejects.toBe('unknown')
+    await expect(installUpdate(update, vi.fn())).rejects.toEqual(expect.objectContaining({ code: 'unknown' }))
   })
 
   it('maps signature failures during install', async () => {
@@ -147,7 +148,7 @@ describe('updateService', () => {
       handle,
     }
 
-    await expect(installUpdate(update, vi.fn())).rejects.toBe('bad-signature')
+    await expect(installUpdate(update, vi.fn())).rejects.toEqual(expect.objectContaining({ code: 'bad-signature' }))
   })
 
   it('maps install/restart failures during install', async () => {
@@ -164,7 +165,13 @@ describe('updateService', () => {
       handle,
     }
 
-    await expect(installUpdate(update, vi.fn())).rejects.toBe('install-failed')
+    await expect(installUpdate(update, vi.fn())).rejects.toEqual(expect.objectContaining({ code: 'install-failed' }))
+  })
+
+  it('throws UpdateServiceError instances for callers that need typed handling', async () => {
+    fake.updater.check.mockRejectedValueOnce(new Error('offline now'))
+
+    await expect(checkForUpdate()).rejects.toBeInstanceOf(UpdateServiceError)
   })
 
   it('calls process.relaunch in desktop mode', async () => {

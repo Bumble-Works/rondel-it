@@ -2,6 +2,17 @@ import { isDesktopApp } from '../sync/folder'
 
 export type UpdateErrorCode = 'offline' | 'bad-signature' | 'install-failed' | 'unknown'
 
+export class UpdateServiceError extends Error {
+  code: UpdateErrorCode
+
+  constructor(code: UpdateErrorCode, cause?: unknown) {
+    super(code)
+    this.name = 'UpdateServiceError'
+    this.code = code
+    this.cause = cause
+  }
+}
+
 interface DownloadProgressStarted {
   event: 'Started'
   data: { contentLength?: number }
@@ -48,7 +59,7 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
     }
   } catch (error) {
     console.error('[updates] Failed to check for updates', error)
-    throw mapUpdateError(error)
+    throw toUpdateServiceError(error)
   }
 }
 
@@ -62,7 +73,7 @@ export async function installUpdate(
   const handle = asUpdateHandle(update.handle)
   if (!handle) {
     console.error('[updates] Update handle is missing downloadAndInstall')
-    throwUpdateCode('unknown')
+    throw new UpdateServiceError('unknown')
   }
 
   let totalBytes: number | null = null
@@ -94,7 +105,7 @@ export async function installUpdate(
     })
   } catch (error) {
     console.error('[updates] Failed to download/install update', error)
-    throw mapUpdateError(error)
+    throw toUpdateServiceError(error)
   }
 }
 
@@ -107,7 +118,7 @@ export async function relaunchApp(): Promise<void> {
     await relaunch()
   } catch (error) {
     console.error('[updates] Failed to relaunch app', error)
-    throw mapUpdateError(error)
+    throw toUpdateServiceError(error)
   }
 }
 
@@ -120,15 +131,20 @@ export async function getRunningVersion(): Promise<string> {
     return await getVersion()
   } catch (error) {
     console.error('[updates] Failed to read running app version', error)
-    throw mapUpdateError(error)
+    throw toUpdateServiceError(error)
   }
 }
 
 function asUpdateHandle(handle: unknown): UpdateHandle | null {
   if (!handle || typeof handle !== 'object') return null
-  if (!('downloadAndInstall' in handle)) return null
-  if (typeof handle.downloadAndInstall !== 'function') return null
+  const candidate = handle as { downloadAndInstall?: unknown }
+  if (typeof candidate.downloadAndInstall !== 'function') return null
   return handle as UpdateHandle
+}
+
+function toUpdateServiceError(error: unknown): UpdateServiceError {
+  if (error instanceof UpdateServiceError) return error
+  return new UpdateServiceError(mapUpdateError(error), error)
 }
 
 function mapUpdateError(error: unknown): UpdateErrorCode {
@@ -160,8 +176,4 @@ function mapUpdateError(error: unknown): UpdateErrorCode {
   }
 
   return 'unknown'
-}
-
-function throwUpdateCode(code: UpdateErrorCode): never {
-  throw code
 }
