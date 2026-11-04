@@ -82,6 +82,9 @@ jobs:
     uses: ./.github/workflows/desktop-apps.yml
     with:
       version: ${{ needs.version.outputs.version }}
+    secrets:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
   publish:
     needs: [version, build]
