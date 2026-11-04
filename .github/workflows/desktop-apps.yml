@@ -16,6 +16,13 @@ on:
         description: 'Version to stamp into the apps (x.y.z)'
         type: string
         required: true
+    secrets:
+      TAURI_SIGNING_PRIVATE_KEY:
+        description: 'Private key used to sign updater artifacts in release builds'
+        required: false
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD:
+        description: 'Password for the updater signing private key'
+        required: false
 
 permissions:
   contents: read
@@ -74,12 +81,15 @@ jobs:
         env:
           VERSION: ${{ inputs.version }}
           TAURI_ARGS: ${{ matrix.tauri-args }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         # A release stamps its version into the app; a PR check uses the one in tauri.conf.json.
         run: |
           if [ -n "$VERSION" ]; then
-            npx tauri build $TAURI_ARGS --config "{\"version\":\"$VERSION\"}"
+            npx tauri build $TAURI_ARGS --config "{\"version\":\"$VERSION\",\"bundle\":{\"createUpdaterArtifacts\":true}}"
           else
-            npx tauri build $TAURI_ARGS
+            # PR checks don't publish updater artifacts, so avoid requiring a signing key.
+            npx tauri build $TAURI_ARGS --config '{"bundle":{"createUpdaterArtifacts":false}}'
           fi
 
       - name: Package (Mac)

@@ -25,6 +25,10 @@ pub fn run() {
   // itself; Windows needs the plugin. It must be the first plugin.
   #[cfg(desktop)]
   let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main_window(app)));
+  #[cfg(desktop)]
+  let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+  #[cfg(desktop)]
+  let builder = builder.plugin(tauri_plugin_process::init());
   builder
     // Sync: pick a folder, read/write its files, and reveal it in Finder.
     .plugin(tauri_plugin_dialog::init())
