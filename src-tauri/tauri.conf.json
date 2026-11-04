@@ -61,7 +61,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_UPDATER_PUBLIC_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJCNTMxODc3MUUyNzUwN0UKUldSK1VDY2VkeGhUdXdXRVViTDJIeFpxZ3NhNEZ3QzB6Nmt2ZTliZjlwemhrZ3lzOGU4U2Q4Vy8K",
       "endpoints": [
         "https://github.com/Bumble-Works/rondel-it/releases/latest/download/latest.json"
       ],
