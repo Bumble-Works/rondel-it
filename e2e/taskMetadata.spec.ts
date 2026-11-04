@@ -132,3 +132,22 @@ test('recurring tag hint appears once and occurrence tags do not change future t
   await expect(task.getByRole('button', { name: 'Remove home' })).toHaveCount(0)
   await expect(task).not.toHaveClass(/is-done/)
 })
+
+for (const view of ['Day', 'Week', 'Month']) {
+  test(`opens details from row padding in ${view} without intercepting metadata`, async ({ page }) => {
+    await addTask(page, 'Row background')
+    await page.getByRole('button', { name: view, exact: true }).click()
+    const task = row(page, 'Row background')
+    await task.getByRole('button', { name: 'Tags', exact: true }).click()
+    await page.getByRole('menuitemcheckbox', { name: 'work', exact: true }).click()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('complementary', { name: 'Task details' })).toHaveCount(0)
+    await task.getByRole('button', { name: 'Add time', exact: true }).click()
+    await page.getByLabel('Reminder time', { exact: true }).fill('10:00')
+    await page.getByRole('button', { name: 'Set time', exact: true }).click()
+    await expect(page.getByRole('complementary', { name: 'Task details' })).toHaveCount(0)
+    const box = (await task.boundingBox())!
+    await task.click({ position: { x: box.width / 2, y: 2 } })
+    await expect(page.getByRole('complementary', { name: 'Task details' })).toBeVisible()
+  })
+}
