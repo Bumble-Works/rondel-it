@@ -1,0 +1,7 @@
+.task-note-reading {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.task-note-edit {
+  margin-top: 0.5rem;
+}
