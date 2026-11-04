@@ -28,6 +28,16 @@ UI changes, include the preview command and URL.
   feature. Put setup and essential technical context in README.md.
 - Record coding-style preferences from review feedback in `PRACTICES.md`.
 
+## Uphold framework and language standards
+
+Push for the idiomatic, standard way of doing things in the language or framework
+in use (Tauri, React, TypeScript, Rust, ...). If a user's request or decision
+diverges from the accepted standard or best practice, say so and explain why
+before implementing it. Don't silently follow a non-standard choice to avoid
+friction — surface the tradeoff, recommend the conventional approach, and let the
+user make an informed call. This matters most when the author is new to the
+stack and relying on you to flag what "done right" looks like.
+
 ## Always stop and ask
 
 If any question or clarification comes up, at any point in any task, stop and
