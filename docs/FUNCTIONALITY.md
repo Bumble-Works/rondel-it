@@ -106,7 +106,8 @@ Set morning and end-of-day review times in **Settings → Week & day rhythm**.
 The review prompts you about unfinished tasks on past days and Unassigned work
 whose period has started. It also catches up a missed morning review on opening.
 
-For each item, choose **Today**, **Next week**, **Next month**, **Pick a date**,
+For each item, choose **Today** in the morning or **Tomorrow** at end of day,
+**Next week**, **Next month**, **Pick a date**,
 **Cancel** or **Done**. Finishing a past-day task records completion on its planned
 day. Closing the review leaves unresolved items for the next review.
 

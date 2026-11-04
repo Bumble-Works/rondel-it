@@ -59,3 +59,16 @@ describe('NagModal', () => {
     expect(screen.queryByRole('region', { name: 'Rondeled items waiting' })).not.toBeInTheDocument()
   })
 })
+
+it.each(['start', 'end'] as const)('routes both review sections to the correct local day for %s', slot => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 11, 31, 18))
+  const onRondel = vi.fn()
+  const tasks = [task({ id: 'todo', title: 'Todo' }), task({ id: 'doing', title: 'Doing', status: 'doing' })]
+  render(<NagModal open slot={slot} waiting={[tasks[0]]} leftUndone={[tasks[1]]} weekStartDay={1}
+    onClose={vi.fn()} onRondel={onRondel} onSetDone={vi.fn()} onCancel={vi.fn()} onPickDate={vi.fn()} />)
+  for (const button of screen.getAllByRole('button', { name: slot === 'end' ? 'Tomorrow' : 'Today' })) fireEvent.click(button)
+  expect(onRondel).toHaveBeenCalledTimes(2)
+  for (const t of tasks) expect(onRondel).toHaveBeenCalledWith(t, { toDate: slot === 'end' ? '2027-01-01' : '2026-12-31' })
+  vi.useRealTimers()
+})

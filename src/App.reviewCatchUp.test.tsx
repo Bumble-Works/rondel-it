@@ -1,7 +1,13 @@
 import { renderWithQuery as render } from './test/queryTestUtils'
-import { screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import App from './App'
 import type { Task } from './domain/types'
+import { useSchedule } from './features/reminders/useSchedule'
+
+vi.mock('./features/reminders/useSchedule', async importOriginal => {
+  const original = await importOriginal<typeof import('./features/reminders/useSchedule')>()
+  return { useSchedule: vi.fn(original.useSchedule) }
+})
 
 // The nag brings the window to the front; that's a desktop side effect, not the
 // behavior under test, so stub it to keep the test to the nag opening.
@@ -54,5 +60,18 @@ describe('App review catch-up on open', () => {
     // load knows the count; the nag must still open once the data arrives.
     const nag = await screen.findByRole('dialog', { name: 'Don’t lose these' })
     expect(nag).toHaveTextContent('Parked for this week')
+    expect(within(nag).getByRole('button', { name: 'Today' })).toBeInTheDocument()
   })
+})
+
+it('preserves an evening review deferred until board data arrives', async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+  vi.setSystemTime(new Date(2026, 11, 31, 18))
+  seedWaitingRondeledTask()
+  vi.mocked(useSchedule).mockImplementation(() => {})
+  render(<App />)
+  const first = vi.mocked(useSchedule).mock.calls[0][0]
+  act(() => first.onReview('end'))
+  const nag = await screen.findByRole('dialog', { name: 'Don’t lose these' })
+  expect(within(nag).getByRole('button', { name: 'Tomorrow' })).toBeInTheDocument()
 })
