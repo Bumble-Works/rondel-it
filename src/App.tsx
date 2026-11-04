@@ -77,7 +77,7 @@ function sameWeek(a: string, b: string, weekStartDay: number): boolean {
 }
 
 function App() {
-  const [nagOpen, setNagOpen] = useState(false)
+  const [reviewSlot, setReviewSlot] = useState<'start' | 'end' | null>(null)
 
   const [view, setView] = useState<ViewKey>('day')
   const [anchorDate, setAnchorDate] = useState(todayIso())
@@ -126,7 +126,7 @@ function App() {
   const buckets: Buckets = useMemo(() => ({ 'bucket-list': bucketTasks }), [bucketTasks])
   const pendingReviewRef = useRef<'start' | 'end' | null>(null)
   const openReview = useCallback((slot: 'start' | 'end', count: number) => {
-    setNagOpen(true)
+    setReviewSlot(slot)
     announceReview(slot, count).catch((e) => reportError('Couldn’t bring the review to the front', e))
   }, [reportError])
 
@@ -157,7 +157,7 @@ function App() {
     if (!board.ready) return
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setError((current) => current?.startsWith('Unable to load ') || current?.startsWith('Unable to prepare ') ? null : current)
-    if (nagCount === 0) setNagOpen(false)
+    if (nagCount === 0) setReviewSlot(null)
     if (pendingReviewRef.current && board.today === todayIso()) {
       const slot = pendingReviewRef.current
       pendingReviewRef.current = null
@@ -590,11 +590,12 @@ function App() {
 
       <ReminderModal {...reminderAlerts.modal} weekStartDay={weekStartDay} />
       <NagModal
-        open={nagOpen && nagCount > 0}
+        open={reviewSlot !== null && nagCount > 0}
+        slot={reviewSlot ?? 'start'}
         waiting={undecided}
         leftUndone={leftUndone}
         weekStartDay={weekStartDay}
-        onClose={() => setNagOpen(false)}
+        onClose={() => setReviewSlot(null)}
         onRondel={(task, target) => rondel(task, target)}
         // A forgotten task counts as done on the day it was planned.
         onSetDone={(task) => setDone(task, { onItsDay: !task.rondeled })}

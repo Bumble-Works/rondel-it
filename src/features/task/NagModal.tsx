@@ -1,4 +1,4 @@
-import { firstDayOfNextMonth, firstDayOfNextWeek, formatDayLabel, todayIso } from '../../domain/dates'
+import { addDays, firstDayOfNextMonth, firstDayOfNextWeek, formatDayLabel, todayIso } from '../../domain/dates'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import type { Task } from '../../domain/types'
 import { useAppBadge } from '../../shared/appBadge'
@@ -10,6 +10,7 @@ import { TaskActionItem, TaskActionList } from '../../shared/ui/TaskActionItem'
 import './NagModal.css'
 
 interface NagActions {
+  slot?: 'start' | 'end'
   weekStartDay: number
   onRondel: (task: Task, target: RondelTarget) => void
   onSetDone: (task: Task) => void
@@ -65,13 +66,15 @@ export function NagModal({ open, waiting, leftUndone, onClose, ...actions }: Nag
   )
 }
 
-function NagList({ items, weekStartDay, onRondel, onSetDone, onCancel, onPickDate }: NagActions & { items: Task[] }) {
+function NagList({ items, slot = 'start', weekStartDay, onRondel, onSetDone, onCancel, onPickDate }: NagActions & { items: Task[] }) {
   const today = todayIso()
   return (
     <TaskActionList>
       {items.map((task) => (
         <TaskActionItem key={task.id} task={task} detail={task.dayDate && formatDayLabel(task.dayDate)}>
-          <PillButton onClick={() => onRondel(task, { toDate: today })}>Today</PillButton>
+          <PillButton onClick={() => onRondel(task, { toDate: slot === 'end' ? addDays(today, 1) : today })}>
+            {slot === 'end' ? 'Tomorrow' : 'Today'}
+          </PillButton>
           <PillButton onClick={() => onRondel(task, { toDate: firstDayOfNextWeek(today, weekStartDay), rondeled: true })}>
             Next week
           </PillButton>
