@@ -48,7 +48,7 @@ test('opens a full Sunday week with only six presets and renders scoped chart co
   await expect(highlight(page, 'Canceled')).toHaveText('1')
   await expect(page.locator('.completion-donut-legend dd')).toHaveText(['2', '3', '4'])
   await expect(page.locator('.completion-donut-graphic svg')).toBeVisible()
-  await expect(page.getByRole('img', { name: '4 tasks completed in 2026 within the selected period' })).toBeVisible()
+  await expect(page.getByRole('img', { name: '4 tasks completed in 2026' })).toBeVisible()
   for (const direction of ['outgoing', 'incoming', 'within']) {
     const flow = page.locator(`.report-flow-item--${direction}`)
     await expect(flow.locator('strong')).toHaveText(/^1 tasks?$/)

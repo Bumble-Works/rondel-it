@@ -4,14 +4,12 @@ import './CompletionCalendar.css'
 
 interface CompletionCalendarProps {
   dashboard: Dashboard
+  years?: number[]
   year: number
   onYearChange: (year: number) => void
 }
 
-export function CompletionCalendar({ dashboard, year, onYearChange }: CompletionCalendarProps) {
-  const first = Number(dashboard.range.start.slice(0, 4))
-  const last = Number(dashboard.range.end.slice(0, 4))
-  const years = Array.from({ length: last - first + 1 }, (_, index) => first + index)
+export function CompletionCalendar({ dashboard, year, years = [year], onYearChange }: CompletionCalendarProps) {
   const data = dashboard.completions.filter((entry) => entry.day.startsWith(`${year}-`))
   const completed = data.reduce((sum, entry) => sum + entry.value, 0)
   return (
@@ -22,7 +20,7 @@ export function CompletionCalendar({ dashboard, year, onYearChange }: Completion
           {years.map((value) => <option key={value} value={value}>{value}</option>)}
         </select></label>}
       </div>
-      <div className="completion-calendar-scroll" role="img" aria-label={`${completed} tasks completed in ${year} within the selected period`}>
+      <div className="completion-calendar-scroll" role="img" aria-label={`${completed} tasks completed in ${year}`}>
         <Calendar width={900} height={175} data={data} from={`${year}-01-01`} to={`${year}-12-31`}
           margin={{ top: 30, right: 20, bottom: 12, left: 20 }} yearLegendPosition="after" yearLegendOffset={10}
           emptyColor="#eef2f7" colors={['#c6efdf', '#89dcbd', '#41c599', '#16a777']}

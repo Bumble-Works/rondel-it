@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { ReportRange } from '../../domain/reportTypes'
 
 interface DashboardSelection {
   collapsed: string[]
@@ -13,14 +12,12 @@ export interface DashboardDisplay extends DashboardSelection {
   setHiddenTimeline: (hidden: string[]) => void
 }
 
-export function useDashboardDisplay(range: ReportRange | null, today: string): DashboardDisplay {
+export function useDashboardDisplay(today: string): DashboardDisplay {
   const [selection, setSelection] = useState<DashboardSelection>(() => ({
     collapsed: [], calendarYear: Number(today.slice(0, 4)), hiddenTimeline: [],
   }))
-  const calendarYear = range ? Math.max(Number(range.start.slice(0, 4)),
-    Math.min(selection.calendarYear, Number(range.end.slice(0, 4)))) : selection.calendarYear
   return {
-    ...selection, calendarYear,
+    ...selection,
     toggleSection: (id) => setSelection((current) => ({ ...current,
       collapsed: current.collapsed.includes(id) ? current.collapsed.filter((key) => key !== id) : [...current.collapsed, id],
     })),

@@ -52,7 +52,15 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
   const dashboard = useMemo(() => range
     ? buildDashboard(tasks, tags, range, { tagIds: selectedTags, tagMatch, includeCanceled: true }, today)
     : null, [tasks, tags, range, selectedTags, tagMatch, today])
-  const display = useDashboardDisplay(range, today)
+  const display = useDashboardDisplay(today)
+  const annual = useMemo(() => buildDashboard(tasks, tags,
+    { start: `${display.calendarYear}-01-01`, end: `${display.calendarYear}-12-31` },
+    { tagIds: selectedTags, tagMatch, includeCanceled: true }, today),
+  [tasks, tags, display.calendarYear, selectedTags, tagMatch, today])
+  const calendarYears = useMemo(() => [...new Set([Number(today.slice(0, 4)), display.calendarYear,
+    ...tasks.flatMap(task => [task.dayDate, task.completedAt, task.createdAt, task.originDate])
+      .filter((date): date is string => Boolean(date)).map(date => Number(date.slice(0, 4))),
+  ])].filter(Number.isFinite).sort((a, b) => a - b), [tasks, today, display.calendarYear])
   const toggleTag = (id: string) => setTagIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id])
   const selection = JSON.stringify([range, selectedTags, tagMatch, leftBehindOnly])
   const showLeftBehind = () => { setLeftBehindOnly(true); setView('tasks') }
@@ -61,7 +69,7 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
     if (task) onOpenTask?.(task)
   }
 
-  const renderDashboard = (printMode = false) => dashboard && <ReportOverview dashboard={dashboard} display={display}
+  const renderDashboard = (printMode = false) => dashboard && <ReportOverview dashboard={dashboard} display={display} annual={annual} calendarYears={calendarYears}
     onLeftBehind={showLeftBehind} printMode={printMode} />
 
   const outputSummary = range ? `${reportDate(range.start)} – ${reportDate(range.end)} · ${selectedTags.length
