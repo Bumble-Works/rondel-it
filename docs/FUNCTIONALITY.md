@@ -116,6 +116,9 @@ Open **Reports** and choose a date range and tag filters. **Custom** includes bo
 endpoints and allows up to one calendar year. Report weeks run Sunday–Saturday,
 regardless of your board's week setting.
 
+**Your little wins** always shows the full selected calendar year, independently
+of Period. Its Year selector changes only that calendar; tag filters still apply.
+
 **Dashboard** shows progress, completions, carry-forward decisions and results
 by tag. **Rondeled** counts postponements made during the selected period, so one
 task can count several times. Click **Left behind** to see unfinished to-dos

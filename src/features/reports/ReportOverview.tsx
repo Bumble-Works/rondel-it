@@ -13,12 +13,14 @@ import './ReportOverview.css'
 
 interface ReportOverviewProps {
   dashboard: Dashboard
+  annual?: Dashboard
+  calendarYears?: number[]
   display: DashboardDisplay
   printMode?: boolean
   onLeftBehind?: () => void
 }
 
-export function ReportOverview({ dashboard, display, onLeftBehind = () => {}, printMode = false }: ReportOverviewProps) {
+export function ReportOverview({ dashboard, annual = dashboard, calendarYears, display, onLeftBehind = () => {}, printMode = false }: ReportOverviewProps) {
   const { collapsed, calendarYear, hiddenTimeline, toggleSection, setCalendarYear, setHiddenTimeline } = display
   const { summary, rondels } = dashboard
   const longPrintCharts = printMode && dashboard.tagMetrics.length > 12
@@ -32,7 +34,7 @@ export function ReportOverview({ dashboard, display, onLeftBehind = () => {}, pr
       </ReportSection>
 
       <ReportSection title="Your little wins" description="Completions, one square at a time." {...section('calendar')}>
-        <CompletionCalendar dashboard={dashboard} year={calendarYear} onYearChange={setCalendarYear} />
+        <CompletionCalendar dashboard={annual} years={calendarYears} year={calendarYear} onYearChange={setCalendarYear} />
       </ReportSection>
 
       {dashboard.bucketCompletions.length > 0 && <aside className="report-bucket-celebration">
