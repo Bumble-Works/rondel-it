@@ -80,6 +80,7 @@ export function RecurringForm({ tags, rule, onSubmit, onCancel, onCreateTag }: R
         onCreate={async (name) => {
           const tag = await onCreateTag(name)
           if (tag) titleInput.toggleTag(tag.id) // a new tag, so this adds it
+          return Boolean(tag)
         }}
       />
 

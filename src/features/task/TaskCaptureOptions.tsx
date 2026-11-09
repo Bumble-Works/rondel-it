@@ -21,6 +21,7 @@ export function TaskCaptureOptions({ input, tags, onCreateTag, canSetTime }: Tas
       }} onCreate={async (name) => {
         const tag = await onCreateTag(name)
         if (tag) input.toggleTag(tag.id)
+        return Boolean(tag)
       }} />
       <TimePicker value={input.time} onChange={input.changeTime}
         disabledReason={canSetTime ? null : 'Give it a day to set a reminder.'} />
