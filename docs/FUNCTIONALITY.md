@@ -56,7 +56,8 @@ period; scheduling from Bucket List adds no rondel.
 ## Use tags and filters
 
 Open **Tags** on a task, in the add composer or in details to search, select or
-create tags. Manage tag names and colors in Settings. Deleting a tag removes it
+create tags. Choosing or creating a tag closes the picker; reopen Tags to add
+another. Manage tag names and colors in Settings. Deleting a tag removes it
 from all tasks.
 
 You can also type **#name** in a task title and pick a suggestion with Enter,
