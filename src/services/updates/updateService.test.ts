@@ -1,5 +1,7 @@
+import type { DownloadEvent } from '@tauri-apps/plugin-updater'
 import {
   checkForUpdate,
+  disposeUpdate,
   getRunningVersion,
   installUpdate,
   relaunchApp,
@@ -51,6 +53,7 @@ describe('updateService', () => {
       body: 'Release notes',
       date: '2026-11-04T01:02:03Z',
       downloadAndInstall: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
     }
     fake.updater.check.mockResolvedValueOnce(update)
 
@@ -78,12 +81,13 @@ describe('updateService', () => {
 
   it('maps Started/Progress/Finished to progress fractions', async () => {
     const handle = {
-      downloadAndInstall: vi.fn(async (onEvent?: (event: unknown) => void) => {
+      downloadAndInstall: vi.fn(async (onEvent?: (event: DownloadEvent) => void) => {
         onEvent?.({ event: 'Started', data: { contentLength: 100 } })
         onEvent?.({ event: 'Progress', data: { chunkLength: 30 } })
         onEvent?.({ event: 'Progress', data: { chunkLength: 70 } })
         onEvent?.({ event: 'Finished' })
       }),
+      close: vi.fn(async () => undefined),
     }
     const update: AvailableUpdate = {
       version: '0.2.0',
@@ -102,11 +106,12 @@ describe('updateService', () => {
 
   it('reports null progress when size is unknown', async () => {
     const handle = {
-      downloadAndInstall: vi.fn(async (onEvent?: (event: unknown) => void) => {
+      downloadAndInstall: vi.fn(async (onEvent?: (event: DownloadEvent) => void) => {
         onEvent?.({ event: 'Started', data: {} })
         onEvent?.({ event: 'Progress', data: { chunkLength: 10 } })
         onEvent?.({ event: 'Finished' })
       }),
+      close: vi.fn(async () => undefined),
     }
     const update: AvailableUpdate = {
       version: '0.2.0',
@@ -122,16 +127,70 @@ describe('updateService', () => {
     expect(progress).toEqual([null, null, 1])
   })
 
-  it('rejects updates with a missing install handle', async () => {
-    const update: AvailableUpdate = {
-      version: '0.2.0',
+  it('releases a deferred update without installing it or closing its replacement', async () => {
+    const handle = {
       currentVersion: '0.1.0',
-      notes: '',
-      date: null,
-      handle: {},
+      version: '0.2.0',
+      downloadAndInstall: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
     }
+    const replacement = { ...handle, version: '0.3.0', close: vi.fn(async () => undefined) }
+    fake.updater.check.mockResolvedValueOnce(handle).mockResolvedValueOnce(replacement)
+    const update = await checkForUpdate()
+    await checkForUpdate()
 
-    await expect(installUpdate(update, vi.fn())).rejects.toEqual(expect.objectContaining({ code: 'unknown' }))
+    await disposeUpdate(update!)
+
+    expect(handle.close).toHaveBeenCalledOnce()
+    expect(handle.downloadAndInstall).not.toHaveBeenCalled()
+    expect(replacement.close).not.toHaveBeenCalled()
+  })
+
+  it('reports disposal failures as service errors with the original cause', async () => {
+    const failure = new Error('Resource unavailable')
+    const handle = {
+      currentVersion: '0.1.0', version: '0.2.0',
+      downloadAndInstall: vi.fn(async () => undefined),
+      close: vi.fn().mockRejectedValueOnce(failure),
+    }
+    fake.updater.check.mockResolvedValueOnce(handle)
+    const update = await checkForUpdate()
+
+    await expect(disposeUpdate(update!)).rejects.toMatchObject({ name: 'UpdateServiceError', code: 'unknown', cause: failure })
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[updates] Failed to dispose update', failure)
+  })
+
+  it('keeps a failed install retryable until the caller disposes the update', async () => {
+    const handle = {
+      currentVersion: '0.1.0', version: '0.2.0',
+      downloadAndInstall: vi.fn().mockRejectedValueOnce(new Error('Network connection reset')).mockResolvedValueOnce(undefined),
+      close: vi.fn(async () => undefined),
+    }
+    fake.updater.check.mockResolvedValueOnce(handle)
+    const update = await checkForUpdate()
+
+    await expect(installUpdate(update!, vi.fn())).rejects.toMatchObject({ code: 'offline' })
+    expect(handle.close).not.toHaveBeenCalled()
+    await installUpdate(update!, vi.fn())
+    await disposeUpdate(update!)
+
+    expect(handle.downloadAndInstall).toHaveBeenCalledTimes(2)
+    expect(handle.close).toHaveBeenCalledOnce()
+  })
+
+  it('skips disposal in browser mode', async () => {
+    const handle = {
+      currentVersion: '0.1.0', version: '0.2.0',
+      downloadAndInstall: vi.fn(async () => undefined),
+      close: vi.fn(async () => undefined),
+    }
+    fake.updater.check.mockResolvedValueOnce(handle)
+    const update = await checkForUpdate()
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__
+
+    await disposeUpdate(update!)
+
+    expect(handle.close).not.toHaveBeenCalled()
   })
 
   it('maps signature failures during install', async () => {
@@ -139,6 +198,7 @@ describe('updateService', () => {
       downloadAndInstall: vi.fn(async () => {
         throw new Error('signature verification failed')
       }),
+      close: vi.fn(async () => undefined),
     }
     const update: AvailableUpdate = {
       version: '0.2.0',
@@ -156,6 +216,7 @@ describe('updateService', () => {
       downloadAndInstall: vi.fn(async () => {
         throw new Error('install permission denied')
       }),
+      close: vi.fn(async () => undefined),
     }
     const update: AvailableUpdate = {
       version: '0.2.0',

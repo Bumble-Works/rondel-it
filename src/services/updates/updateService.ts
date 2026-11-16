@@ -1,3 +1,4 @@
+import type { Update } from '@tauri-apps/plugin-updater'
 import { isDesktopApp } from '../sync/folder'
 
 export type UpdateErrorCode = 'offline' | 'bad-signature' | 'install-failed' | 'unknown'
@@ -13,35 +14,15 @@ export class UpdateServiceError extends Error {
   }
 }
 
-interface DownloadProgressStarted {
-  event: 'Started'
-  data: { contentLength?: number }
-}
-
-interface DownloadProgressChunk {
-  event: 'Progress'
-  data: { chunkLength: number }
-}
-
-interface DownloadProgressFinished {
-  event: 'Finished'
-}
-
-type DownloadProgressEvent = DownloadProgressStarted | DownloadProgressChunk | DownloadProgressFinished
-
-interface UpdateHandle {
-  downloadAndInstall(onEvent?: (event: DownloadProgressEvent) => void): Promise<void>
-}
-
 export interface AvailableUpdate {
   version: string
   currentVersion: string
   notes: string
   date: string | null
-  handle: unknown
+  handle: Pick<Update, 'downloadAndInstall' | 'close'>
 }
 
-/** Checks for a desktop app update and returns it, or null when up to date/browser. */
+/** Checks for an update; dispose a returned update when deferring or replacing it. */
 export async function checkForUpdate(): Promise<AvailableUpdate | null> {
   if (!isDesktopApp()) return null
 
@@ -63,6 +44,18 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
   }
 }
 
+/** Releases a discarded update's native resource. */
+export async function disposeUpdate(update: AvailableUpdate): Promise<void> {
+  if (!isDesktopApp()) return
+
+  try {
+    await update.handle.close()
+  } catch (error) {
+    console.error('[updates] Failed to dispose update', error)
+    throw toUpdateServiceError(error)
+  }
+}
+
 /** Downloads and installs a discovered update with optional progress reporting. */
 export async function installUpdate(
   update: AvailableUpdate,
@@ -70,17 +63,11 @@ export async function installUpdate(
 ): Promise<void> {
   if (!isDesktopApp()) return
 
-  const handle = asUpdateHandle(update.handle)
-  if (!handle) {
-    console.error('[updates] Update handle is missing downloadAndInstall')
-    throw new UpdateServiceError('unknown')
-  }
-
   let totalBytes: number | null = null
   let downloadedBytes = 0
 
   try {
-    await handle.downloadAndInstall((event) => {
+    await update.handle.downloadAndInstall((event) => {
       if (event.event === 'Started') {
         const contentLength = event.data.contentLength
         totalBytes = typeof contentLength === 'number' && contentLength > 0 ? contentLength : null
@@ -133,13 +120,6 @@ export async function getRunningVersion(): Promise<string> {
     console.error('[updates] Failed to read running app version', error)
     throw toUpdateServiceError(error)
   }
-}
-
-function asUpdateHandle(handle: unknown): UpdateHandle | null {
-  if (!handle || typeof handle !== 'object') return null
-  const candidate = handle as { downloadAndInstall?: unknown }
-  if (typeof candidate.downloadAndInstall !== 'function') return null
-  return handle as UpdateHandle
 }
 
 function toUpdateServiceError(error: unknown): UpdateServiceError {
