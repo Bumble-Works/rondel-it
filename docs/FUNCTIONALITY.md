@@ -118,6 +118,7 @@ regardless of your board's week setting.
 
 **Your little wins** always shows the full selected calendar year, independently
 of Period. Its Year selector changes only that calendar; tag filters still apply.
+Completion dates and available years follow your device's timezone.
 
 **Dashboard** shows progress, completions, carry-forward decisions and results
 by tag. **Rondeled** counts postponements made during the selected period, so one

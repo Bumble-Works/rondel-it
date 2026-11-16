@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderWithQuery as render } from '../../test/queryTestUtils'
 import { reportFixtureTask as task } from '../../test/reportFixtures'
+import { toIso } from '../../domain/dates'
 import type { DataSource } from '../../services/adapters/DataSource'
 import { ReportsPage } from './ReportsPage'
 
@@ -34,4 +35,24 @@ it('shows January and November completions regardless of Period and keeps the an
   expect(screen.getByRole('img', { name: '0 tasks completed in 2024' })).toBeInTheDocument()
   expect(listAllTasks).toHaveBeenCalledTimes(1)
   vi.useRealTimers()
+})
+
+it.each([
+  ['2025-01-01T00:30:00+14:00', '2025-01-01'],
+  ['2024-12-31T23:30:00-12:00', '2024-12-31'],
+])('offers the local completion year for %s', async (completedAt, scheduledDay) => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 10, 4, 12))
+  const completedDay = toIso(new Date(completedAt))
+  const year = completedDay.slice(0, 4)
+  const listAllTasks = vi.fn(async () => [task({
+    id: 'year-boundary', status: 'done', dayDate: scheduledDay, originDate: scheduledDay,
+    createdAt: completedAt, completedAt,
+  })])
+  render(<ReportsPage dataSource={{ listAllTasks } as unknown as DataSource} tags={[]} onBack={vi.fn()} onError={vi.fn()} />)
+  await screen.findByLabelText('Year')
+  expect(screen.queryByRole('option', { name: year })).toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Year'), { target: { value: year } })
+  expect(screen.getByRole('img', { name: `1 tasks completed in ${year}` })).toBeInTheDocument()
+  expect(JSON.parse(screen.getByTestId('calendar-data').textContent!)).toEqual([{ day: completedDay, value: 1 }])
 })

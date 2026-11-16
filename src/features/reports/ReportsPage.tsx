@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { todayIso } from '../../domain/dates'
+import { recordedDate } from '../../domain/reportDates'
 import { buildDashboard } from '../../domain/reports'
 import type { ReportRange } from '../../domain/reportTypes'
 import type { Tag, Task } from '../../domain/types'
@@ -59,7 +60,7 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
   [tasks, tags, display.calendarYear, selectedTags, tagMatch, today])
   const calendarYears = useMemo(() => [...new Set([Number(today.slice(0, 4)), display.calendarYear,
     ...tasks.flatMap(task => [task.dayDate, task.completedAt, task.createdAt, task.originDate])
-      .filter((date): date is string => Boolean(date)).map(date => Number(date.slice(0, 4))),
+      .map(recordedDate).filter((date): date is string => date !== null).map(date => Number(date.slice(0, 4))),
   ])].filter(Number.isFinite).sort((a, b) => a - b), [tasks, today, display.calendarYear])
   const toggleTag = (id: string) => setTagIds((ids) => ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id])
   const selection = JSON.stringify([range, selectedTags, tagMatch, leftBehindOnly])
