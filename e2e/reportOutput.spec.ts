@@ -16,6 +16,17 @@ test.beforeEach(async ({ page }) => {
 })
 
 test('prints the selected dashboard design, sections, line choices and calendar year', async ({ page }) => {
+  await page.evaluate(() => {
+    const tasks = JSON.parse(localStorage.getItem('rondel.v6.tasks')!)
+    tasks.push({ ...tasks[0], id: 'historical-win', title: 'Historical win',
+      dayDate: '2025-01-15', originDate: '2025-01-15', createdAt: '2025-01-15T08:00:00Z',
+      startedAt: null, completedAt: '2025-01-15T12:00:00Z' })
+    localStorage.setItem('rondel.v6.tasks', JSON.stringify(tasks))
+  })
+  await page.reload()
+  await page.getByRole('button', { name: 'Reports', exact: true }).click()
+  await selectFixtureReportDates(page)
+  await expect(page.getByRole('img', { name: '4 tasks completed in 2026', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Export CSV' })).toHaveCount(0)
   const timeline = page.locator('.activity-timeline')
   await timeline.getByRole('button', { name: 'To do', exact: true }).click()
@@ -36,11 +47,14 @@ test('prints the selected dashboard design, sections, line choices and calendar 
   await page.evaluate(() => window.dispatchEvent(new Event('afterprint')))
   await expect(page.locator('.print-sheet')).toHaveCount(0)
   await page.getByRole('button', { name: /Your little wins/ }).click()
-  await page.getByLabel('From', { exact: true }).fill('2025-12-20')
-  await page.getByLabel('Through', { exact: true }).fill('2026-01-10')
   await page.getByRole('combobox', { name: 'Year', exact: true }).selectOption('2025')
+  await expect(page.getByRole('img', { name: '1 tasks completed in 2025', exact: true })).toBeVisible()
+  await page.getByRole('combobox', { name: 'Period', exact: true }).selectOption('last-month')
+  await expect(page.getByRole('combobox', { name: 'Year', exact: true })).toHaveValue('2025')
+  await expect(page.getByRole('img', { name: '1 tasks completed in 2025', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Print', exact: true }).click()
   await expect(sheet.locator('.completion-calendar-head')).toContainText('in 2025')
+  await expect(sheet.getByRole('img', { name: '1 tasks completed in 2025', exact: true })).toHaveCount(1)
   await expect(sheet.locator('.completion-calendar-scroll svg')).toHaveAttribute('viewBox', '0 0 900 175')
   await page.emulateMedia({ media: 'print' })
   const december = sheet.locator('.completion-calendar-scroll svg').getByText('Dec', { exact: true })
