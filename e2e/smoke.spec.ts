@@ -229,7 +229,7 @@ test('#tag suggestions in the side panel title close when you click away', async
   await title.press('End')
   await title.pressSequentially(' #team')
   await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeVisible()
-  await page.locator('#detail-note').click()
+  await page.getByRole('complementary', { name: 'Task details' }).locator('#detail-note').click()
   await expect(page.getByRole('listbox', { name: 'Tag suggestions' })).toBeHidden()
 })
 

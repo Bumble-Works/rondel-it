@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { TaskNoteField } from './TaskNoteField'
 import { formatDayLabel } from '../../domain/dates'
 import { ReminderField, type ReminderScope } from '../reminders/ReminderField'
 import { TaskLinks } from './TaskLinks'
@@ -65,7 +65,6 @@ export function TaskDetailPanel({
   createTag,
   weekStartDay,
 }: TaskDetailPanelProps) {
-  const [note, setNote] = useState(task.note)
 
   const carried = isCarriedForward(task)
   const taskIsCanceled = task.status === 'canceled'
@@ -119,20 +118,8 @@ export function TaskDetailPanel({
           onCreate={onCreateTag}
         />
 
-        <label className="detail-field-label" htmlFor="detail-note">
-          Note
-        </label>
-        <textarea
-          id="detail-note"
-          className="detail-note field"
-          rows={6}
-          placeholder="Add context, blockers, links…"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          onBlur={() => note !== task.note && onSaveNote(note)}
-        />
-
-        <TaskLinks text={`${task.title}\n${note}`} />
+        <TaskNoteField key={task.id} note={task.note} onSave={onSaveNote} />
+        <TaskLinks text={`${task.title}\n${task.note}`} />
 
         <ReminderField task={task} onChange={onChangeReminder} />
 
