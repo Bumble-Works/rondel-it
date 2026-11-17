@@ -16,7 +16,7 @@ vi.mock('@nivo/bar', () => ({ Bar: ({ data, fill }: { data: unknown; fill?: unkn
 vi.mock('@nivo/calendar', () => ({ Calendar: ({ data }: { data: unknown }) => <div data-testid="calendar-data">{JSON.stringify(data)}</div> }))
 
 function Overview({ dashboard }: { dashboard: Dashboard }) {
-  const display = useDashboardDisplay(dashboard.range, '2026-10-27')
+  const display = useDashboardDisplay('2026-10-27')
   return <ReportOverview dashboard={dashboard} display={display} />
 }
 
@@ -122,12 +122,12 @@ it('keeps the calendar within its selected year and reports exact completion day
     task({ id: 'this-year', status: 'done', dayDate: '2026-01-01', originDate: '2026-01-01', completedAt: '2026-01-01T12:00:00Z' }),
   ], [], { start: '2025-12-20', end: '2026-01-10' })
   const onYearChange = vi.fn()
-  const { rerender } = render(<CompletionCalendar dashboard={dashboard} year={2026} onYearChange={onYearChange} />)
+  const { rerender } = render(<CompletionCalendar years={[2025, 2026]} dashboard={dashboard} year={2026} onYearChange={onYearChange} />)
   expect(chartData('calendar-data')).toEqual([{ day: '2026-01-01', value: 1 }])
-  expect(screen.getByRole('img', { name: '1 tasks completed in 2026 within the selected period' })).toBeVisible()
+  expect(screen.getByRole('img', { name: '1 tasks completed in 2026' })).toBeVisible()
   fireEvent.change(screen.getByLabelText('Year'), { target: { value: '2025' } })
   expect(onYearChange).toHaveBeenCalledWith(2025)
-  rerender(<CompletionCalendar dashboard={dashboard} year={2025} onYearChange={onYearChange} />)
+  rerender(<CompletionCalendar years={[2025, 2026]} dashboard={dashboard} year={2025} onYearChange={onYearChange} />)
   expect(chartData('calendar-data')).toEqual([{ day: '2025-12-31', value: 1 }])
 })
 

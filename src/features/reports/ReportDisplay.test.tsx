@@ -2,7 +2,6 @@ import { act, fireEvent, renderHook, screen, waitFor } from '@testing-library/re
 import { renderWithQuery as render } from '../../test/queryTestUtils'
 import { reportFixtureTask as task } from '../../test/reportFixtures'
 import { buildDashboard } from '../../domain/reports'
-import type { ReportRange } from '../../domain/reportTypes'
 import type { DataSource } from '../../services/adapters/DataSource'
 import { printPage } from '../print/printPage'
 import { ReportsPage } from './ReportsPage'
@@ -50,20 +49,14 @@ it('retains dashboard choices across tabs and prints that selection without relo
   fireEvent.change(screen.getByRole('combobox', { name: 'Year' }), { target: { value: '2026' } })
   expect(sheet.querySelector('.completion-calendar-head')).toHaveTextContent('in 2025')
   expect(listAllTasks).toHaveBeenCalledTimes(1)
-  expect(buildDashboard).toHaveBeenCalledTimes(calculations)
+  expect(buildDashboard).toHaveBeenCalledTimes(calculations + 2)
   act(() => window.dispatchEvent(new Event('afterprint')))
   expect(document.querySelector('.print-sheet')).toBeNull()
 })
 
-it('clamps the displayed year to the range while retaining the preferred year for a wider range', () => {
-  const { result, rerender } = renderHook(({ range }: { range: ReportRange | null }) => useDashboardDisplay(range, '2026-10-27'), {
-    initialProps: { range: { start: '2025-12-20', end: '2026-01-10' } as ReportRange | null },
-  })
+it('keeps the chosen calendar year independent of report periods', () => {
+  const { result, rerender } = renderHook(() => useDashboardDisplay('2026-10-27'))
   act(() => result.current.setCalendarYear(2025))
-  rerender({ range: { start: '2026-01-01', end: '2026-01-10' } })
-  expect(result.current.calendarYear).toBe(2026)
-  rerender({ range: null })
-  expect(result.current.calendarYear).toBe(2025)
-  rerender({ range: { start: '2025-12-20', end: '2026-01-10' } })
+  rerender()
   expect(result.current.calendarYear).toBe(2025)
 })
