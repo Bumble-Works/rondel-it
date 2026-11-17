@@ -59,7 +59,7 @@ describe('quick task metadata', () => {
     expect(next?.tagIds).toEqual([work.id])
   })
 
-  it('keeps the recurring reminder scope choice after its time popover closes', async () => {
+  it('keeps recurring reminder choices separate from task details when the time popover closes', async () => {
     const rule = await data.createRecurringRule({ title: 'Weekly call', kind: 'weekly-on', weekday: 3 })
     render(<App />)
     const open = await screen.findByRole('button', { name: 'Open Weekly call' })
@@ -68,6 +68,11 @@ describe('quick task metadata', () => {
     fireEvent.change(screen.getByLabelText('Reminder time'), { target: { value: '10:00' } })
     await userEvent.click(screen.getByRole('button', { name: 'Set time' }))
     expect(screen.queryByLabelText('Reminder time')).not.toBeInTheDocument()
+    const choice = screen.getByRole('dialog', { name: 'Change the reminder for…' })
+    await userEvent.click(within(choice).getByText('This is a recurring task. Change just this one, or the recurring rule and all its unfinished tasks?'))
+    await userEvent.click(choice)
+    expect(choice).toBeVisible()
+    expect(screen.queryByRole('complementary', { name: 'Task details' })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Only this one' }))
     await waitFor(async () => expect((await data.listAllTasks())[0].reminderTime).toBe('10:00'))
     expect((await data.listRecurringRules()).find((item) => item.id === rule.id)?.reminderTime).toBeNull()
@@ -76,6 +81,7 @@ describe('quick task metadata', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Set time' }))
     await userEvent.click(screen.getByRole('button', { name: 'All' }))
     await waitFor(async () => expect((await data.listRecurringRules())[0].reminderTime).toBe('11:00'))
+    expect(screen.queryByRole('complementary', { name: 'Task details' })).not.toBeInTheDocument()
   })
 
   it('saves and removes a reminder from the row without opening the task', async () => {
