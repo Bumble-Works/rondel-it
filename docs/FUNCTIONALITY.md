@@ -22,9 +22,11 @@ you've decided to let go. Use **Reopen task** to make it active again, or
 
 ## Edit and organize tasks
 
-Click a task to open its details. Titles and notes save when you leave the field;
-the note button on a row also opens a quick editor. While details are open, edit
-that task there. Links in titles and notes open in your default browser.
+Click a task’s title or the empty area of its row to open its details. **Tags**,
+**Time** and the reminder choice dialog work without opening details. Titles and
+notes save when you leave the field; the note button on a row also opens a quick
+editor. While details are open, edit that task there. Links in titles and notes
+open in your default browser.
 
 Use **Flag as important** in the task menu or details to highlight a task.
 **Copy to tomorrow** or **Copy to a date…** creates a separate to-do with the same

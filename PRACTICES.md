@@ -5,6 +5,7 @@ Code and testing standards for Rondel It. Agent workflow is in [AGENTS.md](AGENT
 ## Code
 
 - Keep code simple, readable and well named; avoid speculative abstractions.
+- Narrow DOM event targets with `instanceof Element` before using element methods.
 - Share repeated logic through focused helpers and services.
 - Keep functions and files short, with one clear responsibility.
 - Extract components for a clear responsibility or reuse; keep trivial single-use
