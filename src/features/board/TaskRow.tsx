@@ -85,7 +85,8 @@ export function TaskRow({
     <div
       ref={setRowRef}
       onClick={event => {
-        const target = event.target as HTMLElement
+        const target = event.target
+        if (!(target instanceof Element)) return
         // Portaled menus bubble through React but are not part of the row's hit area.
         if (isDragged || !event.currentTarget.contains(target) ||
           target.closest('button, a, input, select, textarea, [role="button"], [role="dialog"], .task-grip')) return

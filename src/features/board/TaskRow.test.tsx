@@ -132,6 +132,7 @@ describe('TaskRow', () => {
     fireEvent.click(row.querySelector('.task-main')!)
     expect(onOpen).toHaveBeenCalledTimes(2)
     fireEvent.click(row.querySelector('.task-grip')!)
+    fireEvent.click(row.querySelector('.task-grip svg')!)
     fireEvent.click(screen.getByRole('button', { name: 'Tags' }))
     fireEvent.click(screen.getByRole('textbox', { name: 'Find or create a tag' }))
     expect(onOpen).toHaveBeenCalledTimes(2)
