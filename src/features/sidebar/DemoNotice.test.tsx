@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DemoNotice, DOWNLOAD_URL } from './DemoNotice'
 
@@ -45,6 +45,28 @@ describe('DemoNotice', () => {
     await userEvent.tab()
     await userEvent.tab()
     expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus()
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+  })
+
+  it('Escape from the link closes the note and returns focus to Demo', async () => {
+    render(<DemoNotice />)
+    await userEvent.tab()
+    await userEvent.tab()
+    expect(screen.getByRole('link', { name: 'download the app' })).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    expect(screen.queryByRole('note')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Demo' })).toHaveFocus()
+  })
+
+  it('click (without hover, as on touch) toggles the note and an outside press closes it', () => {
+    render(<><DemoNotice /><p>Outside</p></>)
+    const label = screen.getByRole('button', { name: 'Demo' })
+    fireEvent.click(label)
+    expect(label).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.click(label)
+    expect(label).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(label)
+    fireEvent.pointerDown(screen.getByText('Outside'))
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })
 })

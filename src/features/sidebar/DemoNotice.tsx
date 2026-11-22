@@ -1,4 +1,4 @@
-import { useId, useState, type FocusEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FocusEvent } from 'react'
 import { isDesktopApp } from '../../services/sync/folder'
 import { openExternal } from '../../shared/openExternal'
 import './DemoNotice.css'
@@ -9,6 +9,20 @@ export const DOWNLOAD_URL = 'https://github.com/Bumble-Works/rondel-it/releases/
 export function DemoNotice() {
   const [open, setOpen] = useState(false)
   const id = useId()
+  const wrapper = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
+  // Pointer presses and Escape also focus the button; only keyboard navigation should open the note.
+  const skipFocusOpen = useRef(false)
+
+  useEffect(() => {
+    if (!open) return
+    const closeOutside = (e: PointerEvent) => {
+      if (!wrapper.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [open])
+
   if (isDesktopApp()) return null
 
   const closeIfLeaving = (e: FocusEvent<HTMLDivElement>) => {
@@ -17,15 +31,30 @@ export function DemoNotice() {
 
   return (
     <div
+      ref={wrapper}
       className="demo-notice"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
       onBlur={closeIfLeaving}
-      onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape') return
+        setOpen(false)
+        skipFocusOpen.current = true
+        button.current?.focus()
+        skipFocusOpen.current = false
+      }}
     >
-      <button type="button" className="demo-notice-label" aria-expanded={open} aria-controls={id}
-        aria-describedby={id} onClick={() => setOpen(true)}>
+      <button
+        ref={button}
+        type="button"
+        className="demo-notice-label"
+        aria-expanded={open}
+        aria-controls={id}
+        aria-describedby={id}
+        onPointerDown={() => { skipFocusOpen.current = true }}
+        onFocus={() => { if (!skipFocusOpen.current) setOpen(true) }}
+        onClick={() => { skipFocusOpen.current = false; setOpen((was) => !was) }}
+      >
         Demo
       </button>
       <div id={id} role="note" className="demo-notice-tip" hidden={!open}>
