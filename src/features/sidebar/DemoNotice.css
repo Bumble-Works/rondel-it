@@ -1,0 +1,55 @@
+.demo-notice {
+  position: relative;
+  margin-left: auto;
+}
+
+.demo-notice-label {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--brand-tint);
+  color: var(--brand-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.demo-notice-label:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.demo-notice-tip {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 20;
+  width: 15rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.demo-notice-tip::before {
+  /* Invisible bridge over the visual gap, so the pointer stays inside the wrapper on its way to the link. */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 0.5rem;
+}
+
+.demo-notice-tip[hidden] {
+  display: none;
+}
+
+.demo-notice-tip a {
+  color: var(--brand);
+  font-weight: 700;
+}

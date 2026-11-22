@@ -5,6 +5,8 @@
 Choose **Day**, **Week** or **Month** in the sidebar. Use the arrows to browse and
 **Today** to return. Set your preferred first day of the week in Settings.
 On a narrow window, the ☰ button opens the sidebar.
+In the browser version, a **Demo** label beside the logo explains that tasks stay
+only in that browser and links to the app download.
 
 Type in **Add a task** within a day, or use the top **+** button to choose where
 it belongs. Press **n** to open that composer when you aren't typing elsewhere.
