@@ -85,6 +85,7 @@ desktop notifications, reminder windows, login startup and folder access.
 - `src/domain/`: task rules, recurrence, reporting and sync merging.
 - `src/services/adapters/`: local data access and task operations.
 - `src/services/storage/`: localStorage persistence under `rondel.v6.*` keys.
+- `src/services/storage/transactional/`: isolated IndexedDB snapshot store for future restore; not yet used by the app.
 - `src/services/queries/`: keeps app views current after edits and sync.
 - `src/services/sync/`: exchanges `devices/<device-id>.json` snapshots through a chosen folder.
 - `src/features/`: app views and their interactions; `src-tauri/`: native integration.
