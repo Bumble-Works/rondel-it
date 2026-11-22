@@ -22,3 +22,30 @@ test('the Demo note stays open while the mouse moves from the label to the downl
   await expect.poll(() => page.evaluate(() => (window as unknown as { __opened: string[] }).__opened))
     .toEqual(['https://github.com/Bumble-Works/rondel-it/releases/latest'])
 })
+
+test.describe('on a touchscreen', () => {
+  test.use({ hasTouch: true })
+
+  test('tapping Demo opens the note, the download link can be tapped, and tapping outside closes it', async ({ page }) => {
+    await page.addInitScript(() => {
+      const opened: string[] = []
+      ;(window as unknown as { __opened: string[] }).__opened = opened
+      window.open = (url?: string | URL) => { opened.push(String(url)); return null }
+    })
+    await page.goto('/')
+    const label = page.getByRole('button', { name: 'Demo' })
+    const note = page.getByRole('note')
+    await label.tap()
+    await expect(note).toBeVisible()
+    await page.waitForTimeout(400)
+    await expect(note).toBeVisible()
+
+    await page.getByRole('link', { name: 'download the app' }).tap()
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __opened: string[] }).__opened))
+      .toEqual(['https://github.com/Bumble-Works/rondel-it/releases/latest'])
+    await expect(note).toBeVisible()
+
+    await page.getByRole('heading', { level: 1, name: 'Today' }).tap()
+    await expect(note).toBeHidden()
+  })
+})

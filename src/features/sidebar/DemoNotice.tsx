@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FocusEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { isDesktopApp } from '../../services/sync/folder'
 import { openExternal } from '../../shared/openExternal'
 import './DemoNotice.css'
@@ -11,8 +11,6 @@ export function DemoNotice() {
   const id = useId()
   const wrapper = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
-  // Pointer presses and Escape also focus the button; only keyboard navigation should open the note.
-  const skipFocusOpen = useRef(false)
 
   useEffect(() => {
     if (!open) return
@@ -33,15 +31,15 @@ export function DemoNotice() {
     <div
       ref={wrapper}
       className="demo-notice"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      // Hover is for a real mouse only; taps and pens open the note through the click.
+      onPointerEnter={(e: ReactPointerEvent) => { if (e.pointerType === 'mouse') setOpen(true) }}
+      onPointerLeave={(e: ReactPointerEvent) => { if (e.pointerType === 'mouse') setOpen(false) }}
       onBlur={closeIfLeaving}
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
-        setOpen(false)
-        skipFocusOpen.current = true
+        // Focus first: its open is overridden by the close in the same update.
         button.current?.focus()
-        skipFocusOpen.current = false
+        setOpen(false)
       }}
     >
       <button
@@ -51,9 +49,8 @@ export function DemoNotice() {
         aria-expanded={open}
         aria-controls={id}
         aria-describedby={id}
-        onPointerDown={() => { skipFocusOpen.current = true }}
-        onFocus={() => { if (!skipFocusOpen.current) setOpen(true) }}
-        onClick={() => { skipFocusOpen.current = false; setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        onClick={() => setOpen(true)}
       >
         Demo
       </button>
