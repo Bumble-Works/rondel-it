@@ -65,7 +65,7 @@ it('opens only filtered left-behind tasks, supports opening one for action, and 
   expect(screen.getByRole('heading', { name: 'Left behind' })).toBeVisible()
   expect(screen.getAllByRole('rowheader')).toHaveLength(1)
   expect(screen.getByText('Call the dentist')).toBeVisible()
-  fireEvent.click(screen.getByRole('button', { name: 'Open Call the dentist' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Call the dentist' }))
   expect(onOpenTask).toHaveBeenCalledWith(past)
   fireEvent.click(screen.getByRole('button', { name: 'Show all tasks' }))
   expect(screen.getAllByRole('rowheader')).toHaveLength(3)

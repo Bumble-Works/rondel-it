@@ -44,7 +44,7 @@ function TaskTitleCell({ row, tags, showNotes, onOpen }: {
   })
   return <>
     {onOpen ? <>
-      <button type="button" className="report-task-title report-open-task" aria-label={`Open ${row.title}`}
+      <button type="button" className="report-task-title report-open-task"
         onClick={() => onOpen(row.id)}>{row.title}</button>
       {findLinks(row.title).length > 0 && <div className="report-task-links" aria-label="Title links">
         <LinkifiedText text={findLinks(row.title).map(link => link.href).join(' ')} />
