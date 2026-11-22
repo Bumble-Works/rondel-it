@@ -53,7 +53,7 @@ export function DemoNotice() {
         aria-describedby={id}
         onPointerDown={() => { skipFocusOpen.current = true }}
         onFocus={() => { if (!skipFocusOpen.current) setOpen(true) }}
-        onClick={() => { skipFocusOpen.current = false; setOpen((was) => !was) }}
+        onClick={() => { skipFocusOpen.current = false; setOpen(true) }}
       >
         Demo
       </button>

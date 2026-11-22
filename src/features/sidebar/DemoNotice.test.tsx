@@ -58,14 +58,16 @@ describe('DemoNotice', () => {
     expect(screen.getByRole('button', { name: 'Demo' })).toHaveFocus()
   })
 
-  it('click (without hover, as on touch) toggles the note and an outside press closes it', () => {
+  it('clicking Demo opens the note and a click on the open note keeps it open; an outside press closes it', () => {
     render(<><DemoNotice /><p>Outside</p></>)
     const label = screen.getByRole('button', { name: 'Demo' })
     fireEvent.click(label)
     expect(label).toHaveAttribute('aria-expanded', 'true')
     fireEvent.click(label)
-    expect(label).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(label)
+    expect(label).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.pointerDown(screen.getByRole('note'))
+    fireEvent.click(screen.getByRole('note'))
+    expect(screen.getByRole('note')).toBeInTheDocument()
     fireEvent.pointerDown(screen.getByText('Outside'))
     expect(screen.queryByRole('note')).not.toBeInTheDocument()
   })
