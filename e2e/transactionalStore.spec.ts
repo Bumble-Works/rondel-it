@@ -109,3 +109,36 @@ test('failed write requests preserve state and schema/corruption are distinct fr
   })
   expect(result).toEqual({ failure: 'QuotaExceededError', unchanged: true, unknown: 'schema', corrupt: 'corrupt' })
 })
+
+test('a save the browser aborts rejects with its error and keeps state; another tab upgrading closes with a store code', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const path = '/src/services/storage/transactional/snapshotStore.ts'
+    const { openSnapshotStore } = await import(/* @vite-ignore */ path)
+    const name = `test-browser-abort-${crypto.randomUUID()}`
+    const store = await openSnapshotStore(name)
+    const snapshot = { tasks: [], tags: [], rules: [], settings: null, meta: { updated: { tasks: {}, tags: {}, rules: {} }, deleted: { tasks: {}, tags: {}, rules: {} }, settingsUpdated: null } }
+    await store.initialize(snapshot)
+    const before = await store.read()
+    // Test-side injection only: a duplicate-key add() fails asynchronously, so the browser itself aborts the transaction.
+    const original = IDBObjectStore.prototype.put
+    IDBObjectStore.prototype.put = function (value, key) {
+      const request = original.call(this, value, key)
+      if (this.name === 'snapshots' && key === 'control') this.add(value, 'active')
+      return request
+    }
+    let failure = ''
+    try { await store.update(before.active, (s: typeof snapshot) => ({ ...s, settings: { weekStartDay: 3 } })) }
+    catch (error) { failure = (error as Error).name }
+    finally { IDBObjectStore.prototype.put = original }
+    const unchanged = JSON.stringify(await store.read()) === JSON.stringify(before)
+    const upgraded = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(name, 2); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error)
+    })
+    let closed = ''
+    try { await store.read() } catch (error) { closed = (error as { code?: string }).code ?? (error as Error).name }
+    upgraded.close(); indexedDB.deleteDatabase(name)
+    return { failure, unchanged, closed }
+  })
+  expect(result).toEqual({ failure: 'ConstraintError', unchanged: true, closed: 'closed' })
+})
