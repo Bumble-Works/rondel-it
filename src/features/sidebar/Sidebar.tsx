@@ -3,6 +3,7 @@ import { Icon, type IconName } from '../../shared/ui/Icon'
 import { Menu, MenuItem } from '../../shared/ui/Menu'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
 import { features } from '../../shared/features'
+import { DemoNotice } from './DemoNotice'
 import './Sidebar.css'
 
 export type ViewKey = 'day' | 'week' | 'month' | 'rondel'
@@ -69,6 +70,7 @@ export function Sidebar({
         <span className="sidebar-wordmark">
           Rondel <span>it</span>
         </span>
+        <DemoNotice />
       </div>
 
       <nav className="sidebar-nav">
