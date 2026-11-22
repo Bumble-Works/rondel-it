@@ -4,6 +4,7 @@ import { Menu, MenuItem } from '../../shared/ui/Menu'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
 import { features } from '../../shared/features'
 import './Sidebar.css'
+import { APP_ICON } from '../../shared/assets'
 
 export type ViewKey = 'day' | 'week' | 'month' | 'rondel'
 
@@ -65,7 +66,7 @@ export function Sidebar({
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <img src="/icon.svg" alt="" className="sidebar-logo" width={30} height={30} />
+        <img src={APP_ICON} alt="" className="sidebar-logo" width={30} height={30} />
         <span className="sidebar-wordmark">
           Rondel <span>it</span>
         </span>

@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import type { Dashboard, ReportActivity } from '../../domain/reportTypes'
 import { reportColors } from './reportColors'
 import './ReportHighlights.css'
+import { APP_ICON } from '../../shared/assets'
 
 const cards: { key: keyof ReportActivity; label: string; caption: string; description: string }[] = [
   { key: 'todo', label: 'To do', caption: '✨ Ready when you are', description: 'To-dos on your list during this period that are still unfinished.' },
@@ -19,7 +20,7 @@ export function ReportHighlights({ dashboard, onLeftBehind }: { dashboard: Dashb
     <div className="report-highlights">{cards.map(({ key, label, caption, description }) => (
       <div key={key} className="report-highlight" style={cardStyle(key)} title={description}>
         <span>{label}</span><strong>{dashboard.activity[key]}</strong>
-        <small>{key === 'rondeled' && <img src="/icon.svg" alt="" width={14} height={14} />}{caption}</small>
+        <small>{key === 'rondeled' && <img src={APP_ICON} alt="" width={14} height={14} />}{caption}</small>
       </div>
     ))}
       <div className="report-highlight" style={cardStyle('leftBehind')} title={leftBehindDescription}>

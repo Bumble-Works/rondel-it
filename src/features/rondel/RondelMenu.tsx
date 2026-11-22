@@ -3,6 +3,7 @@ import type { RondelTarget } from '../../services/adapters/DataSource'
 import { Icon } from '../../shared/ui/Icon'
 import { Menu, MenuItem, MenuLabel, MenuSeparator } from '../../shared/ui/Menu'
 import './RondelMenu.css'
+import { APP_ICON } from '../../shared/assets'
 
 interface RondelMenuProps {
   onRondel: (target: RondelTarget) => void
@@ -36,7 +37,7 @@ export function RondelMenu({
           disabled={disabled}
           onClick={onClick}
         >
-          <img src="/icon.svg" alt="" width={size} height={size} className="rondel-glyph" />
+          <img src={APP_ICON} alt="" width={size} height={size} className="rondel-glyph" />
         </button>
       )}
     >
