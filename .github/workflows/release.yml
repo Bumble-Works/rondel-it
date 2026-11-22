@@ -113,3 +113,41 @@ jobs:
             --generate-notes \
             --notes-start-tag "$PREVIOUS_TAG" \
             --latest
+
+  # The browser demo at https://bumble-works.github.io/rondel-it/, built from the
+  # released commit. It lives here because a release published with GITHUB_TOKEN
+  # doesn't start other workflows. Needs Settings → Pages → Source: GitHub Actions.
+  deploy-pages:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Build the browser version for /rondel-it/
+        env:
+          PAGES_BASE: /rondel-it/
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v5

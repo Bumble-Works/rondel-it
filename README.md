@@ -9,6 +9,8 @@ what you worked on. Works offline on Mac, Windows and in the browser.
 
 ## Install
 
+Try the browser demo at <https://bumble-works.github.io/rondel-it/>. It deploys with each release and saves tasks only in that browser; install the app for everyday use.
+
 | Platform | Download | Install |
 | --- | --- | --- |
 | Mac (Apple Silicon and Intel) | [RondelIt-macos.zip](https://github.com/Bumble-Works/rondel-it/releases/latest/download/RondelIt-macos.zip) | Unzip and move Rondel It.app into Applications. |

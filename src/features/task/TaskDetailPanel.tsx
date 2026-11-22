@@ -14,6 +14,7 @@ import { StatusCircle } from '../../shared/ui/StatusCircle'
 import { RondelMenu } from '../rondel/RondelMenu'
 import { TagPicker } from '../tags/TagPicker'
 import './TaskDetailPanel.css'
+import { APP_ICON } from '../../shared/assets'
 
 const BUCKET_LABEL: Record<string, string> = {
   'next-week': 'Next week',
@@ -140,7 +141,7 @@ export function TaskDetailPanel({
           )}
           <div>
             <dt>
-              <img src="/icon.svg" alt="" width={15} height={15} /> Rondeled
+              <img src={APP_ICON} alt="" width={15} height={15} /> Rondeled
             </dt>
             <dd>{task.rondelCount === 0 ? 'Never' : `${task.rondelCount}×`}</dd>
           </div>
