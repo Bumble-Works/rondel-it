@@ -35,10 +35,11 @@ test.describe('on a touchscreen', () => {
     await page.goto('/')
     const label = page.getByRole('button', { name: 'Demo' })
     const note = page.getByRole('note')
-    await label.tap()
-    await expect(note).toBeVisible()
-    await page.waitForTimeout(400)
-    await expect(note).toBeVisible()
+    for (let tap = 0; tap < 3; tap++) {
+      await label.tap()
+      await page.waitForTimeout(300) // let any emulated mouse events after the tap land
+      await expect(note).toBeVisible()
+    }
 
     await page.getByRole('link', { name: 'download the app' }).tap()
     await expect.poll(() => page.evaluate(() => (window as unknown as { __opened: string[] }).__opened))
