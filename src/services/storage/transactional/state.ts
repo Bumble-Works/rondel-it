@@ -1,6 +1,21 @@
 import type { Snapshot } from '../../../domain/sync'
 
-export type StoreErrorCode = 'absent' | 'corrupt' | 'schema' | 'exists' | 'stale' | 'blocked'
+/**
+ * State for the isolated IndexedDB snapshot store. Not used by the app yet.
+ *
+ * - `active`: the current complete Snapshot. Every update increments `revision`.
+ * - `previous`: the generation kept by the last checkpoint (null before any).
+ * - `control.epoch`: equals `active.epoch`; a checkpoint increments it.
+ * - `control.syncHeld`: set by a checkpoint and kept by ordinary edits. After a
+ *   checkpoint (`epoch > 0`) a predecessor is required; a released hold is valid.
+ *
+ * Error codes: `absent` no state yet; `exists` initialize on existing state;
+ * `corrupt` malformed or inconsistent records; `schema` unsupported database or
+ * record version; `stale` expected revision/epoch no longer current; `blocked`
+ * another connection prevents opening; `closed` the connection was closed (by
+ * `close()` or another tab upgrading/deleting the database), reopen to continue.
+ */
+export type StoreErrorCode = 'absent' | 'corrupt' | 'schema' | 'exists' | 'stale' | 'blocked' | 'closed'
 export class SnapshotStoreError extends Error {
   readonly code: StoreErrorCode
   constructor(code: StoreErrorCode, message: string) { super(message); this.name = 'SnapshotStoreError'; this.code = code }
@@ -32,7 +47,7 @@ export function assertState(value: unknown): asserts value is StoreState {
   }
   const { active, previous, control } = value
   if (active.epoch !== control.epoch || (previous !== null && (previous.revision >= active.revision || previous.epoch >= active.epoch)) ||
-      (active.epoch > 0 && (!control.syncHeld || previous === null))) {
+      (active.epoch > 0 && previous === null)) {
     throw new SnapshotStoreError('corrupt', 'Inconsistent snapshot generation or sync hold')
   }
 }

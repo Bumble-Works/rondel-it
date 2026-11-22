@@ -37,3 +37,9 @@ it('propagates synchronous transform failures without changing state', () => {
   expect(() => nextState(state, state.active, data => { data.tags.length = 0; throw new Error('failed') })).toThrow('failed')
   expect(state).toEqual(initial())
 })
+it('accepts a released sync hold after a checkpoint but still requires the predecessor', () => {
+  const old = initial()
+  const restored = nextState(old, old.active, data => data, true)
+  expect(() => assertState({ ...restored, control: { ...restored.control, syncHeld: false } })).not.toThrow()
+  expect(() => assertState({ ...restored, previous: null })).toThrow('Inconsistent')
+})
