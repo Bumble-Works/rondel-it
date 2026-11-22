@@ -1,4 +1,5 @@
 import type { ReportTaskRow as TaskRow } from '../../domain/reportTypes'
+import { findLinks } from '../../domain/links'
 import type { Tag } from '../../domain/types'
 import { LinkifiedText } from '../../shared/ui/LinkifiedText'
 import { TagChip } from '../../shared/ui/TagChip'
@@ -42,11 +43,16 @@ function TaskTitleCell({ row, tags, showNotes, onOpen }: {
     return tag ? [tag] : []
   })
   return <>
-    <span className="report-task-title"><LinkifiedText text={row.title} /></span>
+    {onOpen ? <>
+      <button type="button" className="report-task-title report-open-task" aria-label={`Open ${row.title}`}
+        onClick={() => onOpen(row.id)}>{row.title}</button>
+      {findLinks(row.title).length > 0 && <div className="report-task-links" aria-label="Title links">
+        <LinkifiedText text={findLinks(row.title).map(link => link.href).join(' ')} />
+      </div>}
+    </> : <span className="report-task-title"><LinkifiedText text={row.title} /></span>}
     {attached.length > 0 && <div className="report-task-tags" aria-label="Tags">
       {attached.map((tag) => <TagChip key={tag.id} name={tag.name} color={tag.color} size="sm" />)}
     </div>}
-    {onOpen && <button type="button" className="report-open-task" aria-label={`Open ${row.title}`} onClick={() => onOpen(row.id)}>Open task</button>}
     {row.note && showNotes && <p className="report-task-note"><LinkifiedText text={row.note} /></p>}
   </>
 }

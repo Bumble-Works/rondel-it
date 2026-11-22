@@ -123,7 +123,7 @@ export function ReportsPage({ dataSource, tags, preparation, onBack, onError, on
             </header>
             <ReportTaskTable rows={leftBehindOnly ? dashboard.rows.filter((row) => dashboard.leftBehindIds.includes(row.id)) : dashboard.rows}
               tags={tags} selection={selection} output={{ range: dashboard.range, summary: leftBehindOnly ? `${outputSummary} · Left behind only` : outputSummary,
-                title: leftBehindOnly ? 'Reports — Left behind' : 'Reports — Tasks', onError }} onOpenTask={leftBehindOnly && onOpenTask ? openTask : undefined} />
+                title: leftBehindOnly ? 'Reports — Left behind' : 'Reports — Tasks', onError }} onOpenTask={onOpenTask ? openTask : undefined} />
           </>)}
         </section>
       </div>

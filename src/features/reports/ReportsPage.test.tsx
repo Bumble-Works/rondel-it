@@ -69,6 +69,9 @@ it('opens only filtered left-behind tasks, supports opening one for action, and 
   expect(onOpenTask).toHaveBeenCalledWith(past)
   fireEvent.click(screen.getByRole('button', { name: 'Show all tasks' }))
   expect(screen.getAllByRole('rowheader')).toHaveLength(3)
+  onOpenTask.mockClear()
+  fireEvent.click(screen.getByText('Today work'))
+  expect(onOpenTask).toHaveBeenCalledWith(expect.objectContaining({ id: 'today' }))
 })
 
 it('shows a load error and reconnects the retry action to the shared data load', async () => {
