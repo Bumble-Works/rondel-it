@@ -4,6 +4,7 @@ name: Release
 # new version: bumps the latest vX.Y.Z tag, builds the Mac and Windows apps
 # with that version, and publishes them as the latest release (install.sh
 # installs the Mac app from it; Windows downloads RondelIt-windows-setup.exe).
+# latest.json and the signed updater files let installed apps update themselves.
 # The notes list every PR merged since the previous release.
 on:
   workflow_dispatch:
@@ -101,6 +102,17 @@ jobs:
           pattern: RondelIt-*
           merge-multiple: true
 
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+
+      # Fails if a signature is missing or empty, so no release ships a broken manifest.
+      - name: Write the updater manifest
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: node scripts/updater-manifest.mjs "$VERSION" "$GITHUB_REPOSITORY" .
+
       - name: Tag and publish the release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -108,6 +120,7 @@ jobs:
           PREVIOUS_TAG: ${{ needs.version.outputs.previous_tag }}
         run: |
           gh release create "v$VERSION" RondelIt-macos.zip RondelIt-windows-setup.exe scripts/install.sh \
+            RondelIt-macos.app.tar.gz RondelIt-macos.app.tar.gz.sig RondelIt-windows-setup.exe.sig latest.json \
             --target "$GITHUB_SHA" \
             --title "Rondel It $VERSION" \
             --generate-notes \

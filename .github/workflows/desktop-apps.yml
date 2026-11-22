@@ -9,6 +9,7 @@ on:
       - '.github/workflows/desktop-apps.yml'
       - '.github/workflows/release.yml'
       - 'scripts/install.sh'
+      - 'scripts/updater-manifest*'
       - 'src-tauri/**'
   workflow_call:
     inputs:
@@ -77,6 +78,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Test the updater manifest script
+        run: node --test scripts/updater-manifest.test.mjs
+
       - name: Build
         env:
           VERSION: ${{ inputs.version }}
@@ -103,11 +107,29 @@ jobs:
         # A fixed name, so the "latest release" download link never changes.
         run: cp src-tauri/target/release/bundle/nsis/*-setup.exe "${{ matrix.artifact }}"
 
+      # In-app updates download these and check them against their .sig files.
+      - name: Stage updater files (Mac)
+        if: inputs.version != '' && runner.os == 'macOS'
+        run: |
+          BUNDLE="src-tauri/target/universal-apple-darwin/release/bundle/macos"
+          cp "$BUNDLE/Rondel It.app.tar.gz" RondelIt-macos.app.tar.gz
+          cp "$BUNDLE/Rondel It.app.tar.gz.sig" RondelIt-macos.app.tar.gz.sig
+
+      - name: Stage updater files (Windows)
+        if: inputs.version != '' && runner.os == 'Windows'
+        env:
+          VERSION: ${{ inputs.version }}
+        # The exact versioned name, so a stale installer's signature is never picked up.
+        run: cp "src-tauri/target/release/bundle/nsis/Rondel It_${VERSION}_x64-setup.exe.sig" RondelIt-windows-setup.exe.sig
+
       - name: Hand the app to the Release workflow
         if: inputs.version != ''
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
+          path: |
+            ${{ matrix.artifact }}
+            RondelIt-*.tar.gz
+            RondelIt-*.sig
           if-no-files-found: error
           retention-days: 7
