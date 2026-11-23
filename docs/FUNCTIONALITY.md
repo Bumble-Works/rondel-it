@@ -135,7 +135,9 @@ Completion dates and available years follow your device's timezone.
 by tag. **Rondeled** counts postponements made during the selected period, so one
 task can count several times. Click **Left behind** to see unfinished to-dos
 still dated in the past. Collapse charts to focus the report; toggle timeline
-lines or choose a calendar year where available.
+lines or choose a calendar year where available. **From first planned to
+completed** counts days from the first day a task was planned to the day it was
+done, including every rondel; finishing early counts as 0 days.
 
 **Tasks** lists each task once, combining its carry-forward history. Filter by
 status, click a column heading to sort, and use **Show notes** for full notes.

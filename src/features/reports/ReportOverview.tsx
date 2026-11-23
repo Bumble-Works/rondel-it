@@ -63,8 +63,9 @@ export function ReportOverview({ dashboard, annual = dashboard, calendarYears, d
         </ReportSection>
         <div className="report-overview-bottom">
           <div className="report-overview-stack">
-            <ReportSection className="report-duration-chart" title="From started to completed" description="Time in progress, including pauses and waiting." {...section('started')}>
-              <DurationSummary duration={dashboard.durations.started} label="Since first started" />
+            {/* The id stays 'started' (its old metric) so a saved collapsed state still applies. */}
+            <ReportSection className="report-duration-chart" title="From first planned to completed" description="From the first day it was planned, including every rondel." {...section('started')}>
+              <DurationSummary duration={dashboard.durations.planned} label="Since first planned" />
             </ReportSection>
             <ReportSection title="Bucket List" description="Always room for a little dreaming." {...section('bucket')}>
               <BucketActivity activity={dashboard.bucketActivity} />
