@@ -46,7 +46,9 @@ or **Pick a date**. Next week and Next month put the task on the first day of
 that week or month (shown in the menu), still scheduled. Each deliberate
 postponement increases its rondel count. A to-do moves to its new location; a
 doing task keeps its status and leaves a read-only history copy on the day you
-worked on it.
+worked on it. Give a task a day only when you will do it that day; otherwise
+put it in next week's or month's Unassigned list and schedule it when that
+period starts.
 
 Under **No day yet**, **Next week's Unassigned** and **Next month's Unassigned**
 hold tasks in that period's **Unassigned** list until you give them a day, and
@@ -55,6 +57,8 @@ there asks first. Once the period starts, Unassigned tasks appear in reviews
 until resolved, including after the period ends. Starting or finishing a
 waiting task places it on today. Giving it a day is scheduling and adds no
 rondel. Choosing an Unassigned list again moves it to that period and adds one.
+The **Rondeled** box at the top of Day and Week views shows the current week's
+list; Month view shows the month's.
 
 ## Keep a Bucket List
 
@@ -137,7 +141,9 @@ Completion dates and available years follow your device's timezone.
 by tag. **Rondeled** counts postponements made during the selected period, so one
 task can count several times. Click **Left behind** to see unfinished to-dos
 still dated in the past. Collapse charts to focus the report; toggle timeline
-lines or choose a calendar year where available.
+lines or choose a calendar year where available. **From first planned to
+completed** counts days from the first day a task was planned to the day it was
+done, including every rondel; finishing early counts as 0 days.
 
 **Tasks** lists each task once, combining its carry-forward history. Filter by
 status, click a column heading to sort, and use **Show notes** for full notes.

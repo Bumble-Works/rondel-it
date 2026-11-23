@@ -55,7 +55,7 @@ test('stacks the bottom cards in a narrow window and collapses them independentl
   await seedReportData(page)
   await page.goto('/')
   await openReports(page)
-  const duration = section(page, 'From started to completed')
+  const duration = section(page, 'From first planned to completed')
   const bucket = section(page, 'Bucket List')
   const outcomes = section(page, 'Where your rondeled items went')
   const durationBox = (await duration.boundingBox())!

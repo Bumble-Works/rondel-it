@@ -107,7 +107,7 @@ test('keeps tag filters sticky and summary charts equal without duplicated legen
     })
   })
   expect(labelsFit).toBe(true)
-  const duration = section(page, 'From started to completed')
+  const duration = section(page, 'From first planned to completed')
   const bucket = section(page, 'Bucket List')
   const outcomes = section(page, 'Where your rondeled items went')
   const durationBox = (await duration.boundingBox())!

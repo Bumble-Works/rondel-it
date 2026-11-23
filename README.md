@@ -57,6 +57,8 @@ npm run app:build
 Build output is in `src-tauri/target/release/bundle/`. Windows installers use
 `npx tauri build --bundles nsis`. Releases are published through GitHub Actions:
 **Release → Run workflow → patch, minor or major**.
+Each release also uploads `latest.json` and signed updater files, which installed
+apps check for updates; signing uses the `TAURI_SIGNING_PRIVATE_KEY` secret.
 
 Run checks with the pinned Node version:
 

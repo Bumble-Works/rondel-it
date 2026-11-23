@@ -296,7 +296,8 @@ function App() {
     defaultCollapsed: false,
     addTarget: { dayDate: containerDropDay({ start: containerStart, end: containerEnd }, today), rondeled: true },
     tasks: containerItems.filter(visible),
-    emptyLabel: 'Nothing rondeled here',
+    // New visitors don't know what Rondeled means; explain it while the box is empty.
+    emptyHint: `Want to do this ${view === 'month' ? 'month' : 'week'}, but not on a day yet.`,
   })
 
   const bucketGroup = (bucket: keyof Buckets, title: string, eyebrow: string): BoardGroup => ({
