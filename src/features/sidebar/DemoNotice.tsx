@@ -71,7 +71,7 @@ export function DemoNotice() {
       </button>
       <div id={id} role="note" className="demo-notice-tip" hidden={!open}>
         Demo: your tasks are saved only in this browser. Clearing site data or cookies erases them, and any
-        sync setup must be done again. For everyday use,{' '}
+        sync setup must be done again. Export a backup from Settings to keep a copy. For everyday use,{' '}
         <DownloadAppLink>download the app</DownloadAppLink>.
       </div>
     </div>

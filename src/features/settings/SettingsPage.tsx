@@ -7,6 +7,7 @@ import { IconButton } from '../../shared/ui/IconButton'
 import { InlineEditInput } from '../../shared/ui/InlineEditInput'
 import type { useSync } from '../sync/useSync'
 import { StartAtLoginSetting } from './StartAtLoginSetting'
+import { BackupSettings } from './BackupSettings'
 import { SyncSettings } from './SyncSettings'
 import { TagColorInput } from './TagColorInput'
 import './SettingsPage.css'
@@ -156,6 +157,7 @@ export function SettingsPage({
           </div>
         </section>
 
+        <BackupSettings />
         <SyncSettings sync={sync} />
       </div>
     </div>

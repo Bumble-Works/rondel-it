@@ -27,6 +27,7 @@ describe('DemoNotice', () => {
     expect(label).toHaveFocus()
     expect(label).toHaveAttribute('aria-expanded', 'true')
     expect(label).toHaveAccessibleDescription(/saved only in this browser/)
+    expect(label).toHaveAccessibleDescription(/Export a backup from Settings to keep a copy\./)
 
     await userEvent.tab()
     const link = screen.getByRole('link', { name: 'download the app' })
