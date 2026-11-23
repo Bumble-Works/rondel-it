@@ -45,6 +45,8 @@ Open a task's rondel menu to choose **Tomorrow**, **Pick a date**, **Next week**
 **Next month** or **Bucket List**. Each deliberate postponement increases its
 rondel count. A to-do moves to its new location; a doing task keeps its status
 and leaves a read-only history copy on the day you worked on it.
+Give a task a day only when you will do it that day; otherwise rondel it to next
+week or month and schedule it when that period starts.
 
 **Next week** and **Next month** hold tasks in that period's **Unassigned** list
 until you give them a day. The **Rondeled** box at the top of Day and Week views

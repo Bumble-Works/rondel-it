@@ -1,5 +1,5 @@
 import { renderWithQuery as render } from './test/queryTestUtils'
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import App from './App'
 import type { UserSetting } from './domain/types'
 import { useSync } from './features/sync/useSync'
@@ -10,7 +10,7 @@ vi.mock('./features/sync/useSync', () => ({ useSync: vi.fn() }))
 vi.mock('./features/reminders/useSchedule', () => ({ useSchedule: vi.fn() }))
 vi.mock('./features/board/useScrollToToday', () => ({ useScrollToToday: vi.fn() }))
 
-const HINT = 'Rondeled tasks wait here until you pick a day.'
+const HINT = 'Want to do this week, but not on a day yet.'
 const settings: UserSetting = {
   weekStartDay: 1, dayStartTime: '09:00', endOfDayTime: '17:00', timezone: 'UTC',
 }
@@ -39,12 +39,21 @@ function rondeledBox(): HTMLElement {
   return box
 }
 
-describe('Day view Rondeled hint', () => {
+describe('Rondeled hint', () => {
   it('explains the Rondeled box while it is empty', async () => {
     render(<App />)
     await screen.findByRole('heading', { level: 1, name: 'Today' })
 
     expect(await within(rondeledBox()).findByText(HINT)).toBeInTheDocument()
+  })
+
+  it('says this month in Month view', async () => {
+    render(<App />)
+    await screen.findByRole('heading', { level: 1, name: 'Today' })
+    fireEvent.click(screen.getByRole('button', { name: 'Month' }))
+
+    expect(await within(rondeledBox()).findByText('Want to do this month, but not on a day yet.')).toBeInTheDocument()
+    expect(screen.queryByText(HINT)).not.toBeInTheDocument()
   })
 
   it('hides the hint once the box has a task', async () => {

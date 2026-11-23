@@ -67,8 +67,6 @@ interface Buckets {
   'bucket-list': Task[]
 }
 
-const RONDELED_DAY_HINT = 'Rondeled tasks wait here until you pick a day.'
-
 const BUCKET_DEFS: Array<[keyof Buckets, string, string]> = [['bucket-list', 'Bucket List', 'Someday']]
 
 function errorMessage(e: unknown): string {
@@ -298,7 +296,8 @@ function App() {
     defaultCollapsed: false,
     addTarget: { dayDate: containerDropDay({ start: containerStart, end: containerEnd }, today), rondeled: true },
     tasks: containerItems.filter(visible),
-    emptyLabel: 'Nothing rondeled here',
+    // New visitors don't know what Rondeled means; explain it while the box is empty.
+    emptyHint: `Want to do this ${view === 'month' ? 'month' : 'week'}, but not on a day yet.`,
   })
 
   const bucketGroup = (bucket: keyof Buckets, title: string, eyebrow: string): BoardGroup => ({
@@ -328,11 +327,7 @@ function App() {
   const groups: BoardGroup[] = useMemo(() => {
     switch (view) {
       case 'day':
-        return [
-          // New visitors don't know what Rondeled means; explain it while the box is empty.
-          { ...containerGroup(), emptyHint: RONDELED_DAY_HINT },
-          { ...dayGroup(anchorDate), collapsible: false, hideTitle: true },
-        ]
+        return [containerGroup(), { ...dayGroup(anchorDate), collapsible: false, hideTitle: true }]
       case 'week':
         return [containerGroup(), ...weekDays(anchorWeekStart).slice().reverse().map(dayGroup)]
       case 'month':
