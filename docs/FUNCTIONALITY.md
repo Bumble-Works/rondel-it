@@ -49,11 +49,12 @@ Give a task a day only when you will do it that day; otherwise rondel it to next
 week or month and schedule it when that period starts.
 
 **Next week** and **Next month** hold tasks in that period's **Unassigned** list
-until you give them a day. The **Rondeled** box at the top of Day and Week views
-shows the current week's list; Month view shows the month's. Once the period starts, they appear in reviews until
+until you give them a day. Once the period starts, they appear in reviews until
 resolved, including after the period ends. Starting or finishing a waiting task
 places it on today. Giving it a day is scheduling and adds no rondel. Choosing
 **Next week** or **Next month** again moves it to that period and adds one.
+The **Rondeled** box at the top of Day and Week views shows the current week's
+list; Month view shows the month's.
 
 ## Keep a Bucket List
 
