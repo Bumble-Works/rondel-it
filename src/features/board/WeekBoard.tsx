@@ -27,6 +27,8 @@ export interface BoardGroup {
   collapsible?: boolean
   addTarget?: BoardGroupAddTarget
   emptyLabel?: string
+  /** One muted line shown above the add row while the section has no tasks. */
+  emptyHint?: string
   tasks: Task[]
   /** Week/month day sections can be printed on their own (as filtered). */
   onPrint?: () => void
@@ -118,6 +120,9 @@ export function WeekBoard({
             emptyLabel={group.emptyLabel}
             dropId={group.addTarget ? sectionDropId(group.key) : undefined}
           >
+            {group.tasks.length === 0 && group.emptyHint && (
+              <p className="board-section-empty">{group.emptyHint}</p>
+            )}
             {group.tasks.map((task) => (
               <TaskRow
                 key={task.id}

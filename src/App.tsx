@@ -67,6 +67,8 @@ interface Buckets {
   'bucket-list': Task[]
 }
 
+const RONDELED_DAY_HINT = 'Rondeled tasks wait here until you pick a day.'
+
 const BUCKET_DEFS: Array<[keyof Buckets, string, string]> = [['bucket-list', 'Bucket List', 'Someday']]
 
 function errorMessage(e: unknown): string {
@@ -326,7 +328,11 @@ function App() {
   const groups: BoardGroup[] = useMemo(() => {
     switch (view) {
       case 'day':
-        return [containerGroup(), { ...dayGroup(anchorDate), collapsible: false, hideTitle: true }]
+        return [
+          // New visitors don't know what Rondeled means; explain it while the box is empty.
+          { ...containerGroup(), emptyHint: RONDELED_DAY_HINT },
+          { ...dayGroup(anchorDate), collapsible: false, hideTitle: true },
+        ]
       case 'week':
         return [containerGroup(), ...weekDays(anchorWeekStart).slice().reverse().map(dayGroup)]
       case 'month':

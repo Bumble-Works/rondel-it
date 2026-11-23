@@ -47,7 +47,8 @@ rondel count. A to-do moves to its new location; a doing task keeps its status
 and leaves a read-only history copy on the day you worked on it.
 
 **Next week** and **Next month** hold tasks in that period's **Unassigned** list
-until you give them a day. Once the period starts, they appear in reviews until
+until you give them a day. The **Rondeled** box at the top of Day and Week views
+shows the current week's list; Month view shows the month's. Once the period starts, they appear in reviews until
 resolved, including after the period ends. Starting or finishing a waiting task
 places it on today. Giving it a day is scheduling and adds no rondel. Choosing
 **Next week** or **Next month** again moves it to that period and adds one.
