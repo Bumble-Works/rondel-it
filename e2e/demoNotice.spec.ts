@@ -13,7 +13,7 @@ test('the Demo note stays open while the mouse moves from the label to the downl
   await expect(link).toBeVisible()
 
   const from = (await label.boundingBox())!
-  const to = (await link.boundingBox())!
+  const to = await link.evaluate(el => { const r = el.getClientRects()[0]; return { x: r.x, y: r.y, width: r.width, height: r.height } })
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 20 })
   await expect(link).toBeVisible()
