@@ -181,6 +181,7 @@ export function TaskDetailPanel({
             weekStartDay={weekStartDay}
             disabledReason={rondelBlockedReason(task)}
             inBucketList={task.bucket !== null}
+            inProgress={task.status === 'doing' && !task.rondeled && task.bucket === null}
           />
         </div>
         {!carried && !taskIsCanceled && (

@@ -41,16 +41,20 @@ leaving a history copy.
 
 ## Carry work forward
 
-Open a task's rondel menu to choose **Tomorrow**, **Pick a date**, **Next week**,
-**Next month** or **Bucket List**. Each deliberate postponement increases its
-rondel count. A to-do moves to its new location; a doing task keeps its status
-and leaves a read-only history copy on the day you worked on it.
+Open a task's rondel menu to choose **Tomorrow**, **Next week**, **Next month**
+or **Pick a date**. Next week and Next month put the task on the first day of
+that week or month (shown in the menu), still scheduled. Each deliberate
+postponement increases its rondel count. A to-do moves to its new location; a
+doing task keeps its status and leaves a read-only history copy on the day you
+worked on it.
 
-**Next week** and **Next month** hold tasks in that period's **Unassigned** list
-until you give them a day. Once the period starts, they appear in reviews until
-resolved, including after the period ends. Starting or finishing a waiting task
-places it on today. Giving it a day is scheduling and adds no rondel. Choosing
-**Next week** or **Next month** again moves it to that period and adds one.
+Under **No day yet**, **Next week's Unassigned** and **Next month's Unassigned**
+hold tasks in that period's **Unassigned** list until you give them a day, and
+**Bucket List** sets a task aside without a date. Moving an in-progress task
+there asks first. Once the period starts, Unassigned tasks appear in reviews
+until resolved, including after the period ends. Starting or finishing a
+waiting task places it on today. Giving it a day is scheduling and adds no
+rondel. Choosing an Unassigned list again moves it to that period and adds one.
 
 ## Keep a Bucket List
 
@@ -114,7 +118,9 @@ whose period has started. It also catches up a missed morning review on opening.
 
 For each item, choose **Today** in the morning or **Tomorrow** at end of day,
 **Next week**, **Next month**, **Pick a date**,
-**Cancel** or **Done**. Finishing a past-day task records completion on its planned
+**Cancel** or **Done**. For past-day tasks, Next week and Next month
+put the task on that period's first day; waiting Unassigned items move to the
+next period's Unassigned list. Finishing a past-day task records completion on its planned
 day. Closing the review leaves unresolved items for the next review.
 
 ## Read reports

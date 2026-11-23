@@ -190,6 +190,7 @@ export function TaskRow({
           weekStartDay={weekStartDay}
           disabledReason={locked ? OPEN_IN_PANEL_HINT : rondelBlockedReason(task)}
           inBucketList={task.bucket !== null}
+          inProgress={task.status === 'doing' && !task.rondeled && task.bucket === null}
           size={RONDEL_ICON}
         />
         <TaskMoreMenu
