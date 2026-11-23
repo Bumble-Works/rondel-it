@@ -118,7 +118,7 @@ test('opens left-behind todos for action and celebrates a clear list', async ({ 
   await expect(page.getByRole('button', { name: 'Show 0 tasks left behind' })).toBeDisabled()
   await page.getByRole('button', { name: 'All tags', exact: true }).click()
   await page.getByRole('button', { name: 'Show 1 task left behind' }).click()
-  await page.getByRole('button', { name: 'Open brought-in', exact: true }).click()
+  await page.getByRole('button', { name: 'brought-in', exact: true }).click()
   await expect(page.getByRole('complementary', { name: 'Task details' })).toBeVisible()
   await expect(page.getByLabel('Title', { exact: true })).toHaveValue('brought-in')
 })

@@ -472,8 +472,8 @@ function App() {
                 <Icon name="menu" size={20} />
               </button>
               <div className="app-topbar-titles">
-                <h1>{title}</h1>
-                <p>{subtitle}</p>
+                <h1>{view === 'week' || view === 'month' ? subtitle : title}</h1>
+                <p>{view === 'week' || view === 'month' ? title : subtitle}</p>
               </div>
 
               <div className="app-topbar-right">
