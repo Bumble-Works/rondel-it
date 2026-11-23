@@ -213,16 +213,24 @@ describe('period carry-forward flows', () => {
 })
 
 describe('elapsed days and review evidence', () => {
-  it('calculates both duration measures and excludes missing or negative dates with coverage', () => {
+  it('calculates both duration measures, counts early finishes as 0 planned days and excludes missing dates', () => {
     const report = dashboard([
       task({ id: 'known', status: 'done', originDate: '2026-10-01', startedAt: '2026-10-04T12:00:00', completedAt: '2026-10-06T12:00:00' }),
       task({ id: 'same-day', status: 'done', originDate: '2026-10-06', startedAt: '2026-10-06T09:00:00', completedAt: '2026-10-06T12:00:00' }),
       task({ id: 'missing', status: 'done', originDate: null, startedAt: null, completedAt: '2026-10-06T12:00:00' }),
       task({ id: 'negative', status: 'done', originDate: '2026-10-07', startedAt: '2026-10-07T12:00:00', completedAt: '2026-10-06T12:00:00' }),
     ])
-    expect(report.durations.planned).toMatchObject({ values: [0, 5], average: 2.5, median: 2.5, available: 2, total: 4 })
+    expect(report.durations.planned).toMatchObject({ values: [0, 0, 5], average: 5 / 3, median: 0, available: 3, total: 4 })
     expect(report.durations.started).toMatchObject({ values: [0, 2], average: 1, available: 2, total: 4 })
     expect(report.coverage.missingStarted).toBe(2)
+  })
+
+  it('counts a task finished before its planned day as 0 planned days', () => {
+    const report = dashboard([
+      task({ id: 'early', status: 'done', dayDate: '2026-10-06', originDate: '2026-10-12', completedAt: '2026-10-06T12:00:00' }),
+      task({ id: 'late', status: 'done', dayDate: '2026-10-06', originDate: '2026-10-03', completedAt: '2026-10-06T12:00:00' }),
+    ])
+    expect(report.durations.planned).toMatchObject({ values: [0, 3], available: 2, total: 2 })
   })
 
   it('uses local calendar dates and counts calendar boundaries independently of DST day length', () => {

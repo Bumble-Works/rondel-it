@@ -85,7 +85,7 @@ export function lineageEvidence(
       firstSeenDate: scope.firstSeenDate,
       completedDate, canceledDate, rondelCount: task.rondelCount, doingRondelCount,
       todoRondelCount: doingRondelCount === null ? null : task.rondelCount - doingRondelCount,
-      plannedDays: calendarDays(task.originDate, completedDate),
+      plannedDays: plannedDays(task.originDate, completedDate),
       startDateSource: start.source,
       startedDays: calendarDays(start.date, completedDate),
       inProgressDays: task.status === 'todo' || task.status === 'doing'
@@ -101,4 +101,11 @@ export function relevantEvidence(item: LineageEvidence): boolean {
     || (item.row.status === 'canceled' && item.row.canceledDate === null)
   return item.onListInRange || item.decisionsInRange > 0 || (unknownResolution && item.row.scheduledInRange) || item.completedInRange || item.canceledInRange
     || item.review.length > 0 || item.row.flows.length > 0
+}
+
+/** Days from the first planned day to completion. Finishing early counts as 0 days, not as missing. */
+function plannedDays(originDate: string | null, completedDate: string | null): number | null {
+  const days = calendarDays(originDate, completedDate)
+  if (days !== null) return days
+  return calendarDays(completedDate, originDate) === null ? null : 0
 }
