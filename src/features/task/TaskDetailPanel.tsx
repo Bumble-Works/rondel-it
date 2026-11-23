@@ -5,7 +5,7 @@ import { TaskLinks } from './TaskLinks'
 import { TaskTitleField } from './TaskTitleField'
 import type { RondelTarget } from '../../services/adapters/DataSource'
 import { NEXT_STATUS_LABEL, nextStatus } from '../../domain/status'
-import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
+import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, keepsHistoryOnRondel, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { Button } from '../../shared/ui/Button'
@@ -181,6 +181,8 @@ export function TaskDetailPanel({
             weekStartDay={weekStartDay}
             disabledReason={rondelBlockedReason(task)}
             inBucketList={task.bucket !== null}
+            inProgress={keepsHistoryOnRondel(task)}
+            currentDay={task.rondeled || task.bucket !== null ? null : task.dayDate}
           />
         </div>
         {!carried && !taskIsCanceled && (

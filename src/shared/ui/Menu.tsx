@@ -108,11 +108,15 @@ interface MenuItemProps {
   onClick?: () => void
   children: ReactNode
   tone?: 'default' | 'danger'
+  disabled?: boolean
+  /** Tooltip, e.g. why the item is disabled. */
+  title?: string
 }
 
-export function MenuItem({ icon, onClick, children, tone = 'default' }: MenuItemProps) {
+export function MenuItem({ icon, onClick, children, tone = 'default', disabled, title }: MenuItemProps) {
   return (
-    <button type="button" className={`menu-item menu-item--${tone}`} role="menuitem" onClick={onClick}>
+    <button type="button" className={`menu-item menu-item--${tone}`} role="menuitem" onClick={onClick}
+      disabled={disabled} title={title}>
       {icon && <span className="menu-item-icon">{icon}</span>}
       <span className="menu-item-label">{children}</span>
     </button>

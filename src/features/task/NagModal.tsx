@@ -52,7 +52,7 @@ export function NagModal({ open, waiting, leftUndone, onClose, ...actions }: Nag
           <p className="nag-intro">
             {plural(leftUndone.length, 'task was', 'tasks were')} never finished. Done marks it done on its day.
           </p>
-          <NagList items={leftUndone} {...actions} />
+          <NagList items={leftUndone} dated {...actions} />
         </section>
       )}
       {waiting.length > 0 && (
@@ -66,8 +66,13 @@ export function NagModal({ open, waiting, leftUndone, onClose, ...actions }: Nag
   )
 }
 
-function NagList({ items, slot = 'start', weekStartDay, onRondel, onSetDone, onCancel, onPickDate }: NagActions & { items: Task[] }) {
+/** `dated`: Next week / Next month land on that period's first day; otherwise in its Unassigned list. */
+function NagList({ items, dated = false, slot = 'start', weekStartDay, onRondel, onSetDone, onCancel, onPickDate }: NagActions & { items: Task[]; dated?: boolean }) {
   const today = todayIso()
+  const nextWeek = firstDayOfNextWeek(today, weekStartDay)
+  const nextMonth = firstDayOfNextMonth(today)
+  const later = (toDate: string) => (dated ? { toDate } : { toDate, rondeled: true })
+  const landing = (toDate: string) => (dated ? `On ${formatDayLabel(toDate)}` : undefined)
   return (
     <TaskActionList>
       {items.map((task) => (
@@ -75,10 +80,10 @@ function NagList({ items, slot = 'start', weekStartDay, onRondel, onSetDone, onC
           <PillButton onClick={() => onRondel(task, { toDate: slot === 'end' ? addDays(today, 1) : today })}>
             {slot === 'end' ? 'Tomorrow' : 'Today'}
           </PillButton>
-          <PillButton onClick={() => onRondel(task, { toDate: firstDayOfNextWeek(today, weekStartDay), rondeled: true })}>
+          <PillButton title={landing(nextWeek)} onClick={() => onRondel(task, later(nextWeek))}>
             Next week
           </PillButton>
-          <PillButton onClick={() => onRondel(task, { toDate: firstDayOfNextMonth(today), rondeled: true })}>
+          <PillButton title={landing(nextMonth)} onClick={() => onRondel(task, later(nextMonth))}>
             Next month
           </PillButton>
           <PillButton aria-label="Pick a date" title="Pick a date" onClick={() => onPickDate(task)}>

@@ -72,3 +72,27 @@ it.each(['start', 'end'] as const)('routes both review sections to the correct l
   for (const t of tasks) expect(onRondel).toHaveBeenCalledWith(t, { toDate: slot === 'end' ? '2027-01-01' : '2026-12-31' })
   vi.useRealTimers()
 })
+
+it('schedules left-undone tasks on the next period’s first day; waiting items go back to Unassigned', () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(2026, 10, 25, 9))
+  const onRondel = vi.fn()
+  const [left, waiting] = [task({ id: 'left', title: 'Left' }), task({ id: 'waiting', title: 'Waiting', rondeled: true })]
+  render(<NagModal open waiting={[waiting]} leftUndone={[left]} weekStartDay={1}
+    onClose={vi.fn()} onRondel={onRondel} onSetDone={vi.fn()} onCancel={vi.fn()} onPickDate={vi.fn()} />)
+  const leftSection = screen.getByRole('region', { name: 'Left undone on past days' })
+  const waitingSection = screen.getByRole('region', { name: 'Rondeled items waiting' })
+
+  const leftWeek = within(leftSection).getByRole('button', { name: 'Next week' })
+  expect(leftWeek).toHaveAttribute('title', 'On Monday, November 30')
+  fireEvent.click(leftWeek)
+  fireEvent.click(within(leftSection).getByRole('button', { name: 'Next month' }))
+  expect(onRondel).toHaveBeenCalledWith(left, { toDate: '2026-11-30' })
+  expect(onRondel).toHaveBeenCalledWith(left, { toDate: '2026-12-01' })
+
+  fireEvent.click(within(waitingSection).getByRole('button', { name: 'Next week' }))
+  fireEvent.click(within(waitingSection).getByRole('button', { name: 'Next month' }))
+  expect(onRondel).toHaveBeenCalledWith(waiting, { toDate: '2026-11-30', rondeled: true })
+  expect(onRondel).toHaveBeenCalledWith(waiting, { toDate: '2026-12-01', rondeled: true })
+  vi.useRealTimers()
+})

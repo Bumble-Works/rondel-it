@@ -29,8 +29,13 @@
   text-align: left;
 }
 
-.menu-item:hover {
+.menu-item:hover:not(:disabled) {
   background: var(--surface-2);
+}
+
+.menu-item:disabled {
+  cursor: default;
+  color: var(--muted);
 }
 
 .menu-item--danger {
