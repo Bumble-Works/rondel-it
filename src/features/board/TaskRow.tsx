@@ -1,7 +1,7 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { rowDropId, type DropPosition } from './boardDrop'
 import type { RondelTarget } from '../../services/adapters/DataSource'
-import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, rondelBlockedReason } from '../../domain/rondel'
+import { CANCELED_REOPEN_HINT, CARRIED_FORWARD_HINT, isCarriedForward, keepsHistoryOnRondel, rondelBlockedReason } from '../../domain/rondel'
 import type { Tag, Task } from '../../domain/types'
 import { Icon } from '../../shared/ui/Icon'
 import { StatusCircle } from '../../shared/ui/StatusCircle'
@@ -190,7 +190,8 @@ export function TaskRow({
           weekStartDay={weekStartDay}
           disabledReason={locked ? OPEN_IN_PANEL_HINT : rondelBlockedReason(task)}
           inBucketList={task.bucket !== null}
-          inProgress={task.status === 'doing' && !task.rondeled && task.bucket === null}
+          inProgress={keepsHistoryOnRondel(task)}
+          currentDay={task.rondeled || task.bucket !== null ? null : task.dayDate}
           size={RONDEL_ICON}
         />
         <TaskMoreMenu

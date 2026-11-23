@@ -18,6 +18,8 @@ interface RondelMenuProps {
   inBucketList?: boolean
   /** A doing task on a day: taking its day away ("No day yet") asks first. */
   inProgress?: boolean
+  /** The day the task is scheduled on, if any: a dated item for that same day is disabled. */
+  currentDay?: string | null
 }
 
 /** A "No day yet" choice waiting for the in-progress confirmation. */
@@ -35,12 +37,14 @@ export function RondelMenu({
   disabledReason = null,
   inBucketList = false,
   inProgress = false,
+  currentDay = null,
 }: RondelMenuProps) {
   const [pending, setPending] = useState<PendingMove | null>(null)
   const disabled = disabledReason !== null
   const today = todayIso()
   const nextWeek = firstDayOfNextWeek(today, weekStartDay)
   const nextMonth = firstDayOfNextMonth(today)
+  const tomorrow = addDays(today, 1)
 
   const moveWithoutDay = (move: PendingMove) => (inProgress ? setPending(move) : onRondel(move.target))
 
@@ -62,9 +66,11 @@ export function RondelMenu({
         )}
       >
         {(close) => {
-          const item = (icon: IconName, label: ReactNode, action: () => void) => (
+          const item = (icon: IconName, label: ReactNode, action: () => void, disabledTitle?: string) => (
             <MenuItem
               icon={<Icon name={icon} size={16} />}
+              disabled={disabledTitle !== undefined}
+              title={disabledTitle}
               onClick={() => {
                 action()
                 close()
@@ -73,12 +79,16 @@ export function RondelMenu({
               {label}
             </MenuItem>
           )
+          // Moving a task onto its own day would count a rondel (and copy a doing task) for no move.
+          const dated = (label: string, toDate: string) =>
+            item('arrow-right', label, () => onRondel({ toDate }),
+              toDate === currentDay ? `Already on ${formatDayLabel(toDate)}` : undefined)
           return (
             <>
               <MenuLabel>{inBucketList ? 'Schedule it for…' : 'Rondel it to…'}</MenuLabel>
-              {item('arrow-right', 'Tomorrow', () => onRondel({ toDate: addDays(today, 1) }))}
-              {item('arrow-right', `Next week · ${formatDayLabel(nextWeek)}`, () => onRondel({ toDate: nextWeek }))}
-              {item('arrow-right', `Next month · ${formatDayLabel(nextMonth)}`, () => onRondel({ toDate: nextMonth }))}
+              {dated('Tomorrow', tomorrow)}
+              {dated(`Next week · ${formatDayLabel(nextWeek)}`, nextWeek)}
+              {dated(`Next month · ${formatDayLabel(nextMonth)}`, nextMonth)}
               {item('calendar', 'Pick a date…', onPickDate)}
               <MenuSeparator />
               <MenuLabel>No day yet</MenuLabel>

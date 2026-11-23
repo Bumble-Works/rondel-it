@@ -73,4 +73,15 @@ describe('RondelMenu', () => {
     expect(onRondel).toHaveBeenCalledWith({ toDate: '2026-11-30' })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
+
+  it('disables a dated item for the day the task is already on, saying why', () => {
+    const onRondel = openMenu({ currentDay: '2026-11-30' })
+    const nextWeek = screen.getByRole('menuitem', { name: 'Next week · Monday, November 30' })
+    expect(nextWeek).toBeDisabled()
+    expect(nextWeek).toHaveAttribute('title', 'Already on Monday, November 30')
+    fireEvent.click(nextWeek)
+    expect(onRondel).not.toHaveBeenCalled()
+    expect(screen.getByRole('menuitem', { name: 'Tomorrow' })).toBeEnabled()
+    expect(screen.getByRole('menuitem', { name: 'Next week’s Unassigned' })).toBeEnabled()
+  })
 })
