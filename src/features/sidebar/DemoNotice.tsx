@@ -1,9 +1,24 @@
-import { useEffect, useId, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FocusEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { isDesktopApp } from '../../services/sync/folder'
 import { openExternal } from '../../shared/openExternal'
 import './DemoNotice.css'
 
 export const DOWNLOAD_URL = 'https://github.com/Bumble-Works/rondel-it/releases/latest'
+
+/** Link to the latest desktop release, opened outside the app. */
+export function DownloadAppLink({ children }: { children: ReactNode }) {
+  return (
+    <a
+      href={DOWNLOAD_URL}
+      onClick={(e) => {
+        e.preventDefault()
+        openExternal(DOWNLOAD_URL).catch((err) => console.error('[rondel] Couldn’t open link', err))
+      }}
+    >
+      {children}
+    </a>
+  )
+}
 
 /** Browser-only "Demo" label: data stays in this browser, and the app is for everyday use. */
 export function DemoNotice() {
@@ -57,16 +72,7 @@ export function DemoNotice() {
       <div id={id} role="note" className="demo-notice-tip" hidden={!open}>
         Demo: your tasks are saved only in this browser. Clearing site data or cookies erases them, and any
         sync setup must be done again. For everyday use,{' '}
-        <a
-          href={DOWNLOAD_URL}
-          onClick={(e) => {
-            e.preventDefault()
-            openExternal(DOWNLOAD_URL).catch((err) => console.error('[rondel] Couldn’t open link', err))
-          }}
-        >
-          download the app
-        </a>
-        .
+        <DownloadAppLink>download the app</DownloadAppLink>.
       </div>
     </div>
   )

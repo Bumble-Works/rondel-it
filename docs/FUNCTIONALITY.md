@@ -6,8 +6,8 @@ Choose **Day**, **Week** or **Month** in the sidebar. Use the arrows to browse a
 **Today** to return. Set your preferred first day of the week in Settings.
 Week and Month show the displayed dates as the heading, with the view name below.
 On a narrow window, the ☰ button opens the sidebar.
-In the browser version, a **Demo** label beside the logo explains that tasks stay
-only in that browser and links to the app download.
+In the browser version, a **Demo** label beside the logo (in the top bar on a
+narrow window) explains that tasks stay only in that browser and links to the app download.
 
 Type in **Add a task** within a day, or use the top **+** button to choose where
 it belongs. Press **n** to open that composer when you aren't typing elsewhere.
@@ -160,7 +160,8 @@ value. On desktop, choose where to save; the browser downloads the file.
 
 ## Sync computers
 
-In the Mac or Windows app, choose **Settings → Sync → Choose folder…** and select
+Sync is available in the Mac and Windows apps; the browser's Settings → Sync
+links to the download. In the app, choose **Settings → Sync → Choose folder…** and select
 a folder inside Google Drive, OneDrive, Box or Dropbox. On the other computer,
 choose the same **Rondel It** folder. Joining merges the computers' data.
 
