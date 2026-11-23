@@ -5,7 +5,7 @@
 Plan your day, carry unfinished work forward deliberately, and keep a record of
 what you worked on. Works offline on Mac, Windows and in the browser.
 
-[User manual](docs/FUNCTIONALITY.md)
+**[Try the demo](https://bumble-works.github.io/rondel-it/)** in your browser · [User manual](docs/FUNCTIONALITY.md)
 
 ## Install
 
