@@ -19,6 +19,7 @@
 .report-task-note { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink-soft); font-size: 0.85rem; font-weight: 400; line-height: 1.55; margin-top: 0.6rem; }
 .report-open-task { display: block; padding: 0; border: none; background: none; color: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
 .report-open-task:hover { color: var(--brand-ink); text-decoration: underline; }
+.report-task-row--canceled .report-open-task:hover { text-decoration-line: underline line-through; }
 .report-task-links { margin-top: 0.35rem; font-size: 0.75rem; }
 .report-open-task:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 
