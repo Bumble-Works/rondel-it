@@ -25,12 +25,6 @@ To install or update on Mac from Terminal:
 curl -fsSL https://github.com/Bumble-Works/rondel-it/releases/latest/download/install.sh | bash
 ```
 
-For a private repository, after signing in with `gh auth login`:
-
-```bash
-gh release download -R Bumble-Works/rondel-it -p install.sh -O - | bash
-```
-
 The Mac script backs up data to
 `~/Library/Application Support/RondelIt-backups/`, preserves data from older app
 identifiers and moves the old app to the Trash. On Windows, rerun the latest
