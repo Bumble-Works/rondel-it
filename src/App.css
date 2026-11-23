@@ -163,9 +163,10 @@
   font-weight: 600;
 }
 
-/* The sidebar drawer's menu button and backdrop only show in narrow windows. */
+/* The sidebar drawer's menu button, backdrop and top-bar Demo label only show in narrow windows. */
 .app-menu-btn,
-.app-drawer-backdrop {
+.app-drawer-backdrop,
+.app-topbar-demo {
   display: none;
 }
 
@@ -204,6 +205,11 @@
   .app-topbar-titles {
     flex: 1;
     min-width: 0;
+  }
+
+  .app-topbar-demo {
+    display: block;
+    flex: none;
   }
 
   .app-topbar-titles h1,

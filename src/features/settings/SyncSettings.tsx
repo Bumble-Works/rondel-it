@@ -1,6 +1,7 @@
 import type { useSync } from '../sync/useSync'
 import { platformWords } from '../../shared/platform'
 import { Button } from '../../shared/ui/Button'
+import { DownloadAppLink } from '../sidebar/DemoNotice'
 import './SyncSettings.css'
 
 interface SyncSettingsProps {
@@ -25,6 +26,17 @@ function formatTime(iso: string): string {
 export function SyncSettings({ sync }: SyncSettingsProps) {
   const { available, folder, lastSyncedAt, syncing, warning } = sync.state
 
+  if (!available) {
+    return (
+      <section className="settings-card">
+        <h2>Sync</h2>
+        <p className="settings-hint">
+          Sync is available in the Mac and Windows apps. <DownloadAppLink>Download the app</DownloadAppLink>
+        </p>
+      </section>
+    )
+  }
+
   return (
     <section className="settings-card">
       <h2>Sync</h2>
@@ -34,9 +46,7 @@ export function SyncSettings({ sync }: SyncSettingsProps) {
         “Rondel It” folder there. Every device keeps its own full copy, so nothing is lost if the folder is.
       </p>
 
-      {!available ? (
-        <p className="sync-status">Sync works in the Mac and Windows apps. You’re using the browser version.</p>
-      ) : !folder ? (
+      {!folder ? (
         <div className="sync-actions">
           <span className="sync-status">Sync is off.</span>
           <Button variant="primary" onClick={() => void sync.chooseFolder()}>

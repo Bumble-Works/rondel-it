@@ -25,6 +25,7 @@ import { useScrollToToday } from './features/board/useScrollToToday'
 import { DatePickModal } from './features/rondel/DatePickModal'
 import { RecurringPage } from './features/recurring/RecurringPage'
 import { SettingsPage } from './features/settings/SettingsPage'
+import { DemoNotice } from './features/sidebar/DemoNotice'
 import { Sidebar, type ViewKey } from './features/sidebar/Sidebar'
 import { NoteModal } from './features/task/NoteModal'
 import { NagModal } from './features/task/NagModal'
@@ -474,6 +475,10 @@ function App() {
               <div className="app-topbar-titles">
                 <h1>{title}</h1>
                 <p>{subtitle}</p>
+              </div>
+              {/* The sidebar's Demo label is hidden in the drawer on phones, so the top bar shows it there. */}
+              <div className="app-topbar-demo">
+                <DemoNotice />
               </div>
 
               <div className="app-topbar-right">
