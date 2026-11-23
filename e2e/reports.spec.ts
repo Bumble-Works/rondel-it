@@ -173,7 +173,7 @@ test('keeps unavailable legacy history unknown and avoids inventing a Bucket Lis
   await page.goto('/')
   await openReports(page)
   await expect(highlight(page, 'Done')).toHaveText('1')
-  await expect(section(page, 'From started to completed').locator('.duration-summary-values strong')).toHaveText(['Unknown', 'Unknown'])
+  await expect(section(page, 'From first planned to completed').locator('.duration-summary-values strong')).toHaveText(['7 days', '7 days'])
   await expect(page.locator('.report-bucket-celebration')).toHaveCount(0)
   await page.getByRole('tab', { name: 'Tasks', exact: true }).click()
   const cells = page.getByRole('table', { name: 'Tasks' }).locator('tbody tr').getByRole('cell')
