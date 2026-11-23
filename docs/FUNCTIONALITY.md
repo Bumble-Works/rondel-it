@@ -135,8 +135,9 @@ lines or choose a calendar year where available.
 
 **Tasks** lists each task once, combining its carry-forward history. Filter by
 status, click a column heading to sort, and use **Show notes** for full notes.
-Click a task title to open its day and details. Web links from the title appear
-separately below it and open in the browser.
+Click a task title to open its day and details, or the Bucket List if the task
+is there now. Web links from the title appear separately below it and open in
+the browser.
 **First seen** is when the task was created. **Rondels** is its lifetime count;
 **Days in progress** runs from first start to completion, or today for unfinished
 work, including pauses. Missing historical information can leave values blank.

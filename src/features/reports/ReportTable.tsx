@@ -42,12 +42,13 @@ function TaskTitleCell({ row, tags, showNotes, onOpen }: {
     const tag = tags.find((item) => item.id === id)
     return tag ? [tag] : []
   })
+  const links = onOpen ? findLinks(row.title) : []
   return <>
     {onOpen ? <>
       <button type="button" className="report-task-title report-open-task"
         onClick={() => onOpen(row.id)}>{row.title}</button>
-      {findLinks(row.title).length > 0 && <div className="report-task-links" aria-label="Title links">
-        <LinkifiedText text={findLinks(row.title).map(link => link.href).join(' ')} />
+      {links.length > 0 && <div className="report-task-links" aria-label="Title links">
+        <LinkifiedText text={links.map(link => link.href).join(' ')} />
       </div>}
     </> : <span className="report-task-title"><LinkifiedText text={row.title} /></span>}
     {attached.length > 0 && <div className="report-task-tags" aria-label="Tags">

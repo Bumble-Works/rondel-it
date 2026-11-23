@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { reportFixture, reportFixtureTask as task } from '../../test/reportFixtures'
@@ -40,4 +41,11 @@ it('keeps printable titles and notes linkified without task-opening controls', (
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
   expect(screen.getAllByRole('link')).toHaveLength(2)
   expect(screen.getByRole('rowheader')).toHaveTextContent('Read example.com')
+})
+
+it('keeps a canceled title struck through in its hover style', () => {
+  const css = readFileSync('src/features/reports/ReportTable.css', 'utf8')
+  const hover = /\.report-task-row--canceled \.report-open-task:hover\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+  expect(hover).toMatch(/text-decoration-line:[^;]*underline/)
+  expect(hover).toMatch(/text-decoration-line:[^;]*line-through/)
 })

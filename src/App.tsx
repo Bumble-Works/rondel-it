@@ -183,8 +183,11 @@ function App() {
   }
   const openReportTask = (task: Task) => {
     setSelectedTaskId(task.id)
-    setView('day')
-    setAnchorDate(task.dayDate ?? today)
+    if (task.bucket === 'bucket-list') setView('rondel')
+    else {
+      setView('day')
+      setAnchorDate(task.dayDate ?? today)
+    }
     setPage('board')
   }
   const { advance, setDone, rondel, toggleFlag, changeReminder, addTag, toggleTag, createTagForTask, copyTask } = taskActions
