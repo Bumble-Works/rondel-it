@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { exportBackup } from '../../services/backup/exportBackup'
+import { isDesktopApp } from '../../services/sync/folder'
 import { Button } from '../../shared/ui/Button'
 import './BackupSettings.css'
 
@@ -31,6 +32,6 @@ export function BackupSettings() {
     <p className="settings-hint">Restoring a backup is not available yet. Export does not change your data or sync it to another device.</p>
     <Button disabled={busy} onClick={() => void download()}>{busy ? 'Exporting…' : 'Export backup'}</Button>
     {error && <p role="alert">{error}</p>}
-    {requested && <p role="status">Backup download requested. Check that the file was saved.</p>}
+    {requested && <p role="status">{isDesktopApp() ? 'Backup saved.' : 'Backup download requested. Check that the file was saved.'}</p>}
   </section>
 }

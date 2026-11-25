@@ -20,6 +20,7 @@ export async function downloadTextFile(filename: string, content: string, mime: 
     return true
   } finally {
     link.remove()
+    // Allow the browser to consume the download before releasing its memory.
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 }
