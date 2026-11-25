@@ -12,8 +12,11 @@ test('the Demo note stays open while the mouse moves from the label to the downl
   const link = page.getByRole('link', { name: 'download the app' })
   await expect(link).toBeVisible()
 
+  // The web font swaps in after first paint and reflows the note; measure the final layout.
+  await page.evaluate(() => document.fonts.ready)
   const from = (await label.boundingBox())!
-  const to = (await link.boundingBox())!
+  // The link can wrap on narrow screens; the centre of its combined box can land on note text.
+  const to = await link.evaluate(el => { const r = el.getClientRects()[0]; return { x: r.x, y: r.y, width: r.width, height: r.height } })
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 20 })
   await expect(link).toBeVisible()

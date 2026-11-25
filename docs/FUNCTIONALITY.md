@@ -164,6 +164,17 @@ date, Completed date, Canceled date, Days in progress, Rondels and Note. Tags ar
 separated by semicolons; dates use YYYY-MM-DD. Blank values mean no recorded
 value. On desktop, choose where to save; the browser downloads the file.
 
+## Back up data
+
+In **Settings → Backup**, choose **Export backup** to download a versioned JSON
+copy of tasks, notes, tags, recurring rules, settings, history and deletion
+metadata from this app. Check that the file was saved. Export does not change
+local data. Device identity, sync-folder location and credentials are excluded.
+
+Backups contain private data and are not encrypted; keep them somewhere safe.
+Restoring these files is not available yet. Browser and desktop backups contain
+their own separate data; export is not cross-device sync.
+
 ## Sync computers
 
 Sync is available in the Mac and Windows apps; the browser's Settings → Sync

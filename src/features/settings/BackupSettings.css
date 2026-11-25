@@ -1,0 +1,2 @@
+.backup-settings [role='alert'] { color: var(--accent-red); }
+.backup-settings [role='status'] { color: var(--ink-soft); }
